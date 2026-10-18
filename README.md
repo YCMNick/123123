@@ -44,3 +44,22 @@ npm run preview  # 預覽打包結果
 `npm run build` 後的 `dist/` 是純靜態檔，可放到任何靜態主機
 （GitHub Pages、Netlify、Vercel、Cloudflare Pages 等），再把連結或 QR code
 給房客即可。
+
+## AI 助理 agents（Claude Code）
+
+`engineering/` 內有針對本專案調校過的 Claude Code subagent 定義檔
+（前端、Apps Script 後端、程式碼審查、QA 測試）。安裝後，在 Claude Code 裡
+直接說「activate frontend-developer mode and help me ...」即可切換角色。
+
+```bash
+# 安裝全部 agents 到 ~/.claude/agents/（所有專案都可用）
+./scripts/install.sh --tool claude-code
+
+# 只裝到本專案 .claude/agents/
+./scripts/install.sh --tool claude-code --scope project
+
+# 或手動複製單一分類
+cp engineering/*.md ~/.claude/agents/
+```
+
+加 `--dry-run` 可先預覽、`--category engineering` 可只裝某一分類。
