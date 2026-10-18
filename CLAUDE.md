@@ -111,7 +111,7 @@ No test suite yet. If adding tests, prefer Vitest and document the command here.
 
 ## Git & Branching
 
-- Active AI development branch: `claude/code-agent-install-6xe3eq`.
+- Default branch: `claude/claude-md-docs-uwchm6` (pushes here auto-deploy to GitHub Pages). Create feature branches off it.
 - Push with `git push -u origin <branch-name>`.
 - Do not push to the default branch or open a PR without explicit permission.
 
