@@ -31,6 +31,13 @@ that persists to `localStorage` so it runs without any backend.
 ├── vite.config.js              # Vite config (React plugin)
 ├── package.json                # scripts + dependencies
 ├── README.md                   # user-facing setup guide (中文)
+├── engineering/                # Claude Code subagent definitions (see "AI Agents")
+│   ├── frontend-developer.md
+│   ├── apps-script-backend-developer.md
+│   ├── code-reviewer.md
+│   └── qa-tester.md
+├── scripts/
+│   └── install.sh              # copies agent .md files into ~/.claude/agents/
 ├── src/
 │   ├── main.jsx                # React entry
 │   ├── config.js               # ⭐ all user-editable settings live here
@@ -51,6 +58,9 @@ that persists to `localStorage` so it runs without any backend.
 - **Build:** `npm run build` (outputs to `dist/`, static files)
 - **Preview build:** `npm run preview`
 - **Lint:** `npm run lint`
+- **Install AI agents:** `./scripts/install.sh --tool claude-code`
+  (`--scope project` writes to `.claude/agents/` instead of `~/.claude/agents/`;
+  `--dry-run` previews; `--category engineering` installs one category)
 
 No test suite yet. If adding tests, prefer Vitest and document the command here.
 
@@ -83,9 +93,25 @@ No test suite yet. If adding tests, prefer Vitest and document the command here.
 - Style with the CSS custom properties in `:root` (`--accent`, `--danger`, etc.)
   rather than hard-coding colors. Layout is constrained to a phone width.
 
+## AI Agents
+
+- Subagent definitions live in category folders at the repo root (currently
+  only `engineering/`). Each file is Markdown with YAML frontmatter
+  (`name`, `description`, optional `tools`) followed by the system prompt, the
+  format Claude Code expects in `~/.claude/agents/` or `.claude/agents/`.
+- `scripts/install.sh` discovers every top-level folder containing such files
+  and copies them to the chosen destination. Manual install also works:
+  `cp engineering/*.md ~/.claude/agents/`.
+- Available agents: `frontend-developer` (React/Vite UI),
+  `apps-script-backend-developer` (`Code.gs` + Apps Script path of `api.js`),
+  `code-reviewer` (read-only review against these conventions), `qa-tester`
+  (Demo-mode walkthrough, Vitest setup).
+- When adding an agent, keep its rules consistent with this file; when this
+  file changes a convention, update the affected agent prompts too.
+
 ## Git & Branching
 
-- Active AI development branch: `claude/claude-md-docs-uwchm6`.
+- Default branch: `claude/claude-md-docs-uwchm6` (pushes here auto-deploy to GitHub Pages). Create feature branches off it.
 - Push with `git push -u origin <branch-name>`.
 - Do not push to the default branch or open a PR without explicit permission.
 
