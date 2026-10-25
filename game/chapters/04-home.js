@@ -757,7 +757,7 @@ function bgOffice(c) {
   skR(c, 0, 372, W, 10, 1, 'rgba(190,150,100,.75)', 1.3, 0.9);
   // pen cup, mug, succulent
   skR(c, 10, 340, 18, 22, 2, 'rgba(120,165,215,.7)', 1, 0.8);
-  for (const [x, col] of [[14, RED], [19, INK(0.7)], [24, SUN]]) pencilLine(c, x, 340, x + (x - 19) * 0.3, 326, 1.6, 0.8);
+  for (const [x] of [[14, RED], [19, INK(0.7)], [24, SUN]]) pencilLine(c, x, 340, x + (x - 19) * 0.3, 326, 1.6, 0.8);
   skR(c, 214, 336, 20, 24, 3, PAPER, 1.1, 0.85); sk(c, p => p.arc(236, 347, 5, -Math.PI / 2, Math.PI / 2), 1, 0.7);
   c.fillStyle = 'rgba(214,72,60,.6)'; c.fillRect(214, 342, 20, 4);
   ln(c, p => { p.moveTo(220, 332); p.quadraticCurveTo(216, 326, 221, 320); p.moveTo(228, 332); p.quadraticCurveTo(224, 326, 229, 320); }, 1, INK(0.35));

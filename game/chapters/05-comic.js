@@ -146,7 +146,7 @@ function bubblePath(c, cx, cy, rx, ry, a0, a1, tx, ty) { c.beginPath(); c.ellips
 function winGrid(c, x, y, cols, rows, w, h, gx, gy, fill, lw = 1.5) { const l = []; for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) l.push([x + i * gx, y + j * gy, w, h]); rectsInk(c, l, fill, lw); }
 
 /* ===== sounds for this world ===== */
-const { q, note, puff } = QS;
+const { q, note } = QS;
 defineCreatureSound('comic_rat', (ac, o, t) => [0, 0.11, 0.22].forEach((d, k) => q(ac, o, t + d, [[0, 2500 + k * 160], [0.04, 3000 + k * 160], [0.09, 2650]], 0.09, { vol: 0.34 })));
 defineCreatureSound('comic_pigeon', (ac, o, t) => { q(ac, o, t, [[0, 520], [0.12, 650], [0.3, 560]], 0.3, { trem: [18, 0.45], vol: 0.42 }); q(ac, o, t + 0.36, [[0, 580], [0.14, 700], [0.32, 600]], 0.32, { trem: [18, 0.45], vol: 0.4 }); });
 defineCreatureSound('comic_shiba', (ac, o, t) => { q(ac, o, t, [[0, 700], [0.05, 1100], [0.16, 820]], 0.17, { vol: 0.44, over: 0.25 }); q(ac, o, t + 0.22, [[0, 820], [0.05, 1260], [0.18, 900]], 0.19, { vol: 0.44, over: 0.25 }); });

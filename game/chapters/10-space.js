@@ -125,7 +125,7 @@ function astroQ(c, armL, armR, visor = '#20294a') {
 function drawAstroHop(c) { astroQ(c, 2.3, -2.3); }
 
 /* ----- Q sounds for this world ----- */
-const { q, note, puff } = QS;
+const { q, note } = QS;
 defineCreatureSound('space_alien', (ac, o, t) => {
   q(ac, o, t, [[0, 620], [0.09, 1250], [0.2, 900], [0.34, 1500]], 0.38, { vib: [16, 70], vol: 0.38 });
   note(ac, o, t + 0.42, 2100, 0.12, 0.2);
@@ -233,7 +233,7 @@ function drawLunarRover(c) {
 /* ===== 10-3 Mars colony ===== */
 function bgMars(c) {
   const R = mulberry(1003);
-  const sky = skyG(c, [[0, '#120726'], [0.3, '#36104a'], [0.5, '#8c2f5e'], [0.62, '#d8754e'], [0.66, '#e9a06a']]);
+  skyG(c, [[0, '#120726'], [0.3, '#36104a'], [0.5, '#8c2f5e'], [0.62, '#d8754e'], [0.66, '#e9a06a']]);
   starfield(c, R, 90, 170);
   nebulae(c, R, 3, 160);
   // blue Martian sunset
@@ -661,7 +661,7 @@ function drawAstroWave(c, a) { astroQ(c, 0.5, -2.3 + Math.sin(a.t * 4) * 0.35 * 
 /* ===== 10-8 Join the stars at Lulin Observatory ===== */
 function bgLulin(c) {
   const R = mulberry(1008), px = 180, py = 62;
-  const sky = skyG(c, [[0, '#060719'], [0.42, '#170b38'], [0.58, '#3a1658'], [0.66, '#6a2470']]);
+  skyG(c, [[0, '#060719'], [0.42, '#170b38'], [0.58, '#3a1658'], [0.66, '#6a2470']]);
   nebulae(c, R, 4, 300);
   starfield(c, R, 170, 320);
   // star trails circling Polaris

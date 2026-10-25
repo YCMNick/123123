@@ -124,11 +124,6 @@ function stripeSun(c, x, y, r, col, gap, n = 4) {
   for (let i = 0; i < n; i++) c.fillRect(x - r, y + r * 0.22 + i * r * 0.2, r * 2, 2 + i * 1.4);
   c.restore();
 }
-// A poster dune with a sharp crest: lit face on the left, shadow face on the right.
-function ridge(c, x0, x1, px, py, by, lit, shade) {
-  c.beginPath(); c.moveTo(x0, by); c.quadraticCurveTo(px - (px - x0) * 0.4, py + 6, px, py); c.quadraticCurveTo(px + (x1 - px) * 0.45, py + 8, x1, by); c.closePath(); c.fillStyle = lit; c.fill();
-  c.beginPath(); c.moveTo(px, py); c.quadraticCurveTo(px + (x1 - px) * 0.45, py + 8, x1, by); c.lineTo(px + (x1 - px) * 0.3, by); c.quadraticCurveTo(px + 4, py + (by - py) * 0.45, px, py); c.closePath(); c.fillStyle = shade; c.fill();
-}
 function foot(c, x, y, rx, col = 'rgba(70,30,10,.2)') { ell(c, x, y, rx, rx * 0.16, col); }
 function starField(c, n, x0, y0, w, h, col, seed = 1) { for (let i = 0; i < n; i++) circ(c, x0 + hash(i * 3 + seed) * w, y0 + hash(i * 7 + seed + 1) * h, 0.4 + hash(i * 11 + seed) * 1.1, col); }
 function tinyPalm(c, x, y, s, col) {
@@ -138,14 +133,6 @@ function tinyPalm(c, x, y, s, col) {
   for (let i = 0; i < 6; i++) { const an = -Math.PI / 2 + (i - 2.5) * 0.6, ex = x + 2 * s + Math.cos(an) * 14 * s, ey = y - 28 * s + Math.sin(an) * 9 * s + 4 * s; c.beginPath(); c.moveTo(x + 2 * s, y - 28 * s); c.quadraticCurveTo((x + 2 * s + ex) / 2, y - 33 * s, ex, ey); c.stroke(); }
 }
 const lineC = (c, col, lw, pts) => { c.strokeStyle = col; c.lineWidth = lw; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke(); };
-// A wooden post with a painted board: the board is w×h, centred at (0, by).
-function boardSign(c, w, h, by, board, edge, postTo, posts = [0]) {
-  posts.forEach((px) => { c.fillStyle = '#6b4a2b'; c.fillRect(px - 3, by, 6, postTo - by); });
-  rr(c, -w / 2, by - h / 2, w, h, 3); c.fillStyle = board; c.fill(); c.strokeStyle = edge; c.lineWidth = 2; c.stroke();
-}
-
-/* ===== camels and other creatures shared by several stages ===== */
-// Flat dromedary facing right, about 126×96 at s = 1, centred. o.deco(c) draws a saddle on top.
 function dromedary(c, a, o = {}) {
   const s = o.s || 1, body = o.body || '#b0703c', far = o.far || '#7e4a26', near = o.leg || '#94592e', walk = o.walk ?? 1;
   const st = Math.sin(a.t * 3) * a.live * walk, ch = Math.sin(a.t * 7) * a.live;

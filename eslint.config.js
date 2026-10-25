@@ -41,7 +41,9 @@ export default [
     languageOptions: {
       sourceType: 'script',
       globals: Object.fromEntries(['W', 'H', 'T', 'LOCAL', 'QS', 'rad', 'deg', 'norm', 'mulberry', 'GRAIN', 'KPX', 'rr', 'txt', 'ell', 'circ', 'poly', 'groundShadow',
-        'pxSprite', 'comicShape', 'softShadow', 'defineChapter', 'defineSong', 'defineCreatureSound', 'defineThingSound'].map((k) => [k, 'readonly'])),
+        'pxSprite', 'comicShape', 'softShadow', 'defineChapter', 'defineSong', 'defineCreatureSound', 'defineThingSound'].map((k) => [k, k === 'KPX' ? 'writable' : 'readonly'])),
     },
+    // Draw functions share one signature (c, a); not every one needs every argument.
+    rules: { 'no-unused-vars': ['error', { args: 'none', varsIgnorePattern: '^[A-Z_]' }] },
   },
 ]

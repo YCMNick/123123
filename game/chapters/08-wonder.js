@@ -157,7 +157,7 @@ const SPRITES = new Map();
 // The margin is lopsided because softShadow falls down and to the right.
 function sprite(id, w, h, fn, lt = 6, rb = 14) {
   const get = k => {
-    const key = id + '|' + LANG + '|' + k;
+    const key = id + '|' + T('zh', 'en') + '|' + k;
     let s = SPRITES.get(key);
     if (!s) {
       if (SPRITES.size > 300) SPRITES.clear();
