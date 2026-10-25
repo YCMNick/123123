@@ -138,6 +138,10 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
 - `DIFFS` defines three difficulties (看到會歪頭 / 忍不住伸手 / 不轉正睡不著):
   alignment tolerance, time multiplier, score multiplier and how much the
   loupe reveals. Best scores are stored per difficulty.
+- `QS` is the Q-style sound library (pure sine + soft overtone, glides,
+  vibrato). Creatures use `call` (a `QS.creature` recipe); every other
+  non-trap object uses `sfx` (a `QS.thing` material sound, pitched by its
+  index on a pentatonic scale). Tests render every sound offline.
 - `COMMENTS` holds the result lines: one narrator per chapter, five tiers
   (`far`/`close` for a lost round, `pass`/`good`/`perfect` by stars), at
   least two lines each. A new chapter needs its own entry (tests enforce it).

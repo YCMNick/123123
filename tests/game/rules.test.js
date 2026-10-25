@@ -184,6 +184,41 @@ describe('三種難度', () => {
   })
 })
 
+describe('Q 版音效', () => {
+  it('每一件非陷阱物品都有聲音：生物用叫聲、物品用材質音；母雞用選定的 Q 版小雞', async () => {
+    const kinds = await run(() => window.__chayidu.soundKinds())
+    for (const l of LV) for (const o of l.objects.filter((x) => !x.trap)) {
+      expect(!!o.call !== !!o.sfx, `${l.key}/${o.id} 要剛好有一種聲音`).toBe(true)
+      if (o.call) expect(kinds.creature, `${l.key}/${o.id}`).toContain(o.call)
+      else expect(kinds.thing, `${l.key}/${o.id}`).toContain(o.sfx)
+    }
+    expect(LV[idx('farm')].objects.find((o) => o.id === 'chicken').call).toBe('chick')
+  })
+  it('所有聲音都能正常合成：有聲音、沒有壞值、長度在 1.2 秒內', async () => {
+    const bad = await run(async () => {
+      const G = window.__chayidu, k = G.soundKinds(), out = []
+      for (const g of ['creature', 'thing', 'ui']) for (const name of k[g]) {
+        for (const arg of g === 'thing' ? [1, 2.5] : [1]) {
+          const r = await G.renderSound(g, name, arg)
+          if (r.bad || r.peak < 0.05 || r.seconds > 1.2) out.push(`${g}/${name}@${arg}: peak ${r.peak.toFixed(3)} len ${r.seconds.toFixed(2)}s`)
+        }
+      }
+      return out
+    })
+    expect(bad).toEqual([])
+  })
+  it('同一關的物品音高不同，依序轉正會像一段旋律', async () => {
+    const r = await run((jp) => {
+      const G = window.__chayidu
+      G.seed(1); G.start(jp)
+      const before = G.sfxLog().length
+      for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() }
+      return G.sfxLog().slice(before)
+    }, idx('jp'))
+    expect(r).toEqual(['sfx:bell', 'sfx:wood', 'sfx:pop', 'sfx:clunk', 'sfx:meow'])
+  })
+})
+
 describe('結算評語', () => {
   const TIERS = ['far', 'close', 'pass', 'good', 'perfect']
   it('每個大關都有自己的旁白，五種等級各至少 2 句，文字不重複、長度適中', async () => {
@@ -237,7 +272,7 @@ describe('結算評語', () => {
 })
 
 describe('會動的生物', () => {
-  it('轉正時發出牠自己的叫聲；不是生物的物品不會叫', async () => {
+  it('轉正時，生物發出牠自己的叫聲；物品發出自己材質的聲音', async () => {
     const r = await run(([farm, jp]) => {
       const G = window.__chayidu
       G.seed(4); G.start(farm)
@@ -250,7 +285,7 @@ describe('會動的生物', () => {
       return { afterCow, jpCalls: G.sfxLog().slice(mark) }
     }, [idx('farm'), idx('jp')])
     expect(r.afterCow).toEqual(['moo'])
-    expect(r.jpCalls).toEqual([])
+    expect(r.jpCalls).toEqual(['sfx:bell'])
   })
   it('轉正後安靜下來，沒轉正的繼續動', async () => {
     await run((farm) => { const G = window.__chayidu; G.seed(4); G.start(farm); G.setAngle('cow', 0); G.release() }, idx('farm'))

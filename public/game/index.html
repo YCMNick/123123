@@ -321,6 +321,90 @@ const store = {
   save() { try { localStorage.setItem('chayidu.v2', JSON.stringify(this.data)); } catch (e) {} }
 };
 
+/* ---------- Q sound library: every sound in the game uses this cute recipe ----------
+   A pure sine with a soft triangle overtone, gliding pitch and a little vibrato, the same
+   recipe as the chosen 「Q 版小雞」. Every function takes (ac, out, t) so it also renders in
+   an OfflineAudioContext (tests and the sound gallery). Object sounds take a pitch ratio. */
+const QS = (() => {
+  const nb = new WeakMap();
+  const noise = (ac) => {
+    if (!nb.has(ac)) { const b = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = b.getChannelData(0); let s = 12345; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = s / 2147483647 * 2 - 1; } nb.set(ac, b); }
+    return nb.get(ac);
+  };
+  // One cute voice: pts = [[time, Hz], ...] relative to t.
+  function q(ac, out, t, pts, dur, o = {}) {
+    const vol = o.vol ?? 0.4, end = t + dur, a = o.attack ?? 0.01;
+    let dest = out;
+    if (o.trem) {
+      const tg = ac.createGain(), l = ac.createOscillator(), lg = ac.createGain();
+      tg.gain.value = 1 - o.trem[1]; l.frequency.value = o.trem[0]; lg.gain.value = o.trem[1];
+      l.connect(lg); lg.connect(tg.gain); tg.connect(out); l.start(t); l.stop(end); dest = tg;
+    }
+    [['sine', 1, 1], ['triangle', 2, o.over ?? 0.13]].forEach(([type, mul, g]) => {
+      const osc = ac.createOscillator(), env = ac.createGain(), v = vol * g;
+      osc.type = type;
+      osc.frequency.setValueAtTime(pts[0][1] * mul, t + pts[0][0]);
+      for (const [dt, f] of pts.slice(1)) osc.frequency.exponentialRampToValueAtTime(f * mul, t + dt);
+      if (o.vib) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = o.vib[0]; lg.gain.value = o.vib[1] * mul; l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end); }
+      env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(v, t + a);
+      env.gain.linearRampToValueAtTime(v * 0.8, t + Math.max(a, dur * (o.hold ?? 0.6))); env.gain.linearRampToValueAtTime(0, end);
+      osc.connect(env); env.connect(dest); osc.start(t); osc.stop(end + 0.02);
+    });
+  }
+  function puff(ac, out, t, dur, freq, vol) {
+    const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    n.buffer = noise(ac); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2;
+    g.gain.setValueAtTime(vol, t); g.gain.linearRampToValueAtTime(0, t + dur);
+    n.connect(f); f.connect(g); g.connect(out); n.start(t); n.stop(t + dur);
+  }
+  const note = (ac, out, t, f, dur, vol = 0.32) => q(ac, out, t, [[0, f], [dur, f]], dur, { attack: 0.004, hold: 0.12, vol, over: 0.2 });
+  // Creatures: each one has its own little Q-style call.
+  const creature = {
+    chick: (ac, o, t) => { // the chosen 「Q 版小雞」: 啾、啾、啾～
+      [0, 0.17, 0.34].forEach((d, k) => q(ac, o, t + d, [[0, 2900 + k * 80], [0.04, 3500 + k * 80], [0.11, 3000]], 0.11, { vol: 0.42 }));
+      q(ac, o, t + 0.51, [[0, 3600], [0.24, 2700]], 0.24, { vib: [12, 60], vol: 0.42 });
+    },
+    moo: (ac, o, t) => q(ac, o, t, [[0, 330], [0.12, 440], [0.45, 360]], 0.5, { vib: [6, 10], attack: 0.06, vol: 0.45, over: 0.2 }),
+    oink: (ac, o, t) => [0, 0.15].forEach((d) => { q(ac, o, t + d, [[0, 620], [0.09, 430]], 0.1, { vol: 0.4, over: 0.25 }); puff(ac, o, t + d, 0.07, 1200, 0.06); }),
+    baa: (ac, o, t) => q(ac, o, t, [[0, 760], [0.06, 840], [0.4, 700]], 0.42, { trem: [16, 0.5], vol: 0.42 }),
+    bubble: (ac, o, t) => [0, 1, 2].forEach((k) => q(ac, o, t + k * 0.09, [[0, 500 + k * 150], [0.05, 1500 + k * 300]], 0.06, { attack: 0.004, hold: 0.3, vol: 0.4 })),
+    turtle: (ac, o, t) => { q(ac, o, t, [[0, 420], [0.25, 380]], 0.3, { vib: [5, 8], vol: 0.4 }); q(ac, o, t + 0.32, [[0, 600], [0.05, 1500]], 0.06, { attack: 0.004, vol: 0.3 }); },
+    whale: (ac, o, t) => q(ac, o, t, [[0, 520], [0.25, 880], [0.6, 700], [0.8, 560]], 0.8, { vib: [5, 14], attack: 0.08, vol: 0.4 }),
+    squish: (ac, o, t) => q(ac, o, t, [[0, 1100], [0.08, 600], [0.2, 1300]], 0.22, { vib: [20, 60], vol: 0.4 }),
+    clack: (ac, o, t) => [[0, 1900], [0.1, 1900], [0.2, 2300]].forEach(([d, f]) => q(ac, o, t + d, [[0, f], [0.03, f * 0.9]], 0.045, { attack: 0.002, hold: 0.1, vol: 0.42 })),
+    honk: (ac, o, t) => [0, 0.16].forEach((d) => q(ac, o, t + d, [[0, 880], [0.1, 700]], 0.12, { vol: 0.42, over: 0.3 })),
+    camel: (ac, o, t) => q(ac, o, t, [[0, 440], [0.35, 380]], 0.4, { trem: [24, 0.6], vol: 0.45 }),
+    carousel: (ac, o, t) => [1047, 1319, 1568, 2093].forEach((f, k) => note(ac, o, t + k * 0.11, f, 0.35)),
+    radio: (ac, o, t) => { note(ac, o, t, 1500, 0.07); note(ac, o, t + 0.1, 2000, 0.07); q(ac, o, t + 0.22, [[0, 1200], [0.2, 2400]], 0.22, { vib: [14, 40], vol: 0.35 }); },
+  };
+  // Things: a cute sound per material, tuned by r so a level's objects form a little tune.
+  const thing = {
+    bell: (ac, o, t, r) => { q(ac, o, t, [[0, 1568 * r], [0.4, 1568 * r]], 0.45, { attack: 0.002, hold: 0.06, vol: 0.32, over: 0.3 }); q(ac, o, t, [[0, 3760 * r], [0.2, 3760 * r]], 0.2, { attack: 0.002, hold: 0.05, vol: 0.08 }); },
+    wood: (ac, o, t, r) => q(ac, o, t, [[0, 880 * r], [0.05, 800 * r]], 0.09, { attack: 0.002, hold: 0.05, vol: 0.45, over: 0.25 }),
+    pop: (ac, o, t, r) => q(ac, o, t, [[0, 500 * r], [0.05, 1300 * r]], 0.07, { attack: 0.003, hold: 0.2, vol: 0.4 }),
+    boing: (ac, o, t, r) => q(ac, o, t, [[0, 300 * r], [0.08, 620 * r], [0.3, 520 * r]], 0.32, { vib: [18, 40 * r], vol: 0.38 }),
+    twinkle: (ac, o, t, r) => { note(ac, o, t, 1760 * r, 0.18, 0.28); note(ac, o, t + 0.08, 2349 * r, 0.22, 0.24); },
+    beep: (ac, o, t, r) => { note(ac, o, t, 1320 * r, 0.08); note(ac, o, t + 0.1, 1760 * r, 0.12); },
+    jingle: (ac, o, t, r) => [0, 0.07, 0.14].forEach((d, k) => note(ac, o, t + d, (2093 + k * 260) * r, 0.16, 0.22)),
+    shimmer: (ac, o, t, r) => { q(ac, o, t, [[0, 1200 * r], [0.4, 1800 * r]], 0.4, { vib: [10, 30], vol: 0.25 }); q(ac, o, t + 0.05, [[0, 2400 * r], [0.35, 3200 * r]], 0.35, { vib: [12, 40], vol: 0.1 }); },
+    clunk: (ac, o, t, r) => { q(ac, o, t, [[0, 360 * r], [0.06, 300 * r]], 0.1, { attack: 0.002, hold: 0.05, vol: 0.45 }); note(ac, o, t + 0.13, 1800 * r, 0.25); },
+    meow: (ac, o, t, r) => q(ac, o, t, [[0, 900 * r], [0.08, 1300 * r], [0.3, 850 * r]], 0.32, { vib: [8, 20], vol: 0.4 }),
+  };
+  // Jingles for the game itself.
+  const ui = {
+    tick: (ac, o, t, fine) => q(ac, o, t, [[0, fine ? 2600 : 1500], [0.02, fine ? 2400 : 1300]], 0.025, { attack: 0.002, hold: 0.2, vol: fine ? 0.07 : 0.1 }),
+    sec: (ac, o, t, peak) => note(ac, o, t, peak ? 2400 : 1900, 0.07, peak ? 0.2 : 0.13),
+    chime: (ac, o, t) => thing.bell(ac, o, t, 1),
+    perfect: (ac, o, t) => [2093, 2637, 3136].forEach((f, k) => note(ac, o, t + k * 0.06, f, 0.3, 0.2)),
+    allSet: (ac, o, t) => [784, 988, 1175, 1568].forEach((f, k) => note(ac, o, t + k * 0.06, f, 0.6, 0.18)),
+    win: (ac, o, t) => { [523, 659, 784, 1047].forEach((f, k) => note(ac, o, t + k * 0.1, f, 0.22, 0.3)); q(ac, o, t + 0.42, [[0, 1047], [0.5, 1047]], 0.6, { vib: [7, 12], vol: 0.25 }); },
+    fail: (ac, o, t) => { q(ac, o, t, [[0, 660], [0.25, 470]], 0.28, { vib: [7, 14], vol: 0.35 }); q(ac, o, t + 0.32, [[0, 560], [0.5, 330]], 0.55, { vib: [6, 18], vol: 0.35 }); },
+  };
+  // Pentatonic steps, so aligning a level's objects one by one sounds like a melody.
+  const SCALE = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2, 9 / 4, 5 / 2];
+  return { creature, thing, ui, SCALE };
+})();
+
 /* ---------- audio: everything synthesized, no files ---------- */
 const AU = {
   ctx: null, master: null, music: null, sfx: null, on: true, _nb: null,
@@ -354,49 +438,17 @@ const AU = {
     s.connect(f); f.connect(g); g.connect(o.dest || this.sfx); s.start(t); s.stop(t + dur + 0.03);
   },
   midi: n => 440 * Math.pow(2, (n - 69) / 12),
-  tick(fine) { this.tone(fine ? 2700 : 1500, 0.022, { type: 'square', vol: fine ? 0.022 : 0.035 }); },
-  chime() { if (!this.ctx) return; const t = this.ctx.currentTime; this.tone(1318.5, 0.35, { vol: 0.12, at: t }); this.tone(1975.5, 0.5, { vol: 0.09, at: t + 0.07 }); },
-  perfect() { if (!this.ctx) return; const t = this.ctx.currentTime; [1568, 2093, 2637].forEach((f, i) => this.tone(f, 0.5, { vol: 0.1, at: t + i * 0.06 })); },
-  allSet() { if (!this.ctx) return; const t = this.ctx.currentTime; [784, 988, 1175, 1568].forEach((f, i) => this.tone(f, 1.2, { vol: 0.07, at: t + i * 0.04, type: 'triangle' })); },
-  win() { if (!this.ctx) return; const t = this.ctx.currentTime; [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.25, { vol: 0.14, at: t + i * 0.11, type: 'triangle' })); [523, 659, 784, 1047].forEach(f => this.tone(f, 1.4, { vol: 0.06, at: t + 0.48, type: 'triangle' })); },
-  fail() { if (!this.ctx) return; const t = this.ctx.currentTime; this.tone(392, 0.9, { type: 'sawtooth', to: 98, vol: 0.09, at: t }); this.tone(196, 1.1, { type: 'triangle', to: 65, vol: 0.12, at: t + 0.05 }); },
-  voice(o) {
-    const c = this.ctx; if (!c || this.silent) return;
-    const t = o.at ?? c.currentTime, osc = c.createOscillator(), g = c.createGain(), fs = o.f, end = t + o.dur;
-    osc.type = o.type || 'sawtooth'; osc.frequency.setValueAtTime(fs[0], t);
-    for (let i = 1; i < fs.length; i++) osc.frequency.linearRampToValueAtTime(fs[i], t + o.dur * i / (fs.length - 1));
-    let node = osc;
-    if (o.filter) { const f = c.createBiquadFilter(); f.type = o.filter; f.frequency.value = o.ff || 1000; f.Q.value = o.Q || 1; node.connect(f); node = f; }
-    const lfo = (rate, depth, target) => { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = rate; lg.gain.value = depth; l.connect(lg); lg.connect(target); l.start(t); l.stop(end + 0.05); };
-    if (o.vib) lfo(o.vib[0], o.vib[1], osc.frequency);
-    const v = o.vol ?? 0.15, a = o.attack ?? 0.02;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + a);
-    g.gain.setValueAtTime(v, Math.max(t + a, end - 0.08)); g.gain.exponentialRampToValueAtTime(0.0001, end);
-    if (o.trem) lfo(o.trem, v * 0.6, g.gain);
-    node.connect(g); g.connect(this.sfx); osc.start(t); osc.stop(end + 0.05);
-  },
-  // Synthesised creature calls. Logged even when muted so tests can check them.
-  call(kind) {
-    S.sfxLog.push(kind); if (S.sfxLog.length > 50) S.sfxLog.shift();
-    const c = this.ctx; if (!c || this.silent) return;
-    const t = c.currentTime, V = (o) => this.voice(Object.assign({ at: t }, o));
-    switch (kind) {
-      case 'moo': V({ f: [150, 162, 118], dur: 1.1, filter: 'lowpass', ff: 700, Q: 4, vib: [5, 4], vol: 0.22, attack: 0.12 }); break;
-      case 'baa': V({ f: [380, 392, 360], dur: 0.75, filter: 'bandpass', ff: 1300, Q: 2, trem: 14, vol: 0.2, attack: 0.05 }); break;
-      case 'oink': [0, 0.2].forEach((d) => { V({ at: t + d, f: [260, 180], dur: 0.16, filter: 'bandpass', ff: 900, Q: 3, vol: 0.25 }); this.noise(0.12, { at: t + d, vol: 0.05, freq: 1500 }); }); break;
-      case 'cluck': [0, 0.14, 0.28, 0.5].forEach((d, i) => V({ at: t + d, type: 'square', f: i === 3 ? [700, 1100, 600] : [620, 820], dur: i === 3 ? 0.3 : 0.08, filter: 'bandpass', ff: 1400, Q: 4, vol: 0.14 })); break;
-      case 'bubble': [0, 0.09, 0.2].forEach((d) => V({ at: t + d, type: 'sine', f: [380, 1300], dur: 0.08, vol: 0.18, attack: 0.005 })); break;
-      case 'turtle': V({ type: 'sine', f: [180, 90], dur: 0.35, vol: 0.25, attack: 0.01 }); break;
-      case 'squish': this.noise(0.3, { vol: 0.12, freq: 400 }); V({ type: 'sine', f: [240, 520, 200], dur: 0.3, vol: 0.1 }); break;
-      case 'clack': [0, 0.07, 0.18, 0.25].forEach((d) => this.noise(0.04, { at: t + d, vol: 0.3, freq: 3500 })); break;
-      case 'whale': V({ type: 'sine', f: [260, 520, 430, 220], dur: 1.6, vol: 0.2, attack: 0.25, vib: [3, 8] }); V({ at: t + 0.35, type: 'sine', f: [520, 1040, 860, 440], dur: 1.2, vol: 0.05, attack: 0.25 }); break;
-      case 'honk': [0, 0.22].forEach((d) => V({ at: t + d, type: 'square', f: [480, 640, 520], dur: 0.18, filter: 'bandpass', ff: 1100, Q: 5, vol: 0.16 })); break;
-      case 'camel': V({ f: [95, 120, 70], dur: 0.8, filter: 'lowpass', ff: 500, Q: 6, trem: 22, vol: 0.25, attack: 0.05 }); break;
-      case 'carousel': [1047, 1319, 1568, 2093].forEach((f, i) => this.tone(f, 0.5, { at: t + i * 0.12, vol: 0.08, type: 'triangle' })); break;
-      case 'radio': this.tone(1320, 0.12, { at: t, vol: 0.1 }); this.tone(880, 0.12, { at: t + 0.16, vol: 0.1 }); this.noise(0.25, { at: t, vol: 0.03, freq: 2500 }); break;
-    }
-  },
-  secTick(peak) { this.tone(peak ? 2400 : 1900, 0.06, { type: 'square', vol: peak ? 0.08 : 0.05 }); }
+  // Every sound goes through the Q library. Calls and object sounds are logged even when muted, for tests.
+  play(fn, ...args) { const c = this.ctx; if (!c || this.silent) return; fn(c, this.sfx, c.currentTime, ...args); },
+  tick(fine) { this.play(QS.ui.tick, fine); },
+  chime() { this.play(QS.ui.chime); },
+  perfect() { this.play(QS.ui.perfect); },
+  allSet() { this.play(QS.ui.allSet); },
+  win() { this.play(QS.ui.win); },
+  fail() { this.play(QS.ui.fail); },
+  call(kind) { S.sfxLog.push(kind); if (S.sfxLog.length > 50) S.sfxLog.shift(); this.play(QS.creature[kind]); },
+  thing(kind, note) { S.sfxLog.push('sfx:' + kind); if (S.sfxLog.length > 50) S.sfxLog.shift(); this.play(QS.thing[kind], QS.SCALE[note % QS.SCALE.length] * (note >= QS.SCALE.length ? 2 : 1)); },
+  secTick(peak) { this.play(QS.ui.sec, peak); }
 };
 
 /* ---------- music: tiny step sequencer per level ---------- */
@@ -1505,7 +1557,7 @@ const LEVELS = [
     objects: [
       { id: 'sheep', name: '綿羊', x: 100, y: 290, w: 90, h: 70, mag: 9, draw: drawSheep, habit: (t, l) => ({ dy: -Math.max(0, Math.sin(t * 3)) * 7 * l }), call: 'baa' },
       { id: 'cow', name: '乳牛', x: 245, y: 300, w: 120, h: 84, mag: 12, draw: drawCow, call: 'moo' },
-      { id: 'chicken', name: '母雞', x: 90, y: 405, w: 60, h: 64, near: true, draw: drawChicken, habit: (t, l) => ({ dx: Math.sin(t * 1.2) * 3 * l }), call: 'cluck' },
+      { id: 'chicken', name: '母雞', x: 90, y: 405, w: 60, h: 64, near: true, draw: drawChicken, habit: (t, l) => ({ dx: Math.sin(t * 1.2) * 3 * l }), call: 'chick' },
       { id: 'pig', name: '小豬', x: 260, y: 415, w: 84, h: 60, mag: 10, draw: drawPig, habit: (t, l) => ({ dy: -Math.abs(Math.sin(t * 4)) * 2 * l }), call: 'oink' }
     ] },
   { key: 'reef', chapter: 1, title: '珊瑚礁', style: '水彩', place: '澳洲 大堡礁', song: 'reef', time: 33, bg: bgReef, overlay: ovReef, animated: true,
@@ -1520,86 +1572,86 @@ const LEVELS = [
   { key: 'jp', chapter: 2, title: '京都黃昏', style: '像素風', place: '日本 京都', song: 'jp', time: 30, lowres: true, bg: bgJapan,
     intro: '像素畫的京都巷子。燈籠和招牌都歪了，招財貓只歪了一點點。',
     objects: [
-      { id: 'torii', name: '鳥居', x: 180, y: 268, w: 120, h: 104, mag: 11, draw: drawTorii },
-      { id: 'ramen', name: '拉麵招牌', x: 72, y: 142, w: 104, h: 48, mag: 7, draw: drawRamen },
-      { id: 'lantern', name: '紅燈籠', x: 292, y: 160, w: 56, h: 80, mag: 14, draw: drawLantern },
-      { id: 'vend', name: '自動販賣機', x: 300, y: 390, w: 64, h: 112, mag: 6, draw: drawVending },
-      { id: 'cat', name: '招財貓', x: 80, y: 400, w: 64, h: 72, near: true, draw: drawCat }
+      { id: 'torii', name: '鳥居', x: 180, y: 268, w: 120, h: 104, mag: 11, draw: drawTorii, sfx: 'bell' },
+      { id: 'ramen', name: '拉麵招牌', x: 72, y: 142, w: 104, h: 48, mag: 7, draw: drawRamen, sfx: 'wood' },
+      { id: 'lantern', name: '紅燈籠', x: 292, y: 160, w: 56, h: 80, mag: 14, draw: drawLantern, sfx: 'pop' },
+      { id: 'vend', name: '自動販賣機', x: 300, y: 390, w: 64, h: 112, mag: 6, draw: drawVending, sfx: 'clunk' },
+      { id: 'cat', name: '招財貓', x: 80, y: 400, w: 64, h: 72, near: true, draw: drawCat, sfx: 'meow' }
     ] },
   { key: 'desk', chapter: 3, title: '書房午後', style: '鉛筆素描', place: '台灣 台北', song: 'desk', time: 30, bg: bgDesk,
     intro: '強迫症最熟悉的地方。便利貼只歪一點點，你忍得住嗎？',
     objects: [
-      { id: 'frame', name: '相框', x: 95, y: 110, w: 90, h: 70, mag: 8, draw: drawFrame },
-      { id: 'calendar', name: '月曆', x: 275, y: 105, w: 80, h: 96, mag: 11, draw: drawCalendar },
-      { id: 'sticky', name: '便利貼', x: 280, y: 228, w: 56, h: 56, near: true, draw: drawSticky },
-      { id: 'book', name: '辭典', x: 60, y: 290, w: 34, h: 80, mag: 9, pad: 12, draw: drawBook },
-      { id: 'laptop', name: '筆電', x: 190, y: 385, w: 136, h: 80, mag: 6, draw: drawLaptop },
-      { id: 'ruler', name: '尺', x: 110, y: 452, w: 150, h: 22, mag: 5, pad: 12, draw: drawRuler }
+      { id: 'frame', name: '相框', x: 95, y: 110, w: 90, h: 70, mag: 8, draw: drawFrame, sfx: 'wood' },
+      { id: 'calendar', name: '月曆', x: 275, y: 105, w: 80, h: 96, mag: 11, draw: drawCalendar, sfx: 'pop' },
+      { id: 'sticky', name: '便利貼', x: 280, y: 228, w: 56, h: 56, near: true, draw: drawSticky, sfx: 'pop' },
+      { id: 'book', name: '辭典', x: 60, y: 290, w: 34, h: 80, mag: 9, pad: 12, draw: drawBook, sfx: 'wood' },
+      { id: 'laptop', name: '筆電', x: 190, y: 385, w: 136, h: 80, mag: 6, draw: drawLaptop, sfx: 'beep' },
+      { id: 'ruler', name: '尺', x: 110, y: 452, w: 150, h: 22, mag: 5, pad: 12, draw: drawRuler, sfx: 'wood' }
     ] },
   { key: 'fr', chapter: 4, title: '巴黎早安', style: '漫畫風', place: '法國 巴黎', song: 'fr', time: 33, bg: bgParis,
     intro: '7 件東西。其中一件只歪了一點點，你看得出來是哪一件嗎？',
     objects: [
-      { id: 'eiffel', name: '艾菲爾鐵塔', x: 285, y: 190, w: 110, h: 250, mag: 8, draw: drawEiffel },
-      { id: 'rue', name: '路牌', x: 110, y: 90, w: 160, h: 46, near: true, draw: drawRue },
-      { id: 'cafe', name: '咖啡館招牌', x: 110, y: 200, w: 160, h: 84, mag: 12, draw: drawCafe },
-      { id: 'bubble', name: '對話框', x: 110, y: 318, w: 150, h: 70, mag: 16, draw: drawBubble },
-      { id: 'lamp', name: '路燈', x: 215, y: 370, w: 40, h: 150, mag: 9, pad: 14, draw: drawLamp },
-      { id: 'poster', name: '海報', x: 300, y: 400, w: 100, h: 120, mag: 10, draw: drawPoster },
-      { id: 'mona', name: '名畫', x: 90, y: 420, w: 80, h: 100, mag: 5, draw: drawMona }
+      { id: 'eiffel', name: '艾菲爾鐵塔', x: 285, y: 190, w: 110, h: 250, mag: 8, draw: drawEiffel, sfx: 'bell' },
+      { id: 'rue', name: '路牌', x: 110, y: 90, w: 160, h: 46, near: true, draw: drawRue, sfx: 'bell' },
+      { id: 'cafe', name: '咖啡館招牌', x: 110, y: 200, w: 160, h: 84, mag: 12, draw: drawCafe, sfx: 'pop' },
+      { id: 'bubble', name: '對話框', x: 110, y: 318, w: 150, h: 70, mag: 16, draw: drawBubble, sfx: 'boing' },
+      { id: 'lamp', name: '路燈', x: 215, y: 370, w: 40, h: 150, mag: 9, pad: 14, draw: drawLamp, sfx: 'boing' },
+      { id: 'poster', name: '海報', x: 300, y: 400, w: 100, h: 120, mag: 10, draw: drawPoster, sfx: 'pop' },
+      { id: 'mona', name: '名畫', x: 90, y: 420, w: 80, h: 100, mag: 5, draw: drawMona, sfx: 'wood' }
     ] },
   { key: 'polar', chapter: 5, title: '極光夜', style: '低多邊形', place: '挪威 特羅姆瑟', song: 'polar', time: 28, bg: bgPolar, animated: true,
     intro: '風很大，旗子一直飄。企鵝在等你把牠轉正。',
     objects: [
-      { id: 'flag', name: '旗子', x: 70, y: 245, w: 60, h: 110, mag: 8, draw: drawFlag },
-      { id: 'sign', name: '路標', x: 230, y: 235, w: 120, h: 90, near: true, draw: drawPolarSign },
-      { id: 'igloo', name: '冰屋', x: 90, y: 385, w: 120, h: 70, mag: 7, draw: drawIgloo },
+      { id: 'flag', name: '旗子', x: 70, y: 245, w: 60, h: 110, mag: 8, draw: drawFlag, sfx: 'boing' },
+      { id: 'sign', name: '路標', x: 230, y: 235, w: 120, h: 90, near: true, draw: drawPolarSign, sfx: 'wood' },
+      { id: 'igloo', name: '冰屋', x: 90, y: 385, w: 120, h: 70, mag: 7, draw: drawIgloo, sfx: 'pop' },
       { id: 'penguin', name: '企鵝', x: 178, y: 372, w: 46, h: 64, mag: 13, draw: drawPenguin, habit: (t, l) => ({ dx: Math.sin(t * 4) * 3 * l, dy: -Math.abs(Math.sin(t * 4)) * 2 * l }), call: 'honk' },
-      { id: 'snowman', name: '雪人', x: 285, y: 370, w: 70, h: 110, mag: 10, draw: drawSnowman },
-      { id: 'sled', name: '雪橇', x: 245, y: 456, w: 120, h: 40, mag: 9, draw: drawSled }
+      { id: 'snowman', name: '雪人', x: 285, y: 370, w: 70, h: 110, mag: 10, draw: drawSnowman, sfx: 'boing' },
+      { id: 'sled', name: '雪橇', x: 245, y: 456, w: 120, h: 40, mag: 9, draw: drawSled, sfx: 'jingle' }
     ] },
   { key: 'desert', chapter: 6, title: '金字塔', style: '復古海報', place: '埃及 吉薩', song: 'desert', time: 28, bg: bgDesert, animated: true,
     intro: '駱駝會一直嚼東西。還有：倒影本來就是倒著的。',
     objects: [
-      { id: 'cairo', name: '路牌', x: 85, y: 175, w: 110, h: 70, mag: 9, draw: drawCairo },
-      { id: 'palm', name: '棕櫚樹', x: 305, y: 230, w: 80, h: 120, mag: 8, draw: drawPalm },
-      { id: 'pyramid', name: '金字塔', x: 140, y: 290, w: 140, h: 100, near: true, draw: drawPyramid },
+      { id: 'cairo', name: '路牌', x: 85, y: 175, w: 110, h: 70, mag: 9, draw: drawCairo, sfx: 'wood' },
+      { id: 'palm', name: '棕櫚樹', x: 305, y: 230, w: 80, h: 120, mag: 8, draw: drawPalm, sfx: 'boing' },
+      { id: 'pyramid', name: '金字塔', x: 140, y: 290, w: 140, h: 100, near: true, draw: drawPyramid, sfx: 'bell' },
       { id: 'camel', name: '駱駝', x: 275, y: 360, w: 100, h: 80, mag: 11, draw: drawCamel, habit: (t, l) => ({ dx: Math.sin(t * 1.5) * 3 * l }), call: 'camel' },
-      { id: 'tent', name: '帳篷', x: 80, y: 395, w: 100, h: 64, mag: 12, draw: drawTent },
-      { id: 'mirage', name: '海市蜃樓', x: 205, y: 442, w: 110, h: 50, mag: 9, target: 180, draw: drawMirage }
+      { id: 'tent', name: '帳篷', x: 80, y: 395, w: 100, h: 64, mag: 12, draw: drawTent, sfx: 'boing' },
+      { id: 'mirage', name: '海市蜃樓', x: 205, y: 442, w: 110, h: 50, mag: 9, target: 180, draw: drawMirage, sfx: 'shimmer' }
     ] },
   { key: 'it', chapter: 7, title: '比薩黃金時刻', style: '寫真風', place: '義大利 比薩', song: 'it', time: 31, bg: bgItaly, overlay: ovItaly,
     intro: '左窗板會帶動右窗板一起轉。還有：有些東西，本來就是斜的。',
     objects: [
-      { id: 'banner', name: '歡迎布條', x: 275, y: 62, w: 150, h: 40, mag: 7, draw: drawBanner },
+      { id: 'banner', name: '歡迎布條', x: 275, y: 62, w: 150, h: 40, mag: 7, draw: drawBanner, sfx: 'boing' },
       { id: 'pisa', name: '比薩斜塔', x: 282, y: 250, w: 64, h: 224, trap: true, keep: 3.97, draw: drawPisa },
-      { id: 'shL', name: '左窗板', x: 38, y: 145, w: 40, h: 115, mag: 9, link: { to: 'shR', k: 0.6 }, draw: c => drawShutter(c, 'L') },
-      { id: 'shR', name: '右窗板', x: 142, y: 145, w: 40, h: 115, mag: 6, draw: c => drawShutter(c, 'R') },
-      { id: 'gelato', name: '冰淇淋招牌', x: 95, y: 266, w: 130, h: 54, mag: 13, draw: drawGelato },
-      { id: 'plaque', name: '廣場路牌', x: 95, y: 330, w: 140, h: 46, near: true, draw: drawPlaque },
-      { id: 'board', name: '黑板菜單', x: 90, y: 420, w: 90, h: 100, mag: 10, draw: drawBoard }
+      { id: 'shL', name: '左窗板', x: 38, y: 145, w: 40, h: 115, mag: 9, link: { to: 'shR', k: 0.6 }, draw: c => drawShutter(c, 'L'), sfx: 'wood' },
+      { id: 'shR', name: '右窗板', x: 142, y: 145, w: 40, h: 115, mag: 6, draw: c => drawShutter(c, 'R'), sfx: 'wood' },
+      { id: 'gelato', name: '冰淇淋招牌', x: 95, y: 266, w: 130, h: 54, mag: 13, draw: drawGelato, sfx: 'bell' },
+      { id: 'plaque', name: '廣場路牌', x: 95, y: 330, w: 140, h: 46, near: true, draw: drawPlaque, sfx: 'bell' },
+      { id: 'board', name: '黑板菜單', x: 90, y: 420, w: 90, h: 100, mag: 10, draw: drawBoard, sfx: 'wood' }
     ] },
   { key: 'neon', chapter: 8, title: '霓虹夜', style: '霓虹燈', place: '美國 聖塔莫尼卡', song: 'neon', time: 33, bg: bgNeon, animated: true,
     intro: '旋轉木馬會上下跑。售票招牌會帶動下面的價目牌。',
     objects: [
-      { id: 'open', name: 'OPEN 招牌', x: 255, y: 80, w: 120, h: 50, mag: 9, draw: drawOpen },
-      { id: 'rides', name: '箭頭招牌', x: 250, y: 160, w: 140, h: 50, mag: 7, draw: drawRides },
+      { id: 'open', name: 'OPEN 招牌', x: 255, y: 80, w: 120, h: 50, mag: 9, draw: drawOpen, sfx: 'twinkle' },
+      { id: 'rides', name: '箭頭招牌', x: 250, y: 160, w: 140, h: 50, mag: 7, draw: drawRides, sfx: 'twinkle' },
       { id: 'horse', name: '木馬', x: 290, y: 280, w: 70, h: 120, mag: 12, draw: drawHorse, habit: (t, l) => ({ dy: Math.sin(t * 2) * 7 * l }), call: 'carousel' },
-      { id: 'ice', name: '冰淇淋', x: 60, y: 330, w: 60, h: 100, mag: 10, draw: drawIce },
-      { id: 'heart', name: '愛心氣球', x: 150, y: 330, w: 50, h: 80, near: true, draw: drawHeart },
-      { id: 'tickets', name: '售票招牌', x: 190, y: 400, w: 130, h: 44, mag: 8, link: { to: 'price', k: 0.5 }, draw: drawTickets },
-      { id: 'price', name: '價目牌', x: 190, y: 448, w: 64, h: 40, mag: 6, draw: drawPrice }
+      { id: 'ice', name: '冰淇淋', x: 60, y: 330, w: 60, h: 100, mag: 10, draw: drawIce, sfx: 'pop' },
+      { id: 'heart', name: '愛心氣球', x: 150, y: 330, w: 50, h: 80, near: true, draw: drawHeart, sfx: 'pop' },
+      { id: 'tickets', name: '售票招牌', x: 190, y: 400, w: 130, h: 44, mag: 8, link: { to: 'price', k: 0.5 }, draw: drawTickets, sfx: 'twinkle' },
+      { id: 'price', name: '價目牌', x: 190, y: 448, w: 64, h: 40, mag: 6, draw: drawPrice, sfx: 'bell' }
     ] },
   { key: 'space', chapter: 9, title: '軌道站', style: '太空合成', place: '地球軌道 408 km', song: 'space', time: 37, bg: bgSpace, animated: true,
     intro: '最後一站：八件東西、左右太陽能板連動，太空人一直飄。',
     objects: [
-      { id: 'panelL', name: '左太陽能板', x: 65, y: 110, w: 70, h: 40, mag: 9, link: { to: 'panelR', k: 0.6 }, draw: drawPanel },
-      { id: 'module', name: '太空站艙段', x: 180, y: 110, w: 130, h: 50, mag: 6, draw: drawModule },
-      { id: 'panelR', name: '右太陽能板', x: 295, y: 110, w: 70, h: 40, mag: 7, draw: drawPanel },
+      { id: 'panelL', name: '左太陽能板', x: 65, y: 110, w: 70, h: 40, mag: 9, link: { to: 'panelR', k: 0.6 }, draw: drawPanel, sfx: 'twinkle' },
+      { id: 'module', name: '太空站艙段', x: 180, y: 110, w: 130, h: 50, mag: 6, draw: drawModule, sfx: 'beep' },
+      { id: 'panelR', name: '右太陽能板', x: 295, y: 110, w: 70, h: 40, mag: 7, draw: drawPanel, sfx: 'twinkle' },
       { id: 'astro', name: '太空人', x: 180, y: 215, w: 60, h: 80, mag: 14, draw: drawAstro, habit: (t, l) => ({ dx: Math.sin(t * 0.7) * 4 * l, dy: Math.sin(t * 1.2) * 5 * l }), call: 'radio' },
-      { id: 'rocket', name: '火箭', x: 60, y: 285, w: 50, h: 120, mag: 10, draw: drawRocket },
-      { id: 'sat', name: '衛星天線', x: 300, y: 265, w: 80, h: 70, mag: 12, draw: drawSat },
-      { id: 'scope', name: '太空望遠鏡', x: 235, y: 335, w: 90, h: 46, mag: 8, draw: drawScope },
-      { id: 'patch', name: '任務徽章', x: 130, y: 420, w: 120, h: 46, near: true, draw: drawPatch }
+      { id: 'rocket', name: '火箭', x: 60, y: 285, w: 50, h: 120, mag: 10, draw: drawRocket, sfx: 'boing' },
+      { id: 'sat', name: '衛星天線', x: 300, y: 265, w: 80, h: 70, mag: 12, draw: drawSat, sfx: 'beep' },
+      { id: 'scope', name: '太空望遠鏡', x: 235, y: 335, w: 90, h: 46, mag: 8, draw: drawScope, sfx: 'twinkle' },
+      { id: 'patch', name: '任務徽章', x: 130, y: 420, w: 120, h: 46, near: true, draw: drawPatch, sfx: 'bell' }
     ] }
 ];
 
@@ -1748,7 +1800,7 @@ function evaluate(silent) {
   S.allWas = all; S.dirty = true;
 }
 // Aligned: a creature answers with its own call, everything else chimes.
-function cheer(o) { o.cheerAt = performance.now(); if (o.call) AU.call(o.call); else AU.chime(); }
+function cheer(o) { o.cheerAt = performance.now(); if (o.call) AU.call(o.call); else if (o.sfx) AU.thing(o.sfx, o.note); else AU.chime(); }
 function addTime(s) {
   S.timeLeft += s;
   const p = $('#plus'); p.textContent = `+${s}s`; p.dataset.anim = 'pop'; restart(p);
@@ -1769,8 +1821,8 @@ function startLevel(i, skipIntro, instant) {
   // quiet mercy: after repeated fails on this level, the next attempt gets a few extra seconds
   S.timeTotal = levelTime(L) + ((S.fails[i] || 0) >= MERCY_AFTER ? MERCY_SECS : 0);
   S.timeLeft = S.timeTotal; S.lastSec = null; S.lastTxt = ''; S.lastResult = null; setTense(false);
-  S.objs = L.objects.map(d => {
-    const o = Object.assign({}, d);
+  S.objs = L.objects.map((d, n) => {
+    const o = Object.assign({}, d, { note: n });
     o.target = d.target ?? 0;
     if (d.trap) o.angle = d.keep;
     else { const tol = DF().tol, mag = d.near ? rnd(Math.max(0.65, tol * 1.4), Math.max(1.4, tol * 2.2)) : d.mag * rnd(0.8, 1.2); o.angle = norm(o.target + (S.rng() < 0.5 ? -1 : 1) * mag); }
@@ -2163,9 +2215,19 @@ window.__chayidu = {
   setDifficulty(key) { const k = DIFFS.findIndex(d => d.key === key); if (k < 0) throw new Error('unknown difficulty ' + key); S.diff = k; },
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, chapterName: chapterOf(L).name, title: L.title, time: L.time, animated: !!L.animated,
     objects: L.objects.map(o => ({ id: o.id, name: o.name, trap: !!o.trap, keep: o.keep ?? null, near: !!o.near, mag: o.mag ?? null, target: o.target ?? 0,
-      call: o.call || null, habit: !!o.habit, link: o.link ? Object.assign({}, o.link) : null, x: o.x, y: o.y, w: o.w, h: o.h })) })),
+      call: o.call || null, sfx: o.sfx || null, habit: !!o.habit, link: o.link ? Object.assign({}, o.link) : null, x: o.x, y: o.y, w: o.w, h: o.h })) })),
   chapters: () => CHAPTERS.map(c => ({ key: c.key, name: c.name, stages: c.stages.slice() })),
   comments: () => JSON.parse(JSON.stringify(COMMENTS)),
+  soundKinds: () => ({ creature: Object.keys(QS.creature), thing: Object.keys(QS.thing), ui: Object.keys(QS.ui) }),
+  // Render one sound offline and report how loud and how long it is.
+  async renderSound(group, kind, arg = 1) {
+    const ac = new OfflineAudioContext(1, 44100 * 1.6, 44100);
+    QS[group][kind](ac, ac.destination, 0.02, arg);
+    const d = (await ac.startRendering()).getChannelData(0);
+    let peak = 0, last = 0, bad = false;
+    for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); if (!Number.isFinite(v)) bad = true; if (v > peak) peak = v; if (v > 0.01) last = i; }
+    return { peak, seconds: last / 44100, bad };
+  },
   gradeTier: (r) => gradeTier(r),
   // calibration only: try a different time budget for a level
   setLevelTime(i, sec) { LEVELS[i].time = sec; },
