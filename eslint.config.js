@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'test-results'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -29,5 +29,10 @@ export default [
         { allowConstantExport: true },
       ],
     },
+  },
+  {
+    // Test code runs in Node and hands functions to the browser via Playwright.
+    files: ['tests/**/*.{js,mjs}', 'vitest.config.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ]

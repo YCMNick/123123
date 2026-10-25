@@ -24,12 +24,14 @@ empty). Read `CLAUDE.md` first.
    - Status filter and status switching (`待處理 / 處理中 / 已完成`) persist
      after reload.
    - Demo banner shows only when `ENDPOINT_URL` is empty.
-3. **Unit tests.** There is no test suite yet. If asked to add one, use
+3. **Mini-game.** For `public/game/index.html` run `npm run test:game` and
+   attach `test-results/game-sim/report.md` to your report.
+4. **Unit tests.** The repair app has no test suite yet. If asked to add one, use
    **Vitest** (`npm i -D vitest`, add `"test": "vitest run"` to `package.json`),
    target the pure logic in `src/api.js` demo path and any helpers, mock
    `localStorage` and `fetch`, and document the command in `CLAUDE.md` under
    *Development Workflow*.
-4. **Backend contract checks (by reading).** Confirm `src/api.js` sends
+5. **Backend contract checks (by reading).** Confirm `src/api.js` sends
    `Content-Type: text/plain` and that the fields it posts match the columns
    `google-apps-script/Code.gs` writes. You cannot execute Apps Script locally;
    say so instead of claiming it was run.

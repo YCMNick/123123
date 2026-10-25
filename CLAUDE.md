@@ -40,6 +40,8 @@ that persists to `localStorage` so it runs without any backend.
 │   └── qa-tester.md
 ├── scripts/
 │   └── install.sh              # copies agent .md files into ~/.claude/agents/
+├── tests/game/                 # 差一度 automated tests + balance simulation (Vitest + Playwright)
+├── vitest.config.js
 ├── src/
 │   ├── main.jsx                # React entry
 │   ├── config.js               # ⭐ all user-editable settings live here
@@ -64,7 +66,14 @@ that persists to `localStorage` so it runs without any backend.
   (`--scope project` writes to `.claude/agents/` instead of `~/.claude/agents/`;
   `--dry-run` previews; `--category engineering` installs one category)
 
-No test suite yet. If adding tests, prefer Vitest and document the command here.
+- **Game tests:** `npm run test:game` (all of `tests/game`, ~2 min; needs a
+  Playwright Chromium: `npx playwright install chromium` on a fresh machine).
+  `GAME_SIM_RUNS=200 npm run test:game` runs a shorter simulation.
+- **Game balance baseline:** `npm run test:game:baseline` rewrites
+  `tests/game/baseline.json`. Run it only after deciding a balance change is
+  intended. The readable report lands in `test-results/game-sim/report.md`.
+
+The repair app itself has no tests yet; add them with Vitest under `tests/`.
 
 ## Key Architecture Notes
 
@@ -116,6 +125,18 @@ No test suite yet. If adding tests, prefer Vitest and document the command here.
 - Default branch: `claude/claude-md-docs-uwchm6` (pushes here auto-deploy to GitHub Pages). Create feature branches off it.
 - Push with `git push -u origin <branch-name>`.
 - Do not push to the default branch or open a PR without explicit permission.
+
+## Mini-game 差一度 (`public/game/index.html`)
+
+- Self-contained HTML game, unrelated to the repair app. This file is the
+  source of truth; the claude.ai artifact is published from it.
+- `window.__chayidu` is the test hook (seeded RNG, manual clock, pure
+  `computeScore`, state snapshot). `tests/game` depends on it: keep its API
+  stable, or update the tests in the same change.
+- Before and after any game change, run `npm run test:game`. A drifted
+  baseline or a missed design target means the balance changed: decide on
+  purpose whether to retune the game or the target in
+  `tests/game/balance.config.js`.
 
 ## Notes for AI Assistants
 

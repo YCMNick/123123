@@ -270,7 +270,7 @@ const PERFECT_BONUS = 2, TIME_PTS = 20, MERCY_AFTER = 2, MERCY_SECS = 5;
 const $ = s => document.querySelector(s);
 const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
 const norm = a => ((a + 180) % 360 + 360) % 360 - 180;
-const rnd = (a, b) => a + Math.random() * (b - a);
+const rnd = (a, b) => a + S.rng() * (b - a);
 const fmt = e => { const a = Math.abs(e); return a < 1 ? a.toFixed(2) : a.toFixed(1); };
 const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -298,7 +298,7 @@ const AU = {
   },
   setOn(v) { this.on = v; if (this.master) this.master.gain.setTargetAtTime(v ? 0.7 : 0, this.ctx.currentTime, 0.02); },
   tone(f, dur, o = {}) {
-    const c = this.ctx; if (!c) return;
+    const c = this.ctx; if (!c || this.silent) return;
     const t = o.at ?? c.currentTime, osc = c.createOscillator(), g = c.createGain();
     osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(f, t);
     if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + dur);
@@ -307,7 +307,7 @@ const AU = {
     osc.connect(g); g.connect(o.dest || this.sfx); osc.start(t); osc.stop(t + dur + 0.03);
   },
   noise(dur, o = {}) {
-    const c = this.ctx; if (!c) return;
+    const c = this.ctx; if (!c || this.silent) return;
     const t = o.at ?? c.currentTime;
     if (!this._nb) { const b = c.createBuffer(1, c.sampleRate * 0.5, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this._nb = b; }
     const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
@@ -340,7 +340,7 @@ const SONGS = {
 const MUS = {
   song: null, step: 0, next: 0, timer: null, tense: false, peak: false, drone: null,
   start(id) {
-    if (!AU.ctx) return; this.stop();
+    if (!AU.ctx || AU.silent) return; this.stop();
     this.song = SONGS[id]; this.step = 0; this.next = AU.ctx.currentTime + 0.08;
     this.timer = setInterval(() => this.sched(), 25);
   },
@@ -363,7 +363,7 @@ const MUS = {
   setTense(v) {
     this.tense = v;
     const c = AU.ctx; if (!c) return;
-    if (v && !this.drone) {
+    if (v && !this.drone && !AU.silent) {
       const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(), t = c.currentTime;
       o.type = 'sawtooth'; o.frequency.setValueAtTime(70, t); o.frequency.linearRampToValueAtTime(150, t + TENSE_AT);
       f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.linearRampToValueAtTime(1400, t + TENSE_AT);
@@ -781,7 +781,7 @@ const LEVELS = [
 ];
 
 /* ---------- state ---------- */
-const S = { L: null, levelIdx: 0, objs: [], timeLeft: 30, timeTotal: 30, fails: {}, cd: [], running: false, paused: false, ended: false,
+const S = { L: null, levelIdx: 0, objs: [], timeLeft: 30, timeTotal: 30, fails: {}, cd: [], rng: Math.random, manualClock: false, lastResult: null, running: false, paused: false, ended: false,
   drag: null, selected: null, loupeObj: null, dirty: false, scale: 1, cssW: 360, cssH: 480, bg: null,
   tense: false, lastSec: null, lastTxt: '', allWas: false, session: {}, pointerX: null };
 let K = 1, DPR = 1;
@@ -906,18 +906,18 @@ function select(o) {
 }
 
 /* ---------- level flow ---------- */
-function startLevel(i, skipIntro) {
+function startLevel(i, skipIntro, instant) {
   AU.init();
   MUS.stop(); clearCountdown();
   const L = LEVELS[i];
   S.L = L; S.levelIdx = i; S.ended = false; S.running = false; S.paused = false; S.drag = null; S.allWas = false; S.linkToasted = false;
   // quiet mercy: after repeated fails on this level, the next attempt gets a few extra seconds
   S.timeTotal = L.time + ((S.fails[i] || 0) >= MERCY_AFTER ? MERCY_SECS : 0);
-  S.timeLeft = S.timeTotal; S.lastSec = null; S.lastTxt = ''; setTense(false);
+  S.timeLeft = S.timeTotal; S.lastSec = null; S.lastTxt = ''; S.lastResult = null; setTense(false);
   S.objs = L.objects.map(d => {
     const o = Object.assign({}, d);
     if (d.trap) o.angle = d.keep;
-    else { const mag = d.near ? rnd(0.65, 1.4) : d.mag * rnd(0.8, 1.2); o.angle = (Math.random() < 0.5 ? -1 : 1) * mag; }
+    else { const mag = d.near ? rnd(0.65, 1.4) : d.mag * rnd(0.8, 1.2); o.angle = (S.rng() < 0.5 ? -1 : 1) * mag; }
     o.target = 0; o.wasAligned = false; o.wasPerfect = false; o.bucket = null;
     return o;
   });
@@ -929,7 +929,7 @@ function startLevel(i, skipIntro) {
   timerEl.textContent = String(S.timeTotal); $('#tbar').style.transform = 'scaleX(1)'; $('#count').textContent = '';
   layout();
   evaluate(true);
-  if (skipIntro) begin(); else showIntro();
+  if (skipIntro) begin(instant); else showIntro();
 }
 function showIntro() {
   const L = S.L, i = S.levelIdx, n = L.objects.filter(o => !o.trap).length;
@@ -947,25 +947,27 @@ function showIntro() {
     <div class="row"><button class="btn primary" id="goBtn">開始・${S.timeTotal} 秒</button><button class="btn ghost" id="introHome">回首頁</button></div>
   </div>`;
   ov.hidden = false;
-  $('#goBtn').onclick = begin;
+  $('#goBtn').onclick = () => begin();
   $('#introHome').onclick = goHome;
   $('#goBtn').focus();
 }
 function clearCountdown() { S.cd.forEach(clearTimeout); S.cd = []; }
-function begin() {
+function startRound() {
+  S.running = true; S.paused = false; S.lastT = null;
+  MUS.start(S.L.song);
+  if (S.levelIdx === 0) toast('按住物品拖曳來旋轉');
+}
+function begin(instant) {
   AU.init();
   $('#ovIntro').hidden = true;
   clearCountdown();
+  if (instant) { startRound(); return; }
   const el = $('#count');
   ['3', '2', '1', '開始'].forEach((t, k) => S.cd.push(setTimeout(() => {
     const go = k === 3;
     el.textContent = t; el.classList.toggle('go', go); el.dataset.anim = 'pop'; restart(el);
     AU.tone(go ? 1320 : 880, go ? 0.35 : 0.12, { type: 'square', vol: 0.06 });
-    if (go) {
-      S.running = true; S.paused = false; S.lastT = null;
-      MUS.start(S.L.song);
-      if (S.levelIdx === 0) toast('按住物品拖曳來旋轉');
-    }
+    if (go) startRound();
   }, k * 600)));
 }
 function setTense(v) {
@@ -973,7 +975,7 @@ function setTense(v) {
   if (!v) { gameEl.classList.remove('peak'); MUS.peak = false; }
   MUS.setTense(v && S.running);
 }
-function restart(el) { el.classList.remove(el.dataset.anim); void el.offsetWidth; el.classList.add(el.dataset.anim); }
+function restart(el) { if (S.noFx) return; el.classList.remove(el.dataset.anim); void el.offsetWidth; el.classList.add(el.dataset.anim); }
 function updateTimer() {
   const tl = S.timeLeft, sec = Math.ceil(tl);
   const t = tl <= TENSE_AT ? tl.toFixed(1) : String(sec);
@@ -993,13 +995,9 @@ function updateTimer() {
     }
   }
 }
-function finish(win) {
-  if (S.ended) return;
-  S.ended = true; S.running = false; S.drag = null;
-  MUS.stop(); setTense(false);
-  loupe.classList.remove('on'); S.loupeObj = null;
-  evaluate(true);
-  const list = S.objs.filter(o => !o.trap);
+// Pure scoring: depends only on its inputs, so tests and the balance simulation call it directly.
+function computeScore(objs, timeLeft, win) {
+  const list = objs.filter(o => !o.trap);
   let aligned = 0, prec = 0, perfectAll = true, sumErr = 0;
   const rows = list.map(o => {
     const e = Math.abs(errOf(o)); sumErr += e;
@@ -1011,11 +1009,10 @@ function finish(win) {
     } else perfectAll = false;
     return { name: o.name, e, st };
   });
-  const secsLeft = Math.floor(S.timeLeft);
+  const secsLeft = Math.max(0, Math.floor(timeLeft));
   const timeBonus = win ? secsLeft * TIME_PTS : 0;
-  S.fails[S.levelIdx] = win ? 0 : (S.fails[S.levelIdx] || 0) + 1;
   let trapPts = 0, trapMsg = null;
-  const t = S.objs.find(o => o.trap);
+  const t = objs.find(o => o.trap);
   if (t) {
     const moved = Math.abs(norm(t.angle - t.keep)), straight = Math.abs(norm(t.angle)) <= 1;
     if (moved <= TOL) { trapPts = 200; trapMsg = '比薩斜塔本來就是斜的（約 3.97°）。你忍住了，+200。'; }
@@ -1025,13 +1022,25 @@ function finish(win) {
   const total = Math.max(0, aligned * 100 + prec + timeBonus + trapPts);
   let stars = 0;
   if (win) { stars = 1; if (sumErr / list.length <= 0.25) stars = 2; if (perfectAll && (!t || trapPts > 0)) stars = 3; }
+  return { win, rows, aligned, count: list.length, prec, timeBonus, secsLeft, trapPts, trapMsg, total, stars };
+}
+function finish(win) {
+  if (S.ended) return;
+  S.ended = true; S.running = false; S.drag = null;
+  MUS.stop(); setTense(false);
+  loupe.classList.remove('on'); S.loupeObj = null;
+  evaluate(true);
+  const r = computeScore(S.objs, S.timeLeft, win);
+  S.fails[S.levelIdx] = win ? 0 : (S.fails[S.levelIdx] || 0) + 1;
   const best = store.data.best[S.levelIdx] || { score: 0, stars: 0 };
-  const isNew = total > best.score;
-  store.data.best[S.levelIdx] = { score: Math.max(best.score, total), stars: Math.max(best.stars, stars) };
+  r.isNew = r.total > best.score;
+  store.data.best[S.levelIdx] = { score: Math.max(best.score, r.total), stars: Math.max(best.stars, r.stars) };
   store.save();
-  S.session[S.levelIdx] = total;
+  r.best = store.data.best[S.levelIdx].score;
+  S.session[S.levelIdx] = r.total;
+  S.lastResult = r;
   if (win) AU.win(); else AU.fail();
-  showResult({ win, rows, aligned, count: list.length, prec, timeBonus, secsLeft, trapPts, trapMsg, total, stars, best: store.data.best[S.levelIdx].score, isNew });
+  showResult(r);
   S.dirty = true;
 }
 function showResult(r) {
@@ -1243,13 +1252,52 @@ Promise.race([Promise.all(fontList.map(f => document.fonts.load(f, f.includes('D
   .catch(() => {})
   .then(() => { drawThumbs(); if (S.L && !gameEl.hidden) { S.bg = buildBg(S.L, K); S.dirty = true; } });
 
+function tickTime(dt) {
+  S.timeLeft = Math.max(0, S.timeLeft - dt);
+  updateTimer();
+  if (S.timeLeft <= 0) { evaluate(true); finish(S.allWas); }
+}
+
+/* ---------- test hook: driven by tests/game (automated tests + balance simulation) ---------- */
+window.__chayidu = {
+  api: 1,
+  consts: { TOL, PERFECT, TENSE_AT, PEAK_AT, PERFECT_BONUS, TIME_PTS, MERCY_AFTER, MERCY_SECS, W, H },
+  levels: () => LEVELS.map(L => ({ key: L.key, title: L.title, time: L.time,
+    objects: L.objects.map(o => ({ id: o.id, name: o.name, trap: !!o.trap, keep: o.keep ?? null, near: !!o.near, mag: o.mag ?? null,
+      link: o.link ? Object.assign({}, o.link) : null, x: o.x, y: o.y, w: o.w, h: o.h })) })),
+  seed(n) { S.rng = n == null ? Math.random : mulberry(n); },
+  // quiet: no sound and no effect animations, for fast headless simulation
+  quiet(on) { AU.silent = !!on; S.noFx = !!on; if (on) MUS.stop(); },
+  manualClock(on) { S.manualClock = !!on; S.lastT = null; },
+  start(i, opts = {}) { startLevel(i, true, opts.instant !== false); return this.state(); },
+  advance(sec) { let left = sec; while (left > 1e-9 && S.running && !S.paused) { const dt = Math.min(0.05, left); tickTime(dt); left -= dt; } return S.timeLeft; },
+  rotate(id, d) { const o = S.objs.find(x => x.id === id); if (!o || !S.running || S.paused) return false; rotateObj(o, d); return true; },
+  setAngle(id, a) { const o = S.objs.find(x => x.id === id); return o ? this.rotate(id, norm(a - o.angle)) : false; },
+  release() { if (S.running) evaluate(); },
+  select(id) { select(S.objs.find(x => x.id === id) || null); },
+  nudge: d => nudge(d),
+  done() { doneBtn.click(); },
+  pause: () => pause(),
+  resume: () => resume(),
+  home: () => goHome(),
+  resetProgress() { store.data.best = {}; store.save(); S.session = {}; S.fails = {}; },
+  computeScore: (objs, timeLeft, win) => computeScore(objs.map(o => Object.assign({ target: 0 }, o)), timeLeft, win),
+  state() {
+    const [n, m] = counts();
+    return { screen: gameEl.hidden ? 'home' : 'game', level: S.levelIdx, key: S.L && S.L.key,
+      running: S.running, paused: S.paused, ended: S.ended, timeLeft: S.timeLeft, timeTotal: S.timeTotal,
+      tense: S.tense, peak: gameEl.classList.contains('peak'), aligned: n, required: m,
+      doneEnabled: !doneBtn.disabled, timerText: timerEl.textContent,
+      objs: S.objs.map(o => ({ id: o.id, angle: o.angle, err: errOf(o), keep: o.keep ?? null, trap: !!o.trap,
+        aligned: !!o.wasAligned, perfect: !!o.wasPerfect, bonusGiven: !!o.bonusGiven })),
+      fails: Object.assign({}, S.fails), session: Object.assign({}, S.session), lastResult: S.lastResult,
+      overlays: { intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden } };
+  }
+};
+
 function loop(t) {
   const dt = S.lastT == null ? 0 : Math.min(0.1, (t - S.lastT) / 1000); S.lastT = t;
-  if (S.running && !S.paused) {
-    S.timeLeft = Math.max(0, S.timeLeft - dt);
-    updateTimer();
-    if (S.timeLeft <= 0) { evaluate(true); finish(S.allWas); }
-  }
+  if (S.running && !S.paused && !S.manualClock) tickTime(dt);
   if (S.dirty) { S.dirty = false; render(); }
   requestAnimationFrame(loop);
 }

@@ -1,0 +1,159 @@
+{
+  "runs": 1000,
+  "seed": 1,
+  "metrics": {
+    "jp:novice": {
+      "runs": 1000,
+      "winRate": 0.106,
+      "meanScore": 420.624,
+      "p10": 242,
+      "p50": 406,
+      "p90": 613,
+      "maxSeen": 836,
+      "meanSecsLeftOnWin": 1.1226,
+      "stars": [
+        0.894,
+        0.024,
+        0.081,
+        0.001
+      ],
+      "trapStraightened": 0
+    },
+    "jp:casual": {
+      "runs": 1000,
+      "winRate": 0.988,
+      "meanScore": 851.944,
+      "p10": 754,
+      "p50": 854,
+      "p90": 955,
+      "maxSeen": 1078,
+      "meanSecsLeftOnWin": 8.8178,
+      "stars": [
+        0.012,
+        0.076,
+        0.89,
+        0.022
+      ],
+      "trapStraightened": 0
+    },
+    "jp:expert": {
+      "runs": 1000,
+      "winRate": 1,
+      "meanScore": 1140.532,
+      "p10": 1084,
+      "p50": 1139,
+      "p90": 1195,
+      "maxSeen": 1270,
+      "meanSecsLeftOnWin": 20.287,
+      "stars": [
+        0,
+        0,
+        0.596,
+        0.404
+      ],
+      "trapStraightened": 0
+    },
+    "fr:novice": {
+      "runs": 1000,
+      "winRate": 0.002,
+      "meanScore": 515.974,
+      "p10": 331,
+      "p50": 520,
+      "p90": 688,
+      "maxSeen": 1022,
+      "meanSecsLeftOnWin": 0,
+      "stars": [
+        0.998,
+        0,
+        0.002,
+        0
+      ],
+      "trapStraightened": 0
+    },
+    "fr:casual": {
+      "runs": 1000,
+      "winRate": 0.942,
+      "meanScore": 1079.77,
+      "p10": 957,
+      "p50": 1091,
+      "p90": 1218,
+      "maxSeen": 1353,
+      "meanSecsLeftOnWin": 7.0372,
+      "stars": [
+        0.058,
+        0.04,
+        0.898,
+        0.004
+      ],
+      "trapStraightened": 0
+    },
+    "fr:expert": {
+      "runs": 1000,
+      "winRate": 1,
+      "meanScore": 1472.904,
+      "p10": 1410,
+      "p50": 1470,
+      "p90": 1538,
+      "maxSeen": 1630,
+      "meanSecsLeftOnWin": 22.168,
+      "stars": [
+        0,
+        0,
+        0.694,
+        0.306
+      ],
+      "trapStraightened": 0
+    },
+    "it:novice": {
+      "runs": 1000,
+      "winRate": 0.118,
+      "meanScore": 596.335,
+      "p10": 283,
+      "p50": 591,
+      "p90": 875,
+      "maxSeen": 1263,
+      "meanSecsLeftOnWin": 2.0847,
+      "stars": [
+        0.882,
+        0.026,
+        0.092,
+        0
+      ],
+      "trapStraightened": 0.415
+    },
+    "it:casual": {
+      "runs": 1000,
+      "winRate": 0.991,
+      "meanScore": 1138.456,
+      "p10": 835,
+      "p50": 1195,
+      "p90": 1380,
+      "maxSeen": 1564,
+      "meanSecsLeftOnWin": 12.6549,
+      "stars": [
+        0.009,
+        0.06,
+        0.926,
+        0.005
+      ],
+      "trapStraightened": 0.367
+    },
+    "it:expert": {
+      "runs": 1000,
+      "winRate": 1,
+      "meanScore": 1589.844,
+      "p10": 1370,
+      "p50": 1620,
+      "p90": 1700,
+      "maxSeen": 1800,
+      "meanSecsLeftOnWin": 27.202,
+      "stars": [
+        0,
+        0,
+        0.71,
+        0.29
+      ],
+      "trapStraightened": 0.103
+    }
+  }
+}
