@@ -14,11 +14,11 @@ export function launch() {
 // How many games to simulate at once: GAME_SIM_PAGES, else half the CPU cores (2-8).
 export const SIM_PAGES = Number(process.env.GAME_SIM_PAGES) || Math.max(2, Math.min(8, Math.floor(os.cpus().length / 2)))
 
-export async function openGame(browser, { width = 400, height = 820, firstRun = false } = {}) {
+export async function openGame(browser, { width = 400, height = 820 } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
   const page = await context.newPage()
-  // The first-launch difficulty question is its own test; every other test starts past it.
-  if (!firstRun) await page.addInitScript(() => { if (!localStorage.getItem('chayidu.v3') && !localStorage.getItem('chayidu.v2')) localStorage.setItem('chayidu.v3', JSON.stringify({ onboarded: true })) })
+  // A new player starts on easy; the tests' numbers assume normal unless a test says otherwise.
+  await page.addInitScript(() => { if (!localStorage.getItem('chayidu.v3') && !localStorage.getItem('chayidu.v2')) localStorage.setItem('chayidu.v3', JSON.stringify({ diff: 'normal' })) })
   const errors = []
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })

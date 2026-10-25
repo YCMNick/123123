@@ -47,10 +47,10 @@ describe('亂數操作風暴', () => {
         let action
         if (s.overlays.lock) action = 'lockLater'
         else if (s.overlays.chapter) action = pick(['sheetPlay', 'sheetPlay', 'sheetClose'])
-        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt', 'diff', 'lang', 'audio', 'zen'])
+        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'stop', 'tilt', 'lang', 'audio', 'zen'])
         else if (s.overlays.result) action = pick(['result', 'result', 'key'])
         else if (s.overlays.pause) action = pick(['pauseMenu', 'pauseMenu', 'key', 'pauseAudio'])
-        else if (s.overlays.intro) action = pick(['go', 'go', 'introHome'])
+        else if (s.overlays.intro) action = pick(['go', 'go', 'introHome', 'diff'])
         else action = pick(['drag', 'drag', 'drag', 'tap', 'nudge', 'nudge', 'key', 'done', 'clock', 'clock', 'pause', 'resize', 'music'])
         log.push(action)
         const vw = page.viewportSize()
@@ -63,7 +63,8 @@ describe('亂數操作風暴', () => {
           case 'music': await page.click('#musicBtn'); break
           case 'zen': await page.click(`#zenSeg button[data-v="${pick(['0', '1'])}"]`); break
           case 'lockLater': await page.click('#lockLater'); break
-          case 'diff': await page.click(`#diff-${pick(['easy', 'normal', 'hard'])}`); break
+          case 'diff': await page.click(`#ovIntro #diff-${pick(['easy', 'normal', 'hard'])}`); break
+          case 'stop': await page.click(`#levels .st[data-i="${Math.floor(rand() * 100)}"]`); break
           case 'sheetClose': await page.click('#sheetClose'); break
           case 'start': await page.click('#startBtn'); break
           case 'tilt': { const b = await page.locator('#tilt').boundingBox(); await page.mouse.move(b.x + rand() * b.width, b.y + rand() * b.height); await page.mouse.down(); await page.mouse.move(b.x + rand() * 200, b.y + rand() * 200, { steps: 3 }); await page.mouse.up(); break }

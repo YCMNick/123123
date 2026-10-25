@@ -156,8 +156,11 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
   (`mapLayout`/`drawMapBg`/`buildCards`): ten world signs up a winding path
   from the farm to orbit, with a stop (`.st`) per stage; `showHere()` scrolls
   to the next stop. World signs keep the `.lv` class and a `.prog` label.
-- New-player protection: a first-launch difficulty question (easy suggested),
-  stages 1-1 to 1-3 are practice (`PRACTICE_STAGES`, double time; the calibrator
+- Difficulty is picked per stage on the stage card (`showIntro`), which shows
+  the record on each difficulty; records stay per difficulty (`bestOn`), a
+  stage counts as cleared on any (`clearedOf`), stops and sheet rows show the
+  hardest cleared (`topDiff`, `pips`). A new player defaults to easy.
+- New-player protection: stages 1-1 to 1-3 are practice (`PRACTICE_STAGES`, double time; the calibrator
   keeps their base time), two losses on a stage offer easy on the result screen,
   objects still off light up after 8 s without progress (`STALL_MS`).
 - Input: a slow finger turns at ¼ gain (`FINE_GAIN`, a precision mode, not a

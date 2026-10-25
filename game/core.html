@@ -86,8 +86,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 .lv .n{font-family:var(--f-display);font-weight:800;font-size:17px;line-height:1.2;color:#fff;text-shadow:0 1px 0 var(--wood-dark)}
 .lv .prog{font-family:var(--f-num);font-weight:700;font-size:11px;color:#fff3cf;margin-top:2px}
 .st{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:3px solid var(--wood);background:radial-gradient(circle at 40% 35%,#fffdf5,#e9d7ad);box-shadow:0 3px 0 var(--wood-dark),0 4px 8px rgba(40,25,5,.3);padding:0;font-family:var(--f-num);font-weight:800;font-size:12px;color:var(--wood-dark);display:grid;place-items:center;line-height:1}
-.st.done{background:radial-gradient(circle at 40% 35%,#b4f08f,var(--green));color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
-.st.three{background:radial-gradient(circle at 40% 35%,#fff0a8,var(--gold));color:var(--wood-dark)}
 .st.next{width:38px;height:38px;font-size:14px;background:radial-gradient(circle at 40% 35%,#fff,#ffe9a8);animation:pulse 1.4s ease-in-out infinite}
 .st.locked{opacity:.55;filter:grayscale(1)}
 @keyframes pulse{0%,100%{box-shadow:0 3px 0 var(--wood-dark),0 0 0 0 rgba(255,204,51,.7)}50%{box-shadow:0 3px 0 var(--wood-dark),0 0 0 12px rgba(255,204,51,0)}}
@@ -128,10 +126,29 @@ button{font:inherit;color:inherit;cursor:pointer}
 .stages li.locked{opacity:.55}
 .stages li.locked b::after{content:" 🔒"}
 #ovChapter{z-index:20}
-#ovFirst{z-index:21}
 #ovLock{z-index:22}
-#ovFirst .diffs{margin:4px 0 2px}
-#ovFirst .diff .rec{display:inline-block;margin-left:8px;font-size:11px;color:#fff;background:var(--green);border-radius:999px;padding:1px 8px;font-weight:800;vertical-align:middle;box-shadow:0 2px 0 var(--green-dark)}
+.diff .rec{display:inline-block;margin-left:8px;font-size:11px;color:#fff;background:var(--green);border-radius:999px;padding:1px 8px;font-weight:800;vertical-align:middle;box-shadow:0 2px 0 var(--green-dark)}
+/* the difficulty picker on a stage card: one row per difficulty with that stage's record */
+.card .diffs{grid-template-columns:1fr;gap:8px;margin-top:2px}
+.card .diff{flex-direction:row;align-items:center;gap:10px;padding:8px 12px}
+.card .diff .dl{display:grid;gap:0;min-width:0;flex:1}
+.card .diff b{font-size:16px}
+.card .diff i{font-size:10px}
+.card .diff .rec{margin-left:6px}
+.card .diff .best{font-family:var(--f-num);font-weight:800;font-size:13px;color:var(--muted);text-align:right;white-space:nowrap}
+.card .diff .best .s{font-size:12px}
+.card .diff .best.got{color:var(--wood-dark)}
+.card .diff[aria-checked="true"]::after{display:none}
+.card .diff[aria-checked="true"]{box-shadow:0 4px 0 var(--green-dark),0 0 0 3px var(--gold)}
+/* which difficulties a stage has been cleared on: three pips */
+.pips{display:inline-flex;gap:3px;vertical-align:middle}
+.pips i{width:9px;height:9px;border-radius:50%;background:#d9c99a;border:1.5px solid #fff;box-shadow:0 0 0 1px #c9a96a}
+.pips i.on{background:var(--green)} .pips i.on.n{background:#3f9fe8} .pips i.on.h{background:var(--gold)}
+.st.e{background:radial-gradient(circle at 40% 35%,#b4f08f,var(--green));color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.st.n{background:radial-gradient(circle at 40% 35%,#9fd4ff,#3f9fe8);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.st.h{background:radial-gradient(circle at 40% 35%,#fff0a8,var(--gold));color:var(--wood-dark)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink);align-items:center;padding:8px 14px 0}
+.legend span{display:inline-flex;align-items:center;gap:5px}
 .lread .fine{display:block;font-style:normal;font-size:10px;color:var(--gold);font-family:var(--f-num);margin-top:1px}
 
 /* ---------- game ---------- */
@@ -286,6 +303,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       </div>
       <div class="sect map-sect">
         <h2 data-i18n="worldsTitle"></h2>
+        <p class="legend" id="legend"></p>
         <div class="map" id="map">
           <canvas id="mapBg" aria-hidden="true"></canvas>
           <div class="map-nodes" id="levels"></div>
@@ -301,7 +319,6 @@ button{font:inherit;color:inherit;cursor:pointer}
   </section>
 
   <div class="overlay" id="ovChapter" hidden></div>
-    <div class="overlay" id="ovFirst" hidden></div>
     <div class="overlay" id="ovLock" hidden></div>
 
   <!-- GAME -->
@@ -396,7 +413,7 @@ const UI = {
     nickLabel: '暱稱（選填，只存在這台裝置）', nickPh: '例如：Nick', start: '開始遊戲', cont: s => `繼續 ${s}`,
     settings: '設定', lang: '語言', music: '背景音樂', sound: '音效', on: '開', off: '關',
     mode: '模式', timed: '計時', zen: '禪模式', zenNote: '禪模式：不計時，只算精準度。', practice: '練習關・時間加倍',
-    firstTitle: '歪掉的東西，你有多在意？', firstLede: '選一個開始。之後隨時可以在首頁改。', firstPick: '就這個', firstRec: '建議新手',
+    firstRec: '建議新手', pickDiff: '選難度', notTried: '未挑戰', bestOn: (s, p) => `${s} ${p}`, legendE: '簡單', legendN: '普通', legendH: '困難', legendTitle: '站點顏色＝破過的最高難度：',
     tryEasy: n => `改用「${n}」再試`, ldFine: '精細 ¼', fineHint: '慢慢移動＝精細模式；手指離物品越遠，轉得越細', stallHint: '還歪著的物品會亮起來', goZen: '開始・不計時',
     tZen: '禪模式不計時',
     lockTitle: '完整版', lockLede: '第 1 大關和每個大關的第 1 小關免費。完整版一次買斷：100 關全開、沒有廣告。', lockBuy: p => `解鎖完整版 ${p}`, lockAd: '看一段廣告，免費玩這個大關 24 小時', lockLater: '先不用',
@@ -436,7 +453,7 @@ const UI = {
     nickLabel: 'Nickname (optional, saved on this device only)', nickPh: 'e.g. Nick', start: 'Play', cont: s => `Continue ${s}`,
     settings: 'Settings', lang: 'Language', music: 'Music', sound: 'Sound effects', on: 'On', off: 'Off',
     mode: 'Mode', timed: 'Timed', zen: 'Zen', zenNote: 'Zen mode: no clock, precision only.', practice: 'Practice · double time',
-    firstTitle: 'How much do crooked things bother you?', firstLede: 'Pick one to start. You can change it on the home screen any time.', firstPick: 'This one', firstRec: 'Suggested for new players',
+    firstRec: 'For new players', pickDiff: 'Pick a difficulty', notTried: 'Not tried', bestOn: (s, p) => `${s} ${p}`, legendE: 'Easy', legendN: 'Normal', legendH: 'Hard', legendTitle: 'Stop colour = hardest difficulty cleared:',
     tryEasy: n => `Try again on ${n}`, ldFine: 'fine ¼', fineHint: 'Move slowly for fine control; the farther from the object, the finer it turns', stallHint: 'Objects still off will light up', goZen: 'Start · no clock',
     tZen: 'Zen mode: no clock',
     lockTitle: 'Full version', lockLede: 'World 1 and the first stage of every world are free. The full version is a one-time purchase: all 100 stages, no ads.', lockBuy: p => `Unlock the full version ${p}`, lockAd: 'Watch an ad to play this world free for 24 hours', lockLater: 'Not now',
@@ -482,14 +499,15 @@ const store = {
   load() {
     try {
       const d = JSON.parse(localStorage.getItem('chayidu.v3') || 'null');
-      if (d) { Object.assign(this.data, d); return; }
-      // First run of v3 on a device that played v2: carry its progress over. v2 stored the
-      // ten first stages by index; their keys are listed here in that order.
-      const old = JSON.parse(localStorage.getItem('chayidu.v2') || 'null');
+      if (d) Object.assign(this.data, d);
+      // A device that played v2 carries its progress over, once. v2 stored the ten first stages
+      // by index; their keys are listed here in that order. Existing v3 values win, v2 fills the gaps.
+      const old = this.data.migratedV2 ? null : JSON.parse(localStorage.getItem('chayidu.v2') || 'null');
       if (!old) return;
       const V2 = ['farm', 'reef', 'jp', 'desk', 'fr', 'polar', 'desert', 'it', 'neon', 'space'];
-      Object.assign(this.data, old, { best: {} });
-      for (const [k, v] of Object.entries(old.best || {})) { const [diff, i] = k.split(':'); if (V2[+i]) this.data.best[`${diff}:${V2[+i]}`] = v; }
+      for (const k of ['nick', 'sound', 'music', 'diff', 'lang']) if (this.data[k] === undefined || this.data[k] === '' || (k === 'nick' && !this.data.nick)) { if (old[k] !== undefined) this.data[k] = old[k]; }
+      for (const [k, v] of Object.entries(old.best || {})) { const [diff, i] = k.split(':'); if (V2[+i] && !this.data.best[`${diff}:${V2[+i]}`]) this.data.best[`${diff}:${V2[+i]}`] = v; }
+      this.data.migratedV2 = true;
       this.save();
     } catch (e) {}
   },
@@ -982,10 +1000,18 @@ function showIntro() {
     <h2>${tr(L.title)}</h2>
     <p class="place">${U('introPlace', tr(L.place), n, tr(D.name))}</p>
     <p class="hintbox">${tr(L.intro)}</p>
+    <p class="eyebrow">${U('pickDiff')}</p>
+    <div class="diffs" role="radiogroup" aria-label="${U('pickDiff')}">${DIFFS.map((d, k) => {
+      const b = bestOn(S.levelIdx, d), got = !!b && b.stars > 0;
+      const stars = got ? [0, 1, 2].map(j => `<span class="s ${j < b.stars ? 'on' : ''}">★</span>`).join('') : '';
+      return `<button type="button" class="diff" id="diff-${d.key}" data-k="${k}" role="radio" aria-checked="${k === S.diff}"><span class="dl"><i>${tr(d.level)}${k === 0 && !clearedOf(S.levelIdx) ? `<span class="rec">${U('firstRec')}</span>` : ''}</i><b>${tr(d.name)}</b></span><span class="best${got ? ' got' : ''}">${got ? U('bestOn', stars, b.score) : U('notTried')}</span></button>`;
+    }).join('')}</div>
     <ul class="tips">${[...(isPractice(L) && !S.zen ? [U('practice')] : []), ...(S.zen ? [U('zenNote')] : []), ...U('tips', D.tol, D.perfect)].map(x => `<li>${x}</li>`).join('')}</ul>
     <div class="row"><button class="btn primary" id="goBtn">${S.zen ? U('goZen') : U('goBtn', S.timeTotal)}</button><button class="btn ghost" id="introHome">${U('home')}</button></div>
   </div>`;
   ov.hidden = false;
+  // Picking a difficulty re-deals the stage for it (tolerance shapes the near objects) and redraws this card.
+  ov.querySelectorAll('.diff').forEach(b => { b.onclick = () => { if (+b.dataset.k === S.diff) return; setDiff(+b.dataset.k); startLevel(S.levelIdx); }; });
   $('#goBtn').onclick = () => begin();
   $('#introHome').onclick = goHome;
   $('#goBtn').focus();
@@ -1256,18 +1282,6 @@ for (const id of ['soundSeg', 'pSoundSeg']) $('#' + id).onclick = e => { const b
 $('#langSeg').onclick = e => { const b = e.target.closest('button'); if (b) setLang(b.dataset.v); };
 function setZen(on) { store.data.zen = !!on; store.save(); syncSound(); buildCards(); }
 $('#zenSeg').onclick = e => { const b = e.target.closest('button'); if (b) setZen(b.dataset.v === '1'); };
-// First launch: ask how much crooked things bother the player, with the gentle difficulty suggested.
-function showFirstRun() {
-  const ov = $('#ovFirst');
-  ov.innerHTML = `<div class="card">
-    <h2>${U('firstTitle')}</h2>
-    <p class="place">${U('firstLede')}</p>
-    <div class="diffs" role="radiogroup">${DIFFS.map((d, k) => `<button type="button" class="diff" data-k="${k}" role="radio" aria-checked="${k === 0}"><i>${tr(d.level)}</i><b>${tr(d.name)}${k === 0 ? `<span class="rec">${U('firstRec')}</span>` : ''}</b><span>${tr(d.note)}</span></button>`).join('')}</div>
-  </div>`;
-  ov.hidden = false;
-  ov.querySelectorAll('.diff').forEach(b => { b.onclick = () => { store.data.onboarded = true; setDiff(+b.dataset.k); ov.hidden = true; showHere(); }; });
-  ov.querySelector('.diff').focus();
-}
 // Fill every static label for the current language.
 function applyLang() {
   document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
@@ -1277,6 +1291,7 @@ function applyLang() {
   document.querySelectorAll('.nudge').forEach((b, k) => b.setAttribute('aria-label', U('nudge')[k]));
   $('#nick').placeholder = U('nickPh');
   $('#rules').innerHTML = U('rules').map(([b, t]) => `<li><b>${b}</b><span>${t}</span></li>`).join('');
+  $('#legend').innerHTML = `${U('legendTitle')} <span><i class="st e" style="position:static;transform:none;width:16px;height:16px;display:inline-block"></i>${U('legendE')}</span><span><i class="st n" style="position:static;transform:none;width:16px;height:16px;display:inline-block"></i>${U('legendN')}</span><span><i class="st h" style="position:static;transform:none;width:16px;height:16px;display:inline-block"></i>${U('legendH')}</span>`;
   const title = $('#title'); title.innerHTML = U('title'); title.setAttribute('aria-label', U('titleLabel')); title.classList.toggle('en', LANG === 'en');
   markSeg($('#langSeg'), LANG);
   select(S.selected);
@@ -1284,8 +1299,7 @@ function applyLang() {
 }
 function setLang(l) {
   LANG = l === 'en' ? 'en' : 'zh'; store.data.lang = LANG; store.save();
-  applyLang(); buildDiffs(); buildCards();
-  if (!$('#ovFirst').hidden) showFirstRun();
+  applyLang(); buildCards();
 }
 
 let toastT;
@@ -1346,8 +1360,12 @@ function drawHen(cv = $('#hen'), S0 = 104) {
 function henHop() { const el = $('#hen'); el.classList.remove('happy'); void el.offsetWidth; el.classList.add('happy'); }
 
 /* ---------- home ---------- */
-const starsOf = i => (store.data.best[bestKey(i)] || {}).stars || 0;
-const clearedOf = i => !!store.data.best[bestKey(i)] && starsOf(i) > 0;
+// Records are kept per difficulty. A stage counts as cleared on any difficulty; its stars are the best across them.
+const bestOn = (i, d) => store.data.best[`${d.key}:${LEVELS[i].key}`] || null;
+const starsOf = i => Math.max(0, ...DIFFS.map(d => (bestOn(i, d) || {}).stars || 0));
+const clearedOf = i => starsOf(i) > 0;
+const topDiff = i => { let t = -1; DIFFS.forEach((d, k) => { if (((bestOn(i, d) || {}).stars || 0) > 0) t = k; }); return t; }; // highest difficulty cleared, -1 if none
+const pips = i => `<span class="pips" aria-hidden="true">${DIFFS.map((d, k) => `<i class="${((bestOn(i, d) || {}).stars || 0) > 0 ? 'on ' + d.key[0] : ''}"></i>`).join('')}</span>`;
 // First stage not yet cleared on this difficulty (in order), else the very first.
 /* ---------- unlock: world 1 and every world's first stage are free; the rest is the full version or an ad pass ---------- */
 let FREE_ALL = !!STORE_CFG.freeAll; // the web build has everything open; the app build sets freeAll false
@@ -1466,7 +1484,8 @@ function buildCards() {
   // the small stops: one per stage, along the path
   LEVELS.forEach((L, i) => {
     const d = lay.dots[i], st = document.createElement('button'); st.type = 'button';
-    st.className = 'st' + (clearedOf(i) ? (starsOf(i) === 3 ? ' three' : ' done') : '') + (i === n ? ' next' : '') + (unlocked(L) ? '' : ' locked');
+    const td = topDiff(i);
+    st.className = 'st' + (td >= 0 ? ' ' + DIFFS[td].key[0] : '') + (i === n ? ' next' : '') + (unlocked(L) ? '' : ' locked');
     st.style.left = d.x + 'px'; st.style.top = d.y + 'px'; st.textContent = L.stage + 1; st.dataset.i = i;
     st.setAttribute('aria-label', `${stageLabel(L)} ${tr(L.title)}`); st.title = `${stageLabel(L)} ${tr(L.title)}`;
     st.onclick = () => { saveNick(); if (unlocked(L)) startLevel(i); else showLock(L); };
@@ -1481,28 +1500,15 @@ function buildCards() {
 }
 // Bring the player's next stop into view (the map runs bottom-up, so the start is far down).
 function showHere() { const h = $('#levels .here'); if (h && h.scrollIntoView) h.scrollIntoView({ block: 'center' }); }
-function buildDiffs() {
-  const box = $('#diffs'); box.innerHTML = '';
-  DIFFS.forEach((d, k) => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'diff'; b.id = `diff-${d.key}`;
-    b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === S.diff));
-    b.innerHTML = `<i>${tr(d.level)}</i><b>${tr(d.name)}</b><span>${tr(d.note)}</span>`;
-    b.onclick = () => setDiff(k);
-    box.appendChild(b);
-  });
-}
-function setDiff(k) {
-  S.diff = k; store.data.diff = DIFFS[k].key; store.data.onboarded = true; store.save();
-  buildDiffs(); buildCards();
-}
+function setDiff(k) { S.diff = k; store.data.diff = DIFFS[k].key; store.save(); }
 function openChapter(c) {
   const ch = CHAPTERS[c], idx = LEVELS.map((L, i) => i).filter(i => LEVELS[i].chapter === c);
   const nx = nextIndex(idx[0], idx[idx.length - 1] + 1), ov = $('#ovChapter');
   const rows = idx.map(i => {
-    const L = LEVELS[i], b = store.data.best[bestKey(i)], n = L.objects.filter(o => !o.trap).length;
+    const L = LEVELS[i], n = L.objects.filter(o => !o.trap).length;
     const st = [0, 1, 2].map(j => `<span class="s ${j < starsOf(i) ? 'on' : ''}">★</span>`).join('');
     const open = unlocked(L);
-    return `<li class="play${i === nx ? ' next' : ''}${clearedOf(i) ? ' done' : ''}${open ? '' : ' locked'}" data-i="${i}" tabindex="0" role="button"><b>${stageLabel(L)}</b><strong>${tr(L.title)}</strong><span>${open ? U('stageInfo', n, levelTime(L)) + (b ? ' · ' + U('stageBest', b.score) : '') : U('locked')} ${st}</span></li>`;
+    return `<li class="play${i === nx ? ' next' : ''}${clearedOf(i) ? ' done' : ''}${open ? '' : ' locked'}" data-i="${i}" tabindex="0" role="button"><b>${stageLabel(L)}</b><strong>${tr(L.title)}</strong><span>${open ? U('stageInfo', n, Math.round(L.time) * (isPractice(L) ? PRACTICE_MUL : 1)) : U('locked')} ${pips(i)} ${st}</span></li>`;
   }).join('');
   ov.innerHTML = `<div class="card">
     <p class="eyebrow">${U('worldK', c + 1, tr(ch.style))}</p>
@@ -1571,13 +1577,10 @@ LANG = store.data.lang === 'en' ? 'en' : 'zh';
 $('#nick').value = store.data.nick || '';
 syncSound();
 makeGrain();
-S.diff = Math.max(0, DIFFS.findIndex(d => d.key === (store.data.diff || 'normal')));
+S.diff = Math.max(0, DIFFS.findIndex(d => d.key === (store.data.diff || 'easy')));
 applyLang();
-buildDiffs();
 buildCards();
 // Players from before the question had already chosen (or kept) a difficulty: don't ask them.
-if (!store.data.onboarded && (store.data.diff || Object.keys(store.data.best).length)) { store.data.onboarded = true; store.save(); }
-if (!store.data.onboarded) showFirstRun();
 new ResizeObserver(() => layout()).observe($('#stageWrap'));
 drawHen();
 new ResizeObserver(() => drawHomeBg()).observe($('#home'));
@@ -1684,7 +1687,7 @@ window.__chayidu = {
       objs: S.objs.map(o => ({ id: o.id, angle: o.angle, target: o.target, err: errOf(o), keep: o.keep ?? null, trap: !!o.trap, call: o.call || null, live: o.live,
         aligned: !!o.wasAligned, perfect: !!o.wasPerfect, bonusGiven: !!o.bonusGiven })),
       fails: Object.assign({}, S.fails), session: Object.assign({}, S.session), lastResult: S.lastResult,
-      lang: LANG, zen: !!S.zen, stalled: stalled(), audio: { music: AU.musicOn, sound: AU.soundOn }, overlays: { first: !$('#ovFirst').hidden, lock: !$('#ovLock').hidden, intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden, chapter: !$('#ovChapter').hidden } };
+      lang: LANG, zen: !!S.zen, stalled: stalled(), audio: { music: AU.musicOn, sound: AU.soundOn }, overlays: { lock: !$('#ovLock').hidden, intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden, chapter: !$('#ovChapter').hidden } };
   }
 };
 
