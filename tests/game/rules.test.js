@@ -13,26 +13,64 @@ beforeAll(async () => {
 })
 afterAll(async () => { await browser?.close() })
 
-describe('地球宇宙：十大關卡', () => {
-  it('10 個大關、各 10 個規劃小關；目前每個大關開放第 1 小關', () => {
+const FIRSTS = ['farm', 'reef', 'jp', 'desk', 'fr', 'polar', 'desert', 'it', 'neon', 'space']
+const both = (x) => !!x && typeof x.zh === 'string' && typeof x.en === 'string' && !!x.zh.trim() && !!x.en.trim()
+
+describe('地球宇宙：10 大關 × 10 小關', () => {
+  it('10 個大關、各 10 個小關，共 100 關，順序是大關 → 小關', () => {
     expect(CH).toHaveLength(10)
     for (const ch of CH) expect(ch.stages).toHaveLength(10)
-    expect(LV).toHaveLength(10)
-    expect(LV.map((l) => l.chapter)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    LV.forEach((l) => expect(l.title).toBe(CH[l.chapter].stages[0]))
+    expect(LV).toHaveLength(100)
+    LV.forEach((l, i) => { expect(l.chapter, l.key).toBe(Math.floor(i / 10)); expect(l.stage, l.key).toBe(i % 10) })
+    LV.forEach((l) => expect(l.title).toBe(CH[l.chapter].stages[l.stage]))
+    expect(LV.filter((l) => l.stage === 0).map((l) => l.key)).toEqual(FIRSTS)
+    expect(new Set(LV.map((l) => l.key)).size).toBe(100)
   })
-  it('每關物品 id 不重複、都有一件「只歪一點點」的物品', () => {
+  it('每關都是中英雙語：標題、地點、說明、每件物品的名字', () => {
+    for (const ch of CH) for (const f of ['names', 'blurb', 'style', 'narrator']) expect(both(ch[f]), `${ch.key}.${f}`).toBe(true)
     for (const l of LV) {
-      const ids = l.objects.map((o) => o.id)
-      expect(new Set(ids).size).toBe(ids.length)
-      expect(l.objects.some((o) => o.near), l.key).toBe(true)
+      for (const f of ['titles', 'place', 'intro']) expect(both(l[f]), `${l.key}.${f}`).toBe(true)
+      for (const o of l.objects) expect(both(o.names), `${l.key}/${o.id}`).toBe(true)
     }
   })
-  it('特殊機制都在：斜塔陷阱、三組連動、要倒過來才對的海市蜃樓', () => {
-    const all = LV.flatMap((l) => l.objects.map((o) => ({ ...o, level: l.key })))
-    expect(all.filter((o) => o.trap)).toEqual([expect.objectContaining({ id: 'pisa', keep: 3.97, level: 'it' })])
-    expect(all.filter((o) => o.link).map((o) => `${o.id}->${o.link.to}@${o.link.k}`)).toEqual(['shL->shR@0.6', 'tickets->price@0.5', 'panelL->panelR@0.6'])
-    expect(all.filter((o) => o.target !== 0)).toEqual([expect.objectContaining({ id: 'mirage', target: 180 })])
+  it('每關物品 id 不重複、3～9 件要轉正、有一到兩件「只歪一點點」、不超出畫面', () => {
+    for (const l of LV) {
+      const ids = l.objects.map((o) => o.id), play = l.objects.filter((o) => !o.trap), near = play.filter((o) => o.near).length
+      expect(new Set(ids).size, l.key).toBe(ids.length)
+      expect(play.length, l.key).toBeGreaterThanOrEqual(3)
+      expect(play.length, l.key).toBeLessThanOrEqual(9)
+      expect(near, l.key).toBeGreaterThanOrEqual(1)
+      expect(near, l.key).toBeLessThanOrEqual(2)
+      for (const o of l.objects) {
+        expect(o.x - o.w / 2, `${l.key}/${o.id}`).toBeGreaterThanOrEqual(0)
+        expect(o.x + o.w / 2, `${l.key}/${o.id}`).toBeLessThanOrEqual(C.W)
+        expect(o.y - o.h / 2, `${l.key}/${o.id}`).toBeGreaterThanOrEqual(0)
+        expect(o.y + o.h / 2, `${l.key}/${o.id}`).toBeLessThanOrEqual(C.H)
+      }
+    }
+  })
+  it('越後面的小關越難：每個大關的第 10 關物品比第 1 關多', () => {
+    for (let c = 0; c < 10; c++) {
+      const n = (s) => LV[c * 10 + s].objects.filter((o) => !o.trap).length
+      expect(n(9), CH[c].key).toBeGreaterThan(n(0))
+    }
+  })
+  it('特殊機制：陷阱都有真實的傾斜角和說明、連動對象存在、最早的幾個機制還在', () => {
+    const all = LV.flatMap((l) => l.objects.map((o) => ({ ...o, level: l.key, lv: l })))
+    for (const t of all.filter((o) => o.trap)) {
+      expect(Math.abs(t.keep), `${t.level}/${t.id}`).toBeGreaterThanOrEqual(2)
+      expect(t.call || t.sfx, `${t.level}/${t.id}`).toBeFalsy()
+    }
+    expect(all.filter((o) => o.trap)).toContainEqual(expect.objectContaining({ id: 'pisa', keep: 3.97, level: 'it' }))
+    for (const o of all.filter((o) => o.link)) {
+      const t = o.lv.objects.find((x) => x.id === o.link.to)
+      expect(t, `${o.level}/${o.id} -> ${o.link.to}`).toBeTruthy()
+      expect(t.trap || !!t.link, `${o.level}/${o.id} -> ${o.link.to}`).toBe(false)
+      expect(o.link.k).toBeGreaterThanOrEqual(0.3); expect(o.link.k).toBeLessThanOrEqual(1)
+    }
+    const links = all.filter((o) => o.link).map((o) => `${o.id}->${o.link.to}@${o.link.k}`)
+    for (const l of ['shL->shR@0.6', 'tickets->price@0.5', 'panelL->panelR@0.6']) expect(links).toContain(l)
+    expect(all.filter((o) => o.target !== 0)).toContainEqual(expect.objectContaining({ id: 'mirage', target: 180 }))
   })
   it('動物奇關的每一隻動物都會動、都有自己的叫聲', () => {
     const farm = LV[idx('farm')]
@@ -48,11 +86,11 @@ describe('開局', () => {
     expect(a).toEqual(b)
     expect(a).not.toEqual(c)
   })
-  it('200 個種子 × 10 關：開局沒有任何物品已經對齊，歪斜幅度合理', async () => {
+  it('40 個種子 × 100 關：開局沒有任何物品已經對齊，歪斜幅度合理', async () => {
     const bad = await run(({ TOL }) => {
       const G = window.__chayidu, bad = []
       G.levels().forEach((lv, i) => {
-        for (let s = 1; s <= 200; s++) {
+        for (let s = 1; s <= 40; s++) {
           G.seed(s); G.start(i)
           const st = G.state()
           if (st.timeLeft !== lv.time || !st.running) bad.push(`${lv.key}/${s}: bad start state`)
@@ -140,7 +178,8 @@ describe('對齊判定', () => {
 describe('三種難度', () => {
   const D = () => Object.fromEntries(C.DIFFS.map((d) => [d.key, d]))
   it('名稱、誤差門檻、時間倍率、分數倍率', () => {
-    expect(C.DIFFS.map((d) => d.name)).toEqual(['看到會歪頭', '忍不住伸手', '不轉正睡不著'])
+    expect(C.DIFFS.map((d) => d.name.zh)).toEqual(['看到會歪頭', '忍不住伸手', '不轉正睡不著'])
+    expect(C.DIFFS.map((d) => d.name.en)).toEqual(['Head Tilter', 'Itchy Fingers', 'Sleepless Till Straight'])
     expect(C.DIFFS.map((d) => d.tol)).toEqual([1.5, 0.5, 0.2])
     expect(C.DIFFS.map((d) => d.mult)).toEqual([0.6, 1, 1.5])
     expect(D().easy.timeMul).toBeGreaterThan(1)
@@ -164,7 +203,7 @@ describe('三種難度', () => {
       const G = window.__chayidu, out = {}
       for (const d of diffs) {
         G.setDifficulty(d.key); let pre = 0, total = null
-        for (let s = 1; s <= 100; s++) {
+        for (let s = 1; s <= 12; s++) {
           G.seed(s)
           G.levels().forEach((lv, i) => { G.start(i); if (i === jp) total = G.state().timeTotal; for (const o of G.state().objs) if (!o.trap && Math.abs(o.err) <= d.tol) pre++ })
         }
@@ -221,20 +260,21 @@ describe('Q 版音效', () => {
 
 describe('結算評語', () => {
   const TIERS = ['far', 'close', 'pass', 'good', 'perfect']
-  it('每個大關都有自己的旁白，五種等級各至少 2 句，文字不重複、長度適中', async () => {
+  it('每個大關都有自己的旁白，五種等級各至少 2 句，中英都有、不重複、長度適中', async () => {
     const all = await run(() => window.__chayidu.comments())
     expect(Object.keys(all).sort()).toEqual(CH.map((c) => c.key).sort())
     const seen = new Set()
     for (const [key, c] of Object.entries(all)) {
-      expect(c.by, key).toBeTruthy()
+      expect(both(c.by), key).toBe(true)
       expect(Object.keys(c.tiers).sort(), key).toEqual([...TIERS].sort())
       for (const t of TIERS) {
         expect(c.tiers[t].length, `${key}/${t}`).toBeGreaterThanOrEqual(2)
-        for (const [h, line] of c.tiers[t]) {
-          expect(h.length, h).toBeLessThanOrEqual(14)
-          expect(line.length, line).toBeLessThanOrEqual(30)
-          expect(seen.has(line), `重複：${line}`).toBe(false)
-          seen.add(line)
+        for (const { zh: [h, line], en: [eh, eline] } of c.tiers[t]) {
+          expect([...h].length, h).toBeLessThanOrEqual(14)
+          expect([...line].length, line).toBeLessThanOrEqual(30)
+          expect(eh.length, eh).toBeLessThanOrEqual(26)
+          expect(eline.length, eline).toBeLessThanOrEqual(72)
+          for (const x of [line, eline]) { expect(seen.has(x), `重複：${x}`).toBe(false); seen.add(x) }
         }
       }
     }
@@ -250,21 +290,21 @@ describe('結算評語', () => {
     expect(g).toEqual(['pass', 'good', 'perfect', 'close', 'far', 'far'])
   })
   it('結算時給出對應大關、對應等級的評語，同一關連續兩次不會一樣', async () => {
-    const r = await run(() => {
+    const r = await run((reef) => {
       const G = window.__chayidu, out = []
       for (let k = 0; k < 6; k++) {
-        G.resetProgress(); G.seed(30 + k); G.start(1)
+        G.resetProgress(); G.seed(30 + k); G.start(reef)
         if (k % 2) G.advance(10_000)
         else { for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() } G.done() }
         out.push(G.state().lastResult.comment)
       }
       return out
-    })
+    }, idx('reef'))
     const ocean = (await run(() => window.__chayidu.comments())).ocean
     r.forEach((c, k) => {
       expect(c.by).toBe('海龜')
       expect(c.tier).toBe(k % 2 ? 'far' : 'perfect')
-      expect(ocean.tiers[c.tier].map((x) => x[1])).toContain(c.line)
+      expect(ocean.tiers[c.tier].map((x) => x.zh[1])).toContain(c.line)
     })
     expect(r[0].line).not.toBe(r[2].line)
     expect(r[2].line).not.toBe(r[4].line)

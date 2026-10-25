@@ -20,7 +20,9 @@ export function compareBaseline(metrics, baseline) {
     if (!m) { diffs.push({ key, problem: 'missing in this run' }); continue }
     const dWin = m.winRate - b.winRate
     const ratio = b.meanScore ? m.meanScore / b.meanScore : 1
-    const ok = Math.abs(dWin) <= BASELINE_TOLERANCE.winRate && Math.abs(ratio - 1) <= BASELINE_TOLERANCE.meanScoreRatio
+    // With few runs per cell, sampling noise alone can exceed the fixed tolerance: allow 2.5 standard errors.
+    const p = (m.winRate + b.winRate) / 2, noise = 2.5 * Math.sqrt(p * (1 - p) * (1 / (m.runs || 1) + 1 / (b.runs || baseline.runs || 1)))
+    const ok = Math.abs(dWin) <= Math.max(BASELINE_TOLERANCE.winRate, noise) && Math.abs(ratio - 1) <= BASELINE_TOLERANCE.meanScoreRatio
     diffs.push({ key, ok, winRate: [b.winRate, m.winRate], meanScore: [Math.round(b.meanScore), Math.round(m.meanScore)] })
   }
   return diffs

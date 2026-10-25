@@ -122,7 +122,7 @@ for (const key of keys) {
   for (const sk of sounds) {
     const [g, k] = sk.split(':');
     const r = await page.evaluate(([g, k]) => window.__chayidu.renderSound(g, k, 1), [g, k]);
-    if (r.bad || r.peak < 0.05 || r.seconds < 0.03 || r.seconds > 1.5) E(`sound ${sk}: peak ${r.peak.toFixed(2)}, ${r.seconds.toFixed(2)}s (want audible, under 1.5s)`);
+    if (r.bad || r.peak < 0.05 || r.seconds < 0.03 || r.seconds > 1.2) E(`sound ${sk}: peak ${r.peak.toFixed(2)}, ${r.seconds.toFixed(2)}s (want audible, under 1.2s)`);
   }
 
   // Redrawing a stage must stay cheap: animated stages redraw every frame on a phone.

@@ -1,19 +1,20 @@
-// 數值模擬：3 種難度 × 10 關 × 3 種玩家，每組自動玩 200 局，共 18,000 局（GAME_SIM_RUNS 可調），
+// 數值模擬：3 種難度 × 100 關 × 3 種玩家，每組自動玩 60 局，共 54,000 局（GAME_SIM_RUNS 可調），
 // 檢查每局結果合法、參考機器人的分數精確、設計目標、以及與基準線的漂移。
 import fs from 'node:fs'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { launch, openGame, maxScore } from './helpers/browser.js'
+import { launch, openGames, maxScore, SIM_PAGES } from './helpers/browser.js'
 import { runAll } from './helpers/sim.js'
 import { evaluateTargets, compareBaseline, writeReport, BASELINE_FILE } from './helpers/report.js'
 
-const RUNS = Number(process.env.GAME_SIM_RUNS || 200)
-let browser, page, errors, sim, C, maxScores, targets, idle
+const RUNS = Number(process.env.GAME_SIM_RUNS || 60)
+let browser, page, pages, errors, sim, C, maxScores, targets, idle
 
 beforeAll(async () => {
   browser = await launch()
-  ;({ page, errors } = await openGame(browser))
+  ;({ pages, errors } = await openGames(browser, SIM_PAGES))
+  page = pages[0]
   C = await page.evaluate(() => window.__chayidu.consts)
-  sim = await runAll(page, { runs: RUNS })
+  sim = await runAll(pages, { runs: RUNS })
   maxScores = Object.fromEntries(Object.keys(sim.metrics).map((d) => [d, sim.levels.map((l) => maxScore(l, C, d))]))
   idle = await page.evaluate(() => {
     const G = window.__chayidu, out = []

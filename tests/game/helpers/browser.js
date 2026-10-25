@@ -1,6 +1,7 @@
 // Opens the game in headless Chromium with the network cut off, so tests are
 // hermetic: Google Fonts never load and the game must still work offline.
 import { chromium } from 'playwright'
+import os from 'node:os'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -9,6 +10,9 @@ export const GAME_FILE = path.resolve(import.meta.dirname, '../../../public/game
 export function launch() {
   return chromium.launch()
 }
+
+// How many games to simulate at once: GAME_SIM_PAGES, else half the CPU cores (2-8).
+export const SIM_PAGES = Number(process.env.GAME_SIM_PAGES) || Math.max(2, Math.min(8, Math.floor(os.cpus().length / 2)))
 
 export async function openGame(browser, { width = 400, height = 820 } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
@@ -22,6 +26,12 @@ export async function openGame(browser, { width = 400, height = 820 } = {}) {
   await page.goto(pathToFileURL(GAME_FILE).href)
   await page.waitForFunction(() => window.__chayidu && window.__chayidu.api === 1)
   return { page, context, errors }
+}
+
+// Several independent games in one browser, for running the simulation in parallel.
+export async function openGames(browser, n) {
+  const games = await Promise.all(Array.from({ length: n }, () => openGame(browser)))
+  return { pages: games.map((g) => g.page), errors: games.flatMap((g) => g.errors), contexts: games.map((g) => g.context) }
 }
 
 // Theoretical ceiling: every object perfect, the done button pressed at the

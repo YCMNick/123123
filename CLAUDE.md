@@ -29,7 +29,8 @@ that persists to `localStorage` so it runs without any backend.
 .
 ├── index.html                  # Vite entry HTML
 ├── public/
-│   └── game/index.html         # standalone mini-game「差一度」(self-contained HTML, served at /123123/game/; unrelated to the repair app)
+│   └── game/index.html         # mini-game「差一度」, BUILT from game/ (self-contained HTML, served at /123123/game/; unrelated to the repair app)
+├── game/                       # 差一度 sources: core.html (engine/UI/sound), chapters/*.js (one per world), build + tools
 ├── vite.config.js              # Vite config (React plugin)
 ├── package.json                # scripts + dependencies
 ├── README.md                   # user-facing setup guide (中文)
@@ -66,9 +67,13 @@ that persists to `localStorage` so it runs without any backend.
   (`--scope project` writes to `.claude/agents/` instead of `~/.claude/agents/`;
   `--dry-run` previews; `--category engineering` installs one category)
 
-- **Game tests:** `npm run test:game` (all of `tests/game`, ~2 min; needs a
+- **Game build:** `npm run build:game` assembles `public/game/index.html` from `game/`.
+- **Check one world:** `npm run check:world -- <world-key> [--stage N]` (rules + contact sheet in `test-results/chapters/`).
+- **Game tests:** `npm run test:game` (builds first, then all of `tests/game`; needs a
   Playwright Chromium: `npx playwright install chromium` on a fresh machine).
-  `GAME_SIM_RUNS=100 npm run test:game` runs a shorter simulation (default 200 per difficulty × level × profile).
+  `GAME_SIM_RUNS=30 npm run test:game` runs a shorter simulation (default 60 per difficulty × level × profile);
+  `GAME_SIM_PAGES` sets how many games simulate in parallel.
+- **Calibrate stage times:** `node game/tools/calibrate.mjs` (new stages only; `--world <key>` or `--levels a,b` to redo some) writes `game/times.json`.
 - **Game balance baseline:** `npm run test:game:baseline` rewrites
   `tests/game/baseline.json`. Run it only after deciding a balance change is
   intended. The readable report lands in `test-results/game-sim/report.md`.
@@ -126,32 +131,40 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
 - Push with `git push -u origin <branch-name>`.
 - Do not push to the default branch or open a PR without explicit permission.
 
-## Mini-game 差一度 (`public/game/index.html`)
+## Mini-game 差一度 / Just One Degree (`game/` → `public/game/index.html`)
 
-- Self-contained HTML game, unrelated to the repair app. This file is the
-  source of truth; the claude.ai artifact is published from it.
-- Structure: `CHAPTERS` (10 big levels, 10 planned stages each) and `LEVELS`
-  (currently the first stage of each chapter). An object may have `habit`
-  (idle motion), `call` (creature sound when aligned), `link`, `trap`, or a
-  non-zero `target` angle. Level `time` budgets were calibrated with the
-  simulation; recalibrate rather than guess when changing a level.
-- `DIFFS` defines three difficulties (看到會歪頭 / 忍不住伸手 / 不轉正睡不著):
-  alignment tolerance, time multiplier, score multiplier and how much the
-  loupe reveals. Best scores are stored per difficulty.
-- `QS` is the Q-style sound library (pure sine + soft overtone, glides,
-  vibrato). Creatures use `call` (a `QS.creature` recipe); every other
-  non-trap object uses `sfx` (a `QS.thing` material sound, pitched by its
-  index on a pentatonic scale). Tests render every sound offline.
-- `COMMENTS` holds the result lines: one narrator per chapter, five tiers
-  (`far`/`close` for a lost round, `pass`/`good`/`perfect` by stars), at
-  least two lines each. A new chapter needs its own entry (tests enforce it).
+- Unrelated to the repair app. Sources live in `game/`; `public/game/index.html`
+  is a build output (`npm run build:game`): never edit it by hand. The claude.ai
+  artifact is published from the built file.
+- `game/core.html`: engine, UI, sounds (`QS`), music, settings, test hook, with
+  two build markers (`/*@@CHAPTERS@@*/`, `/*@@TIMES@@*/`).
+  `game/chapters/NN-key.js`: one world each (art + `defineChapter({...})`); the
+  build wraps each in its own scope. `game/times.json`: calibrated time per stage.
+  `game/CHAPTERS.md` is the authoring guide (stage/object format, difficulty ramp,
+  sounds, text rules); `game/tools/check-chapter.mjs` checks a world.
+- 10 worlds × 10 stages. `LEVELS` is every stage in order (`chapter`, `stage`).
+  Stage keys are unique across the game; best scores are stored per difficulty and
+  stage key. An object may have `habit` (idle motion), `call` (creature sound when
+  aligned), `sfx` (thing sound), `link`, `trap` (+`keep`, `trapNote`), `near`, or a
+  non-zero `target`.
+- Language: every player-facing string is `{ zh, en }`; UI strings live in `UI`
+  (`U(key)`), canvas text uses `T('中文', 'English')` (or `LOCAL()` for real local
+  signs). The language, music and sound-effect switches are stored per device.
+- `DIFFS` defines three difficulties (看到會歪頭 Head Tilter / 忍不住伸手 Itchy
+  Fingers / 不轉正睡不著 Sleepless Till Straight): tolerance, time multiplier,
+  score multiplier and how much the loupe reveals.
+- `QS` is the Q-style sound library (sine + soft overtone, glides, vibrato);
+  worlds can add sounds with `defineCreatureSound` / `defineThingSound` (keys
+  prefixed with the world key). Tests render every sound offline.
+- Each world has one narrator with five comment tiers (`far`/`close` for a lost
+  round, `pass`/`good`/`perfect` by stars), at least two bilingual lines each.
 - `window.__chayidu` is the test hook (seeded RNG, manual clock, pure
-  `computeScore`, state snapshot). `tests/game` depends on it: keep its API
-  stable, or update the tests in the same change.
+  `computeScore`, `scene()` pictures, state snapshot). `tests/game` and the tools
+  depend on it: keep its API stable, or update them in the same change.
 - Before and after any game change, run `npm run test:game`. A drifted
-  baseline or a missed design target means the balance changed: decide on
-  purpose whether to retune the game or the target in
-  `tests/game/balance.config.js`.
+  baseline or a missed design target means the balance changed: recalibrate
+  (`game/tools/calibrate.mjs`) or change the target in
+  `tests/game/balance.config.js` on purpose, then `npm run test:game:baseline`.
 
 ## Notes for AI Assistants
 

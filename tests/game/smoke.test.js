@@ -24,20 +24,37 @@ describe('首頁', () => {
     await page.waitForTimeout(300)
     for (let i = 1; i <= 10; i++) expect(await canvasSpread(page, `.lv:nth-child(${i}) canvas`), `card ${i}`).toBeGreaterThan(10)
   })
-  it('點大關卡片會列出 10 個小關，只有第 1 小關開放，可以直接開始', async () => {
+  it('點大關卡片會列出 10 個小關，每一關都能直接點來玩', async () => {
     await page.click('.lv:nth-child(6)')
     await expect.poll(() => page.locator('#ovChapter').isVisible()).toBe(true)
     expect(await page.locator('#ovChapter h2').textContent()).toBe('極地冰原')
-    expect(await page.locator('#ovChapter .stages li').count()).toBe(10)
-    expect(await page.locator('#ovChapter .stages li.locked').count()).toBe(9)
+    expect(await page.locator('#ovChapter .stages li.play').count()).toBe(10)
+    expect(await page.locator('#ovChapter .stages li.next b').textContent()).toBe('6-1')
+    await page.click('#ovChapter .stages li:nth-child(4)')
+    await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe(LV[53].title)
+    await page.click('#introHome')
+    await page.click('.lv:nth-child(6)')
     await page.click('#sheetPlay')
     await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe('極光夜')
+  })
+  it('過關後首頁顯示進度，「開始」變成「繼續」下一個沒過的小關', async () => {
+    await page.evaluate(() => {
+      const G = window.__chayidu; G.quiet(true)
+      for (const i of [0, 1]) { G.seed(1); G.start(i); for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() } G.done() }
+      G.home()
+    })
+    expect(await page.locator('.lv:nth-child(1) .prog').textContent()).toContain('已過 2/10')
+    expect(await page.locator('#startBtn').textContent()).toBe('繼續 1-3')
+    await page.click('#startBtn')
+    await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe(LV[2].title)
   })
   it('難度可以切換、會記住，時間跟著改', async () => {
     expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('忍不住伸手')
     await page.click('#diff-easy')
     expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
-    expect(await page.locator('.lv:nth-child(1) .m').textContent()).toContain(`${Math.round(LV[0].time * 1.35)} 秒`)
+    await page.click('.lv:nth-child(1)')
+    expect(await page.locator('#ovChapter .stages li:nth-child(1) > span').textContent()).toContain(`${Math.round(LV[0].time * 1.35)} 秒`)
+    await page.click('#sheetClose')
     await page.reload()
     await page.waitForFunction(() => window.__chayidu)
     expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
@@ -157,12 +174,78 @@ describe('完整流程', () => {
     expect(c === d, '轉正後應該安靜下來').toBe(true)
   })
 
-  it('十關畫面都有正常繪製', async () => {
-    for (let i = 0; i < 10; i++) {
+  it('100 關畫面都有正常繪製', async () => {
+    for (let i = 0; i < LV.length; i++) {
       await page.evaluate((i) => window.__chayidu.start(i), i)
-      await page.waitForTimeout(150)
+      await page.waitForTimeout(60)
       expect(await canvasSpread(page, '#cv'), `level ${i + 1}`).toBeGreaterThan(15)
     }
+  })
+})
+
+describe('設定：中英切換、背景音樂與音效分開開關', () => {
+  it('切到 English：首頁、關卡、結算全部是英文，重新整理後記得', async () => {
+    await page.click('#langSeg button[data-v="en"]')
+    expect(await page.evaluate(() => [document.documentElement.lang, document.title])).toEqual(['en', 'Just One Degree'])
+    expect(await page.locator('#title').textContent()).toBe('Just One Degree')
+    const cjk = /[\u3400-\u9fff]/
+    const homeText = (await page.locator('#home').innerText()).replace('中文', '')
+    expect(homeText.match(/.{0,12}[\u3400-\u9fff].{0,12}/)?.[0] ?? null).toBe(null)
+    expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('Itchy Fingers')
+    await page.reload()
+    await page.waitForFunction(() => window.__chayidu)
+    expect(await page.locator('#title').textContent()).toBe('Just One Degree')
+    await page.click('#startBtn')
+    expect(await page.locator('#ovIntro h2').textContent()).toBe(LV[0].titles.en)
+    expect(cjk.test(await page.locator('#ovIntro').innerText())).toBe(false)
+    await page.evaluate((i) => { const G = window.__chayidu; G.quiet(true); G.seed(1); G.start(i); for (const o of G.state().objs) if (!o.trap) { G.setAngle(o.id, o.target); G.release() } }, idx('it'))
+    expect(cjk.test(await page.locator('#game').innerText())).toBe(false)
+    await page.click('#doneBtn')
+    await expect.poll(() => page.locator('#ovResult h2').textContent()).toBe('Cleared!')
+    const res = await page.locator('#ovResult').innerText()
+    expect(res.match(/.{0,12}[\u3400-\u9fff].{0,12}/)?.[0] ?? null).toBe(null)
+    expect(res).toContain('The Leaning Tower is meant to lean')
+    await page.click('#rHome')
+    await page.click('#langSeg button[data-v="zh"]')
+    expect(await page.locator('#title').textContent()).toBe('差一度')
+    expect(await page.evaluate(() => document.documentElement.lang)).toBe('zh-Hant')
+  })
+  it('英文模式下，100 關畫布上沒有殘留的中文字（在地招牌除外）', async () => {
+    const left = await page.evaluate(() => {
+      const G = window.__chayidu, seen = new Set(), f = CanvasRenderingContext2D.prototype.fillText
+      CanvasRenderingContext2D.prototype.fillText = function (t, ...a) { seen.add(String(t)); return f.call(this, t, ...a) }
+      G.setLang('en')
+      G.levels().forEach((l, i) => { G.scene(i, { scale: 0.5 }); G.scene(i, { scale: 0.5, aligned: true }) })
+      CanvasRenderingContext2D.prototype.fillText = f
+      const local = G.localText()
+      G.setLang('zh')
+      return [...seen].filter((t) => /[\u3400-\u9fff]/.test(t) && !local.includes(t))
+    })
+    expect(left).toEqual([])
+  })
+  it('背景音樂和音效各自開關、互不影響；首頁和暫停選單同步；會記住', async () => {
+    const audio = async () => (await state(page)).audio
+    expect(await audio()).toEqual({ music: true, sound: true })
+    await page.click('#musicSeg button[data-v="0"]')
+    expect(await audio()).toEqual({ music: false, sound: true })
+    await page.click('#soundSeg button[data-v="0"]')
+    expect(await audio()).toEqual({ music: false, sound: false })
+    await page.click('#musicSeg button[data-v="1"]')
+    expect(await audio()).toEqual({ music: true, sound: false })
+    await page.reload()
+    await page.waitForFunction(() => window.__chayidu)
+    expect(await audio()).toEqual({ music: true, sound: false })
+    expect(await page.locator('#soundSeg button[data-v="0"]').getAttribute('aria-checked')).toBe('true')
+    await page.evaluate(() => { const G = window.__chayidu; G.seed(1); G.start(0) })
+    await page.click('#musicBtn')
+    expect(await audio()).toEqual({ music: false, sound: false })
+    expect(await page.locator('#musicBtn').getAttribute('class')).toContain('off')
+    await page.click('#pauseBtn')
+    expect(await page.locator('#pMusicSeg button[data-v="0"]').getAttribute('aria-checked')).toBe('true')
+    await page.click('#pSoundSeg button[data-v="1"]')
+    expect(await audio()).toEqual({ music: false, sound: true })
+    await page.click('#resumeBtn')
+    expect((await state(page)).running).toBe(true)
   })
 })
 

@@ -4,7 +4,7 @@
 import { PROFILES } from '../balance.config.js'
 
 // Runs inside the page. Must stay self-contained: Playwright serialises it.
-function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, diff }) {
+export function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, diff }) {
   const G = window.__chayidu
   G.setDifficulty(diff)
   // Aim depends on what the loupe shows: a turn hint helps a little, no degree readout hurts a lot.
@@ -123,21 +123,28 @@ export function summarize(runs) {
   }
 }
 
+// Runs jobs on a pool of pages (one game each) in parallel. Every job's seeds depend only on
+// its level, profile and difficulty, so results are the same whatever the pool size.
+export async function pool(pages, jobs, fn) {
+  const out = new Array(jobs.length)
+  let next = 0
+  await Promise.all(pages.map(async (page) => { while (next < jobs.length) { const k = next++; out[k] = await fn(page, jobs[k]) } }))
+  return out
+}
+
 // metrics[diff]['farm:casual'] = summary; raw has the same shape with per-round results.
-export async function runAll(page, { runs, seed = 1, diffs = DIFF_KEYS }) {
-  const levels = await page.evaluate(() => window.__chayidu.levels())
-  const metrics = {}
-  const raw = {}
-  for (const diff of diffs) {
-    metrics[diff] = {}; raw[diff] = {}
-    for (let i = 0; i < levels.length; i++) {
-      for (const name of Object.keys(PROFILES)) {
-        const key = `${levels[i].key}:${name}`
-        raw[diff][key] = await simulate(page, { levelIdx: i, profileName: name, runs, seed, diff })
-        metrics[diff][key] = summarize(raw[diff][key])
-      }
-    }
-  }
-  await page.evaluate(() => window.__chayidu.setDifficulty('normal'))
+export async function runAll(pages, { runs, seed = 1, diffs = DIFF_KEYS }) {
+  pages = [].concat(pages)
+  const levels = await pages[0].evaluate(() => window.__chayidu.levels())
+  const jobs = []
+  for (const diff of diffs) for (let i = 0; i < levels.length; i++) for (const name of Object.keys(PROFILES)) jobs.push({ diff, i, name })
+  const results = await pool(pages, jobs, (page, j) => simulate(page, { levelIdx: j.i, profileName: j.name, runs, seed, diff: j.diff }))
+  const metrics = {}, raw = {}
+  jobs.forEach((j, k) => {
+    const key = `${levels[j.i].key}:${j.name}`
+    ;(raw[j.diff] ??= {})[key] = results[k]
+    ;(metrics[j.diff] ??= {})[key] = summarize(results[k])
+  })
+  await Promise.all(pages.map((p) => p.evaluate(() => window.__chayidu.setDifficulty('normal'))))
   return { levels, metrics, raw }
 }

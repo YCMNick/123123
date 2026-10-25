@@ -46,16 +46,20 @@ describe('亂數操作風暴', () => {
         const visible = async (sel) => page.locator(sel).first().isVisible().catch(() => false)
         let action
         if (s.overlays.chapter) action = pick(['sheetPlay', 'sheetPlay', 'sheetClose'])
-        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt', 'diff'])
+        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt', 'diff', 'lang', 'audio'])
         else if (s.overlays.result) action = pick(['result', 'result', 'key'])
-        else if (s.overlays.pause) action = pick(['pauseMenu', 'pauseMenu', 'key'])
+        else if (s.overlays.pause) action = pick(['pauseMenu', 'pauseMenu', 'key', 'pauseAudio'])
         else if (s.overlays.intro) action = pick(['go', 'go', 'introHome'])
-        else action = pick(['drag', 'drag', 'drag', 'tap', 'nudge', 'nudge', 'key', 'done', 'clock', 'clock', 'pause', 'resize'])
+        else action = pick(['drag', 'drag', 'drag', 'tap', 'nudge', 'nudge', 'key', 'done', 'clock', 'clock', 'pause', 'resize', 'music'])
         log.push(action)
         const vw = page.viewportSize()
         switch (action) {
           case 'card': await page.click(`.lv:nth-child(${1 + Math.floor(rand() * 10)})`); break
-          case 'sheetPlay': await page.click('#sheetPlay'); break
+          case 'sheetPlay': if (rand() < 0.5) await page.click('#sheetPlay'); else await page.click(`#ovChapter .stages li:nth-child(${1 + Math.floor(rand() * 10)})`); break
+          case 'lang': await page.click(`#langSeg button[data-v="${pick(['zh', 'en'])}"]`); break
+          case 'audio': await page.click(`#${pick(['musicSeg', 'soundSeg'])} button[data-v="${pick(['0', '1'])}"]`); break
+          case 'pauseAudio': await page.click(`#${pick(['pMusicSeg', 'pSoundSeg'])} button[data-v="${pick(['0', '1'])}"]`); break
+          case 'music': await page.click('#musicBtn'); break
           case 'diff': await page.click(`#diff-${pick(['easy', 'normal', 'hard'])}`); break
           case 'sheetClose': await page.click('#sheetClose'); break
           case 'start': await page.click('#startBtn'); break

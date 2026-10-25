@@ -33,13 +33,16 @@ export const TARGETS = [
     check: (m, ctx) => { const r = rates(m, ctx, 'novice').slice(0, 3); return { ok: r[0] >= 0.35 && r[1] >= 0.15 && r[2] >= 0.07, detail: r } } },
   { id: 'beatable', desc: '普通：每關一般玩家勝率 ≥ 50%', enforce: true,
     check: (m, ctx) => { const r = rates(m, ctx, 'casual'); return { ok: r.every((x) => x >= 0.5), detail: r } } },
-  // A level may only look easier than the one before by more than 3 points plus
-  // sampling noise (1.5 standard errors of the difference at this many runs).
-  { id: 'difficulty-curve', desc: '普通：一般玩家勝率逐關不上升（容許 3% ＋ 抽樣誤差）', enforce: true,
+  // Inside a world each stage is at least as hard as the one before, and each world's
+  // first stage is at least as hard as the previous world's first stage. A stage may
+  // only look easier by more than 3 points plus sampling noise (1.5 standard errors).
+  { id: 'difficulty-curve', desc: '普通：一般玩家勝率在每個大關內逐關不上升，各大關第 1 關也逐關不上升（容許 3% ＋ 抽樣誤差）', enforce: true,
     check: (m, ctx) => {
-      const r = rates(m, ctx, 'casual')
+      const r = rates(m, ctx, 'casual'), L = ctx.levels
       const slack = (a, b) => 0.03 + 1.5 * Math.sqrt((a * (1 - a) + b * (1 - b)) / ctx.runs)
-      return { ok: r.every((x, i) => i === 0 || x <= r[i - 1] + slack(x, r[i - 1])), detail: r }
+      const prev = (i) => L[i].stage > 0 ? i - 1 : L.findLastIndex((l, j) => j < i && l.stage === 0)
+      const bad = r.map((x, i) => [i, prev(i)]).filter(([i, p]) => p >= 0 && r[i] > r[p] + slack(r[i], r[p])).map(([i, p]) => `${L[i].key} ${r[i].toFixed(2)} > ${L[p].key} ${r[p].toFixed(2)}`)
+      return { ok: !bad.length, detail: bad }
     } },
   { id: 'skill-shows', desc: '普通：每關平均分 熟手 > 一般 > 新手（至少高 5%）', enforce: true,
     check: (m, ctx) => { const r = keys(ctx).map((k) => ['novice', 'casual', 'expert'].map((w) => Math.round(m.normal[`${k}:${w}`].meanScore)));

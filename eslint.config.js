@@ -32,7 +32,16 @@ export default [
   },
   {
     // Test code runs in Node and hands functions to the browser via Playwright.
-    files: ['tests/**/*.{js,mjs}', 'vitest.config.js'],
+    files: ['tests/**/*.{js,mjs}', 'vitest.config.js', 'game/**/*.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
+    // 差一度 worlds: plain scripts pasted into game/core.html, using the core's shared helpers.
+    files: ['game/chapters/*.js'],
+    languageOptions: {
+      sourceType: 'script',
+      globals: Object.fromEntries(['W', 'H', 'T', 'LOCAL', 'QS', 'rad', 'deg', 'norm', 'mulberry', 'GRAIN', 'KPX', 'rr', 'txt', 'ell', 'circ', 'poly', 'groundShadow',
+        'pxSprite', 'comicShape', 'softShadow', 'defineChapter', 'defineSong', 'defineCreatureSound', 'defineThingSound'].map((k) => [k, 'readonly'])),
+    },
   },
 ]

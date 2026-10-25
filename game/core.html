@@ -89,7 +89,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .stages li b{font-family:var(--f-num);color:var(--brass);font-weight:700}
 .stages li span{font-size:12px;color:var(--muted);text-align:right}
 .stages li.next{background:var(--panel-2);border:1px solid var(--brass)}
-.stages li .s{font-size:11px}
+.stages li .s{font-size:11px;color:var(--line)}
+.stages li .s.on{color:var(--brass)}
 #ovChapter{z-index:20}
 
 /* ---------- game ---------- */
@@ -1371,7 +1372,7 @@ window.__chayidu = {
       objs: S.objs.map(o => ({ id: o.id, angle: o.angle, target: o.target, err: errOf(o), keep: o.keep ?? null, trap: !!o.trap, call: o.call || null, live: o.live,
         aligned: !!o.wasAligned, perfect: !!o.wasPerfect, bonusGiven: !!o.bonusGiven })),
       fails: Object.assign({}, S.fails), session: Object.assign({}, S.session), lastResult: S.lastResult,
-      lang: LANG, overlays: { intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden, chapter: !$('#ovChapter').hidden } };
+      lang: LANG, audio: { music: AU.musicOn, sound: AU.soundOn }, overlays: { intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden, chapter: !$('#ovChapter').hidden } };
   }
 };
 
