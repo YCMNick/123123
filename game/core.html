@@ -49,7 +49,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .eyebrow{font-family:var(--f-display);font-weight:800;font-size:12px;letter-spacing:.06em;color:#fff;margin:0;background:linear-gradient(#a8703a,var(--wood));padding:4px 12px;border-radius:12px;box-shadow:0 3px 0 var(--wood-dark);transform:rotate(-1.5deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70%}
 .badge{font-family:var(--f-display);font-weight:800;font-size:12px;color:var(--ink);background:var(--gold);border-radius:99px;padding:3px 12px;white-space:nowrap;box-shadow:0 3px 0 var(--gold-dark);transform:rotate(2deg)}
 .hero{display:grid;gap:10px}
-.title{font-family:var(--f-display);font-weight:800;font-size:clamp(72px,24vw,124px);line-height:1;margin:0;letter-spacing:.02em;color:#fff;-webkit-text-stroke:0.07em var(--wood-dark);paint-order:stroke fill;text-shadow:0 .06em 0 var(--wood-dark),0 .12em .25em rgba(40,25,5,.3)}
+.title{font-family:var(--f-display);font-weight:800;font-size:clamp(72px,24vw,124px);line-height:1;margin:0;letter-spacing:.02em;color:#fff;-webkit-text-stroke:0.045em var(--wood-dark);paint-order:stroke fill;text-shadow:0 .035em 0 var(--wood-dark)}
 .title.en{font-size:clamp(46px,13vw,80px);line-height:1.05}
 #tilt{display:inline-block;color:var(--gold);transform-origin:50% 55%;cursor:grab;touch-action:none;transition:color .2s}
 #tilt:active{cursor:grabbing}
@@ -300,10 +300,7 @@ button{font:inherit;color:inherit;cursor:pointer}
           <div class="opt"><span data-i18n="mode"></span><div class="seg" id="zenSeg" role="radiogroup"><button type="button" data-v="0" data-i18n="timed"></button><button type="button" data-v="1" data-i18n="zen"></button></div></div>
         </div>
         <p class="foot" data-i18n="zenNote"></p>
-      </div>
-      <div class="sect">
-        <h2 data-i18n="diffTitle"></h2>
-        <div class="diffs" id="diffs" role="radiogroup" aria-label="難度"></div>
+        <p class="foot" data-i18n="soundNote"></p>
       </div>
       <div class="sect map-sect">
         <h2 data-i18n="worldsTitle"></h2>
@@ -416,7 +413,7 @@ const UI = {
     lede: '十個大關卡、一百個小關卡、十種畫風，從農場一路到地球軌道。動物沒轉正前會一直動，轉正了就叫給你聽。沒有自動吸附，差多少度全靠手感和放大鏡。',
     nickLabel: '暱稱（選填，只存在這台裝置）', nickPh: '例如：Nick', start: '開始遊戲', cont: s => `繼續 ${s}`,
     settings: '設定', lang: '語言', music: '背景音樂', sound: '音效', on: '開', off: '關',
-    mode: '模式', timed: '計時', zen: '禪模式', zenNote: '禪模式：不計時，只算精準度。', practice: '練習關・時間加倍',
+    mode: '模式', timed: '計時', zen: '禪模式', zenNote: '禪模式：不計時，只算精準度。', soundNote: 'iPhone 切到靜音模式時，網頁遊戲不會出聲；請把側邊的靜音開關撥回來。', audioBlocked: '瀏覽器先把聲音擋住了，點一下畫面就會開', practice: '練習關・時間加倍',
     firstRec: '建議新手', pickDiff: '選難度', notTried: '未挑戰', bestOn: (s, p) => `${s} ${p}`, legendE: '簡單', legendN: '普通', legendH: '困難', legendTitle: '站點顏色＝破過的最高難度：', needPrev: '先破前一關，路才會通', needWorld: '上一個大關 10 關全破，這裡才會開',
     tryEasy: n => `改用「${n}」再試`, ldFine: '精細 ¼', fineHint: '慢慢移動＝精細模式；手指離物品越遠，轉得越細', stallHint: '還歪著的物品會亮起來', goZen: '開始・不計時',
     tZen: '禪模式不計時',
@@ -456,7 +453,7 @@ const UI = {
     lede: 'Ten worlds, a hundred stages, ten art styles, from a farm all the way to Earth orbit. Animals fidget until they are straight, then call out to you. No snapping: every degree is down to your hand and the loupe.',
     nickLabel: 'Nickname (optional, saved on this device only)', nickPh: 'e.g. Nick', start: 'Play', cont: s => `Continue ${s}`,
     settings: 'Settings', lang: 'Language', music: 'Music', sound: 'Sound effects', on: 'On', off: 'Off',
-    mode: 'Mode', timed: 'Timed', zen: 'Zen', zenNote: 'Zen mode: no clock, precision only.', practice: 'Practice · double time',
+    mode: 'Mode', timed: 'Timed', zen: 'Zen', zenNote: 'Zen mode: no clock, precision only.', soundNote: 'On iPhone, web games are silent while the side switch is on silent mode: flip it back for sound.', audioBlocked: 'The browser is holding the sound back. Tap the screen once to start it.', practice: 'Practice · double time',
     firstRec: 'For new players', pickDiff: 'Pick a difficulty', notTried: 'Not tried', bestOn: (s, p) => `${s} ${p}`, legendE: 'Easy', legendN: 'Normal', legendH: 'Hard', legendTitle: 'Stop colour = hardest difficulty cleared:', needPrev: 'Clear the previous stage first', needWorld: 'Clear all 10 stages of the previous world to open this one',
     tryEasy: n => `Try again on ${n}`, ldFine: 'fine ¼', fineHint: 'Move slowly for fine control; the farther from the object, the finer it turns', stallHint: 'Objects still off will light up', goZen: 'Start · no clock',
     tZen: 'Zen mode: no clock',
@@ -1024,6 +1021,8 @@ function clearCountdown() { S.cd.forEach(clearTimeout); S.cd = []; }
 function startRound() {
   S.running = true; S.paused = false; S.lastT = null; S.stallAt = performance.now();
   MUS.start(S.L.song);
+  // If the browser is still holding the context back, say so once; the next tap starts it.
+  if (AU.ctx && !AU.silent && !S.audioWarned) setTimeout(() => { if (AU.ctx.state !== 'running' && S.running) { S.audioWarned = true; toast(U('audioBlocked'), 3000); } }, 700);
   if (S.levelIdx === 0) toast(U('dragHint'));
 }
 function begin(instant) {
@@ -1267,7 +1266,10 @@ $('#pauseBtn').onclick = pause;
 $('#resumeBtn').onclick = resume;
 $('#restartBtn').onclick = () => { $('#ovPause').hidden = true; if (AU.ctx) AU.ctx.resume(); startLevel(S.levelIdx, true); };
 $('#quitBtn').onclick = goHome;
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); else if (AU.ctx && AU.ctx.state !== 'running') AU.ctx.resume().catch(() => {}); });
+// Browsers start audio only inside a user gesture, and iOS can suspend it again after a call or a
+// switch of apps: any tap or key brings the context back.
+for (const ev of ['pointerdown', 'touchend', 'keydown']) document.addEventListener(ev, () => { if (AU.ctx && AU.ctx.state !== 'running') AU.ctx.resume().catch(() => {}); }, { passive: true, capture: true });
 
 /* ---------- settings: language, music, sound effects ---------- */
 function syncSound() {
@@ -1625,6 +1627,8 @@ window.__chayidu = {
   setFreeAll(on) { FREE_ALL = !!on; buildCards(); },
   unlocked: i => unlocked(LEVELS[i]),
   available: i => available(i),
+  // What the speakers are getting: context state, the gains, and whether the music loop is running.
+  audioInfo: () => ({ ctx: AU.ctx ? AU.ctx.state : null, t: AU.ctx ? +AU.ctx.currentTime.toFixed(2) : null, master: AU.master ? AU.master.gain.value : null, music: AU.music ? AU.music.gain.value : null, sfx: AU.sfx ? AU.sfx.gain.value : null, musicLoop: !!MUS.timer, silent: !!AU.silent }),
   tryStart: i => tryStart(i),
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, stage: L.stage, chapterName: tr(chapterOf(L).name), title: tr(L.title), titles: L.title,
     place: L.place, intro: L.intro, time: L.time, practice: isPractice(L), animated: !!L.animated,
