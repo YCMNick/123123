@@ -416,7 +416,20 @@ function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w
 /* ---------- storage (per-viewer convenience only) ---------- */
 const store = {
   data: { nick: '', best: {}, sound: true, music: true, lang: '' },
-  load() { try { const d = JSON.parse(localStorage.getItem('chayidu.v3') || 'null'); if (d) Object.assign(this.data, d); } catch (e) {} },
+  load() {
+    try {
+      const d = JSON.parse(localStorage.getItem('chayidu.v3') || 'null');
+      if (d) { Object.assign(this.data, d); return; }
+      // First run of v3 on a device that played v2: carry its progress over. v2 stored the
+      // ten first stages by index; their keys are listed here in that order.
+      const old = JSON.parse(localStorage.getItem('chayidu.v2') || 'null');
+      if (!old) return;
+      const V2 = ['farm', 'reef', 'jp', 'desk', 'fr', 'polar', 'desert', 'it', 'neon', 'space'];
+      Object.assign(this.data, old, { best: {} });
+      for (const [k, v] of Object.entries(old.best || {})) { const [diff, i] = k.split(':'); if (V2[+i]) this.data.best[`${diff}:${V2[+i]}`] = v; }
+      this.save();
+    } catch (e) {}
+  },
   save() { try { localStorage.setItem('chayidu.v3', JSON.stringify(this.data)); } catch (e) {} }
 };
 
@@ -5710,16 +5723,16 @@ function bgLondon(c) {
 }
 function drawPhoneBox(c) {
   const R = '#d8322f';
-  comicShape(c, () => { c.beginPath(); c.moveTo(-30, -62); c.quadraticCurveTo(0, -78, 30, -62); c.lineTo(30, 72); c.lineTo(-30, 72); c.closePath(); }, R);
+  // A plain street phone booth: flat roof, a PHONE sign and four big panes.
+  comicShape(c, () => rr(c, -30, -66, 60, 138, 4), R);
+  c.beginPath(); c.rect(-34, -72, 68, 8); fs(c, R, 2);
   c.beginPath(); c.rect(-34, 66, 68, 8); fs(c, R, 2);
-  rr(c, -22, -60, 44, 10, 1); fs(c, '#f4f1e8', 1.5);
-  sayF(c, LOCAL('TELEPHONE'), 0, -54.5, 'bold 7.5px Arial, sans-serif', INK, 40);
+  rr(c, -22, -60, 44, 11, 2); fs(c, '#f4f1e8', 1.5);
+  sayF(c, 'PHONE', 0, -54, 'bold 8px Arial, sans-serif', INK, 36);
   rectsInk(c, [[-22, -44, 44, 96]], '#a9d8ef', 2);
-  const s = []; for (let i = 1; i < 3; i++) s.push(-22 + i * 44 / 3, -44, -22 + i * 44 / 3, 52);
-  for (let j = 1; j < 8; j++) s.push(-22, -44 + j * 12, 22, -44 + j * 12);
-  lines(c, s, R, 3);
-  lines(c, [-14, -40, -4, -30, 4, -12, 14, -2], 'rgba(255,255,255,.6)', 2);
-  circ(c, 0, -68, 4, '#ffe58a');
+  lines(c, [0, -44, 0, 52, -22, 4, 22, 4], R, 3);
+  lines(c, [-16, -38, -8, -30, 6, -12, 14, -4], 'rgba(255,255,255,.6)', 2);
+  circ(c, 0, -74, 3, '#ffe58a');
 }
 function drawLondonBus(c) {
   const R = '#d8322f';
@@ -6002,7 +6015,7 @@ function drawAmpel(c) {
   rr(c, -13, -35, 26, 32, 4); fs(c, '#2b1b1c', 1.8); rr(c, -13, 3, 26, 32, 4); fs(c, '#12281c', 1.8);
   const man = (x, y, col, walk) => {
     c.fillStyle = col; c.beginPath();
-    c.rect(x - 6, y - 12, 12, 2); c.rect(x - 3, y - 15, 6, 3); c.moveTo(x + 3, y - 7); c.arc(x, y - 7, 3, 0, Math.PI * 2);
+    c.moveTo(x + 4, y - 9); c.arc(x, y - 9, 4, 0, Math.PI * 2);
     c.rect(x - 3, y - 4, 6, 9);
     if (walk) { c.moveTo(x - 2, y + 5); c.lineTo(x - 7, y + 12); c.lineTo(x - 4, y + 12); c.lineTo(x, y + 7); c.lineTo(x + 4, y + 12); c.lineTo(x + 7, y + 12); c.lineTo(x + 2, y + 5); c.closePath(); c.rect(x + 3, y - 3, 5, 2); c.rect(x - 8, y - 1, 5, 2); }
     else { c.rect(x - 3, y + 5, 2, 7); c.rect(x + 1, y + 5, 2, 7); c.rect(x - 10, y - 3, 7, 3); c.rect(x + 3, y - 3, 7, 3); }
@@ -9100,12 +9113,13 @@ function drawPhoneBox(c) {
   softShadow(c, true); c.fillStyle = '#b8191b'; c.fillRect(-29, -66, 58, 146); softShadow(c, false);
   const red = lin(c, -31, 0, 31, 0, 0, '#e8423a', 0.4, '#c81d1f', 1, '#7e0d10');
   c.fillStyle = red; c.fillRect(-31, 70, 62, 10); c.fillRect(-28, -66, 56, 138);
-  c.beginPath(); c.moveTo(-31, -66); c.quadraticCurveTo(0, -86, 31, -66); c.closePath(); c.fill(); c.fillRect(-31, -68, 62, 5);
+  // A plain street phone booth: flat roof, a PHONE sign and four big panes.
+  c.fillRect(-33, -74, 66, 8);
   rr(c, -22, -62, 44, 9, 1.5); c.fillStyle = '#f7f1e3'; c.fill();
-  txt(c, 'TELEPHONE', 0, -57.3, '700 6.6px "Noto Sans TC", Arial, sans-serif', '#1d1d1d');
-  for (let r = 0; r < 8; r++) for (let k = 0; k < 3; k++) {
-    const x = -20 + k * 13.6, y = -47 + r * 11.5;
-    c.fillStyle = lin(c, x, y, x + 12, y + 10, 0, '#f7d7a0', 0.4, '#6d6a72', 1, '#2b2c38'); c.fillRect(x, y, 12.2, 10);
+  txt(c, 'PHONE', 0, -57.3, '700 7px "Noto Sans TC", Arial, sans-serif', '#1d1d1d');
+  for (let r = 0; r < 2; r++) for (let k = 0; k < 2; k++) {
+    const x = -21 + k * 22, y = -47 + r * 47;
+    c.fillStyle = lin(c, x, y, x + 20, y + 44, 0, '#f7d7a0', 0.4, '#6d6a72', 1, '#2b2c38'); c.fillRect(x, y, 20, 45);
   }
   c.fillStyle = 'rgba(255,255,255,.25)'; c.beginPath(); c.moveTo(-20, -47); c.lineTo(-6, -47); c.lineTo(-20, 0); c.closePath(); c.fill();
   c.fillStyle = '#2b1a14'; c.fillRect(19, 0, 4, 10);
