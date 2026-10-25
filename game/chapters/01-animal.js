@@ -924,7 +924,7 @@ function bgPets(c) {
   // F2 left: shelf for the cat, cat bed, scratching post
   fillRR(c, 20, 268, 62, 6, 2, '#c98e5a'); poly(c, [26, 274, 26, 290, 40, 274], '#b07a44');
   ell(c, 46, 302, 20, 6, '#f4a7b9'); ell(c, 46, 300, 14, 3.5, '#ffd0dc');
-  fillRR(c, 160, 252, 10, 50, 2, '#e3c79a'); fillRR(c, 154, 298, 22, 6, 2, '#c98e5a'); fillRR(c, 155, 248, 20, 6, 2, '#c98e5a');
+  fillRR(c, 163, 252, 9, 50, 2, '#e3c79a'); fillRR(c, 159, 298, 17, 6, 2, '#c98e5a'); fillRR(c, 158, 248, 18, 6, 2, '#c98e5a');
   // F2 right: window, table for the bowl, seed dish
   fillRR(c, 196, 214, 34, 34, 3, '#fff'); c.fillStyle = '#bfe6ff'; c.fillRect(199, 217, 28, 28);
   fillRR(c, 266, 290, 68, 6, 2, '#c98e5a'); fillRR(c, 272, 296, 5, 16, 1, '#b07a44'); fillRR(c, 323, 296, 5, 16, 1, '#b07a44');
@@ -1093,6 +1093,9 @@ function bgCarnival(c) {
   seg(c, [322, 261, 322, 318], '#e8463a', 3.5); seg(c, [344, 261, 344, 318], '#e8463a', 3.5);
   for (let y = 272; y < 318; y += 11) seg(c, [322, y, 344, y], '#e8463a', 2.5);
   seg(c, [316, 255, 316, 236, 350, 236, 350, 255], '#e8463a', 2.5);
+  // a perch stand for the macaw and a podium for the monkey's ball
+  fillRR(c, 337, 160, 6, 78, 2, '#8a5a34'); fillRR(c, 330, 232, 20, 6, 2, '#6a4224');
+  seg(c, [54, 22, 54, 108], '#6a4a3a', 1.4); seg(c, [106, 24, 106, 108], '#6a4a3a', 1.4);
   // balloons tied to the tower
   [[332, 200, '#ff6b6b'], [346, 214, '#ffd43b'], [322, 220, '#69db7c']].forEach(([x, y, col]) => { bend(c, x, y + 12, x + 4, y + 26, 336, 238, 'rgba(80,60,60,.5)', 0.8); ell(c, x, y, 9, 11, col); ell(c, x - 3, y - 4, 2.5, 3.5, 'rgba(255,255,255,.5)'); });
   // seesaw
@@ -1108,7 +1111,9 @@ function drawBanner(c, a, zh, en, col) {
   for (let k = 0; k < 8; k++) { const x = 62 - k * 15.5; c.quadraticCurveTo(x - 7.75, 24, x - 15.5, 14); }
   c.closePath(); c.fillStyle = col; c.fill();
   c.fillStyle = 'rgba(255,255,255,.22)'; c.fillRect(-62, -21, 124, 4);
-  txt(c, T(zh, en), 0, -2, T('900 24px "Noto Sans TC", sans-serif', '27px Bangers, "Noto Sans TC", sans-serif'), '#fff');
+  const label = T(zh, en), font = (px) => T(`900 ${px}px "Noto Sans TC", sans-serif`, `${px}px Bangers, "Noto Sans TC", sans-serif`);
+  c.font = font(26); const wid = c.measureText(label).width;
+  txt(c, label, 0, -2, font(Math.min(26, Math.floor(26 * 108 / wid))), '#fff');
 }
 function drawElephantParty(c, a) {
   drawElephant(c, a);
@@ -1123,23 +1128,22 @@ function drawLionParty(c, a) {
   poly(c, [18, -26, 24, -37, 30, -26], '#cc5de8'); circ(c, 24, -36, 2, '#ffd43b');
   [[21, -29], [27, -29]].forEach(([x, y]) => circ(c, x, y, 1.2, '#fff'));
 }
-function drawBallMonkey(c, a) {
-  const sw = Math.sin(a.t * 2) * 2 * a.live;
-  circ(c, 0, 30, 19, '#4dabf7');
-  c.save(); c.beginPath(); c.arc(0, 30, 19, 0, TAU); c.clip(); ell(c, 0, 30, 30, 6, '#fff'); c.restore();
-  circ(c, 0, 30, 3, '#ffd43b'); ell(c, -8, 22, 4, 6, 'rgba(255,255,255,.35)', -0.5);
-  c.save(); c.translate(sw, 0);
-  bend(c, 8, 4, 22, 2, 18, -10, '#8a5530', 3.5);
-  seg(c, [-4, 2, -5, 11], '#8a5530', 5); seg(c, [4, 2, 5, 11], '#8a5530', 5);
-  ell(c, 0, -4, 11, 13, '#a8673a'); ell(c, 0, -2, 7, 9, '#f2d2a8');
-  seg(c, [-9, -10, -18, -24], '#a8673a', 4.5); seg(c, [9, -10, 18, -24], '#a8673a', 4.5);
-  circ(c, -18, -25, 3, '#f2d2a8'); circ(c, 18, -25, 3, '#f2d2a8');
-  circ(c, -11, -22, 4, '#f2d2a8'); circ(c, 11, -22, 4, '#f2d2a8');
-  circ(c, 0, -22, 11, '#a8673a'); ell(c, 0, -19, 8, 7, '#f2d2a8');
-  eye(c, -3.5, -21, 1.8); eye(c, 3.5, -21, 1.8);
-  c.beginPath(); c.arc(0, -16, 3, 0.2, Math.PI - 0.2); stroke(c, '#7a4a24', 1.2);
-  poly(c, [-6, -31, 0, -46, 6, -31], '#ffd43b'); seg(c, [-3, -36, 3, -38], '#ff6b6b', 1.6); circ(c, 0, -46, 2.5, '#ff6b6b');
-  c.restore();
+function drawTrapezeMonkey(c, a) {
+  const kick = Math.sin(a.t * 3) * a.live;
+  seg(c, [-26, -45, -26, -40], '#6a4a3a', 1.4); seg(c, [26, -45, 26, -40], '#6a4a3a', 1.4);
+  fillRR(c, -29, -42, 58, 5, 2.5, '#ffd43b'); circ(c, -29, -39.5, 3, '#ff6b6b'); circ(c, 29, -39.5, 3, '#ff6b6b');
+  bend(c, 6, 4, 22, 8, 18, 20, '#8a5530', 3.5); circ(c, 17, 22, 2.4, '#8a5530');
+  seg(c, [-4, 8, -6 - kick * 3, 27], '#8a5530', 5); seg(c, [4, 8, 6 + kick * 3, 27], '#8a5530', 5);
+  ell(c, -6 - kick * 3, 29, 4, 2.6, '#f2d2a8'); ell(c, 6 + kick * 3, 29, 4, 2.6, '#f2d2a8');
+  seg(c, [-8, -10, -11, -38], '#a8673a', 4.5); seg(c, [8, -10, 11, -38], '#a8673a', 4.5);
+  circ(c, -11, -39, 3, '#f2d2a8'); circ(c, 11, -39, 3, '#f2d2a8');
+  ell(c, 0, -1, 10, 12, '#a8673a'); ell(c, 0, 1, 6.5, 8.5, '#f2d2a8');
+  seg(c, [-4, -9, 4, -9], '#ff6b6b', 3);
+  circ(c, -10.5, -20, 3.6, '#f2d2a8'); circ(c, 10.5, -20, 3.6, '#f2d2a8');
+  circ(c, 0, -20, 10, '#a8673a'); ell(c, 0, -17, 7.5, 6.5, '#f2d2a8');
+  eye(c, -3.4, -19, 1.8); eye(c, 3.4, -19, 1.8);
+  c.beginPath(); c.arc(0, -15, 2.8, 0.2, Math.PI - 0.2); stroke(c, '#7a4a24', 1.2);
+  blush(c, -6, -14, 2.2, 1.3); blush(c, 6, -14, 2.2, 1.3);
 }
 function drawSlide(c) {
   fillRR(c, -61, 4, 122, 10, 5, '#ffd43b');
@@ -1290,7 +1294,7 @@ defineChapter({
       objects: [
       { id: 'bannerL', name: { zh: '左邊布條', en: 'Left banner' }, x: 100, y: 48, w: 132, h: 50, mag: 7, draw: (c, a) => drawBanner(c, a, '動物', 'ANIMAL', '#ff6b6b'), link: { to: 'bannerR', k: 0.6 }, sfx: 'jingle' },
       { id: 'bannerR', name: { zh: '右邊布條', en: 'Right banner' }, x: 260, y: 48, w: 132, h: 50, mag: 4, draw: (c, a) => drawBanner(c, a, '狂歡節', 'CARNIVAL', '#4dabf7'), sfx: 'jingle' },
-      { id: 'monkey', name: { zh: '頂球猴子', en: 'Monkey on a ball' }, x: 80, y: 150, w: 64, h: 100, near: true, draw: drawBallMonkey, call: 'animal_monkey' },
+      { id: 'monkey', name: { zh: '盪鞦韆猴子', en: 'Trapeze monkey' }, x: 80, y: 148, w: 64, h: 84, near: true, draw: drawTrapezeMonkey, habit: (t, l) => ({ dx: Math.sin(t * 1.6) * 4 * l }), call: 'animal_monkey' },
       { id: 'parrot', name: { zh: '金剛鸚鵡', en: 'Macaw' }, x: 308, y: 136, w: 70, h: 120, near: true, draw: drawMacaw, call: 'animal_parrot' },
       { id: 'elephant', name: { zh: '大象', en: 'Elephant' }, x: 94, y: 270, w: 136, h: 108, mag: 11, draw: drawElephantParty, call: 'animal_elephant' },
       { id: 'slide', name: { zh: '溜滑梯', en: 'Slide' }, x: 262, y: 284, w: 124, h: 44, trap: true, keep: -24, draw: drawSlide,

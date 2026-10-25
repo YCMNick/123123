@@ -223,7 +223,7 @@ function bgWheel(c) {
   nCirc(c, x, y, R - 12, NC.violet, 1.4); nCirc(c, x, y, R, NC.pink, 3); nCirc(c, x, y, 20, NC.gold, 2.4); nCirc(c, x, y, 8, NC.pink, 2);
   for (let k = 0; k < 36; k++) { const an = k * Math.PI / 18; bulb(c, x + Math.cos(an) * R, y + Math.sin(an) * R, 1.8, [NC.gold, NC.cyan, NC.white][k % 3]); }
   // the other gondolas, already level, a bit dimmer
-  c.save(); c.globalAlpha = 0.5;
+  c.save(); c.globalAlpha = 0.36;
   for (const deg of [0, 30, 90, 120, 150, 180, 240, 270, 300]) {
     const an = deg * Math.PI / 180; c.save(); c.translate(x + Math.cos(an) * R, y + Math.sin(an) * R + 28);
     gondolaArt(c, [NC.cyan, NC.violet, NC.gold][deg / 30 % 3], NC.pink); c.restore();
@@ -283,7 +283,7 @@ function drawMirror(c) {
 function drawSwan(c) {
   spr(c, 'c-swan', 104, 60, c => {
     const boat = () => { c.beginPath(); c.moveTo(-46, -4); c.quadraticCurveTo(-46, 22, -12, 22); c.lineTo(24, 22); c.quadraticCurveTo(40, 20, 38, 4); c.lineTo(-30, 4); c.closePath(); };
-    nShape(c, boat, NC.white, 'rgba(94,231,255,.16)', 2.4);
+    nShape(c, boat, NC.white, 'rgba(24,40,62,.94)', 2.4);
     neon(c, () => { c.beginPath(); c.moveTo(-40, 8); c.quadraticCurveTo(-26, 2, -20, 12); c.quadraticCurveTo(-12, 4, -4, 14); c.quadraticCurveTo(4, 6, 10, 15); }, NC.pink, 1.6);
     neon(c, () => { c.beginPath(); c.moveTo(30, 6); c.bezierCurveTo(48, -6, 24, -20, 34, -26); }, NC.white, 2.6);
     nCirc(c, 38, -24, 4.5, NC.white, 2); poly(c, [42, -26, 50, -23, 42, -21], NC.orange); circ(c, 38, -25, 1.2, '#2a1240');
@@ -317,7 +317,7 @@ function bgCarousel(c) {
   // centre column
   c.fillStyle = '#140824'; c.fillRect(156, 162, 48, 246);
   nLine(c, [156, 162, 156, 408], NC.gold, 1.4); nLine(c, [204, 162, 204, 408], NC.gold, 1.4);
-  for (const yy of [190, 330, 372]) neon(c, () => { c.beginPath(); c.moveTo(180, yy - 12); c.lineTo(192, yy); c.lineTo(180, yy + 12); c.lineTo(168, yy); c.closePath(); }, NC.violet, 1.3);
+  for (const yy of [190, 330]) neon(c, () => { c.beginPath(); c.moveTo(180, yy - 12); c.lineTo(192, yy); c.lineTo(180, yy + 12); c.lineTo(168, yy); c.closePath(); }, NC.violet, 1.3);
   // back-row horses
   c.save(); c.globalAlpha = 0.28;
   c.save(); c.translate(124, 240); c.scale(0.55, 0.55); horseArt(c, NC.cyan, NC.gold); c.restore();
@@ -392,11 +392,10 @@ function bgCoaster(c) {
   stars(c, 70, 280, 4);
   glow(c, 280, 360, 160, '#ff5ec4', 0.18);
   c.save(); c.globalAlpha = 0.85; skyline(c, 398, 7, '#120a26', 0.7); c.restore();
-  for (const [x, top, col] of [[30, 300, NC.pink], [196, 296, NC.cyan], [342, 305, NC.gold]]) { c.save(); c.globalAlpha = 0.4; nLine(c, [x, 398, x, top], col, 1.2); bulb(c, x, top - 4, 2, col); c.restore(); }
   // supports
   c.save(); c.globalAlpha = 0.5;
-  for (const [x, y] of [[20, 312], [40, 236], [58, 168], [150, 150], [184, 202], [230, 232], [300, 248]]) nLine(c, [x, y + 6, x, 398], NC.violet, 1.1);
-  for (const [x1, y1, x2, y2] of [[20, 340, 40, 300], [40, 300, 58, 240], [150, 260, 184, 230], [230, 300, 300, 280]]) nLine(c, [x1, y1, x2, y2], NC.violet, 0.8);
+  for (const [x, y] of [[20, 255], [40, 185], [58, 122], [158, 148], [184, 200], [230, 253], [300, 246]]) nLine(c, [x, y + 8, x, 398], NC.violet, 1.1);
+  for (const [x1, y1, x2, y2] of [[20, 330, 40, 270], [40, 270, 58, 200], [158, 260, 184, 230], [184, 300, 230, 330], [230, 300, 300, 330]]) nLine(c, [x1, y1, x2, y2], NC.violet, 0.8);
   c.restore();
   // track: lift hill, drop, loop
   const track = () => { c.beginPath(); c.moveTo(-10, 360); c.lineTo(62, 108); c.quadraticCurveTo(80, 44, 112, 76); c.quadraticCurveTo(160, 140, 200, 238); c.quadraticCurveTo(222, 262, 275, 250); };
@@ -425,7 +424,7 @@ function ghostArt(c, f) {
 }
 function drawGhost(c, a) { const f = fr(a, 3, 2); spr(c, 'h-ghost' + f, 64, 76, g => ghostArt(g, f)); }
 function batArt(c, f) {
-  for (const s of [-1, 1]) nShape(c, () => { c.beginPath(); c.moveTo(s * 6, -4); c.quadraticCurveTo(s * 22, f ? -18 : -8, s * 35, f ? -12 : 2); c.quadraticCurveTo(s * 29, f ? -4 : 4, s * 26, f ? 2 : 10); c.quadraticCurveTo(s * 20, f ? 0 : 6, s * 16, f ? 6 : 12); c.quadraticCurveTo(s * 11, 6, s * 6, 8); c.closePath(); }, NC.violet, 'rgba(199,125,255,.25)', 2);
+  for (const s of [-1, 1]) nShape(c, () => { c.beginPath(); c.moveTo(s * 6, -4); c.quadraticCurveTo(s * 22, f ? -18 : -12, s * 35, f ? -12 : -6); c.quadraticCurveTo(s * 30, f ? -4 : 0, s * 27, f ? 2 : 6); c.quadraticCurveTo(s * 22, f ? 0 : 2, s * 17, f ? 6 : 10); c.quadraticCurveTo(s * 11, 6, s * 6, 8); c.closePath(); }, NC.violet, 'rgba(199,125,255,.25)', 2);
   poly(c, [-8, -6, -6, -16, -1, -8], NC.violet); poly(c, [8, -6, 6, -16, 1, -8], NC.violet);
   nShape(c, () => { c.beginPath(); c.arc(0, 1, 9, 0, Math.PI * 2); }, NC.violet, '#2b1146', 2.2);
   circ(c, -3.5, -1, 2.4, '#fff'); circ(c, 3.5, -1, 2.4, '#fff'); circ(c, -3.2, -0.6, 1.2, '#1a0d2c'); circ(c, 3.8, -0.6, 1.2, '#1a0d2c');
@@ -553,39 +552,41 @@ function bgGallery(c) {
   nLine(c, [0, 70, W, 70], NC.pink, 2);
   for (let x = 0, k = 0; x < W; x += 30, k++) { c.beginPath(); c.arc(x + 15, 70, 15, 0, Math.PI); c.fillStyle = k % 2 ? '#2a0d36' : '#45123f'; c.fill(); neon(c, () => { c.beginPath(); c.arc(x + 15, 70, 15, 0, Math.PI); }, k % 2 ? NC.white : NC.pink, 1.6); bulb(c, x + 15, 86, 2, NC.gold); }
   // posts
-  for (const x of [12, 348]) { nLine(c, [x, 86, x, 400], NC.gold, 2.6); for (let y = 110; y < 390; y += 34) bulb(c, x, y, 2, NC.pink); }
+  for (const x of [12, 348]) { nLine(c, [x, 86, x, 388], NC.gold, 2.6); for (let y = 110; y < 380; y += 34) bulb(c, x, y, 2, NC.pink); }
   // prize shelf
-  nLine(c, [30, 262, 330, 262], NC.gold, 1.8);
+  nLine(c, [30, 268, 330, 268], NC.gold, 1.8);
   c.save(); c.globalAlpha = 0.55;
-  const prize = (x, k) => {
-    if (k === 0) neon(c, () => { c.beginPath(); for (let i = 0; i < 10; i++) { const an = i / 10 * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 5 : 11; c.lineTo(x + Math.cos(an) * r, 248 + Math.sin(an) * r); } c.closePath(); }, NC.gold, 1.6);
-    if (k === 1) { nCirc(c, x, 248, 10, NC.cyan, 1.6); poly(c, [x - 8, 242, x - 4, 234, x - 1, 240], NC.cyan); poly(c, [x + 8, 242, x + 4, 234, x + 1, 240], NC.cyan); }
-    if (k === 2) neon(c, () => { c.beginPath(); c.ellipse(x, 250, 12, 7, 0, 0, Math.PI * 2); c.moveTo(x - 12, 250); c.lineTo(x - 19, 244); c.lineTo(x - 19, 256); c.closePath(); }, NC.violet, 1.6);
-    if (k === 3) neon(c, () => { c.beginPath(); c.moveTo(x, 258); c.bezierCurveTo(x - 14, 248, x - 9, 236, x, 244); c.bezierCurveTo(x + 9, 236, x + 14, 248, x, 258); }, NC.red, 1.6);
+  const prize = (x, k, y = 254) => {
+    if (k === 0) neon(c, () => { c.beginPath(); for (let i = 0; i < 10; i++) { const an = i / 10 * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 5 : 11; c.lineTo(x + Math.cos(an) * r, y + Math.sin(an) * r); } c.closePath(); }, NC.gold, 1.6);
+    if (k === 1) { nCirc(c, x, y, 10, NC.cyan, 1.6); poly(c, [x - 8, y - 6, x - 4, y - 14, x - 1, y - 8], NC.cyan); poly(c, [x + 8, y - 6, x + 4, y - 14, x + 1, y - 8], NC.cyan); }
+    if (k === 2) neon(c, () => { c.beginPath(); c.ellipse(x, y + 2, 12, 7, 0, 0, Math.PI * 2); c.moveTo(x - 12, y + 2); c.lineTo(x - 19, y - 4); c.lineTo(x - 19, y + 8); c.closePath(); }, NC.violet, 1.6);
+    if (k === 3) neon(c, () => { c.beginPath(); c.moveTo(x, y + 10); c.bezierCurveTo(x - 14, y, x - 9, y - 12, x, y - 4); c.bezierCurveTo(x + 9, y - 12, x + 14, y, x, y + 10); }, NC.red, 1.6);
   };
   [[44, 0], [86, 1], [130, 2], [232, 3], [276, 1], [318, 0]].forEach(([x, k]) => prize(x, k));
   c.restore();
   // duck pond
-  c.fillStyle = 'rgba(20,90,130,.28)'; c.fillRect(24, 300, 312, 52);
-  for (const [y, a] of [[318, 0.9], [332, 0.6], [345, 0.4]]) { c.save(); c.globalAlpha = a; neon(c, () => { c.beginPath(); for (let x = 24; x <= 336; x += 4) { const yy = y + Math.sin(x / 9 + y) * 2; x === 24 ? c.moveTo(x, yy) : c.lineTo(x, yy); } }, NC.cyan, 1.4); c.restore(); }
-  nLine(c, [20, 352, 340, 352], NC.gold, 2);
-  // counter
-  let g = c.createLinearGradient(0, 364, 0, H); g.addColorStop(0, '#22103a'); g.addColorStop(1, '#0d0619');
-  c.fillStyle = g; c.fillRect(0, 364, W, 116);
-  nLine(c, [0, 364, W, 364], NC.gold, 2.4);
-  c.fillStyle = 'rgba(255,94,196,.06)'; for (let x = 0; x < W; x += 36) c.fillRect(x, 380, 18, 100);
-  // ring toss pegs
-  for (const [x, col] of [[44, NC.cyan], [74, NC.pink], [104, NC.gold]]) { nLine(c, [x, 362, x, 336], NC.white, 1.4); nEll(c, x, 358, 10, 3.5, col, 1.8); }
-  nEll(c, 74, 352, 10, 3.5, NC.violet, 1.8);
-  // water squirter (a toy fish) and its arc of water
-  c.save(); c.translate(282, 344);
-  nShape(c, () => { c.beginPath(); c.ellipse(0, 0, 18, 10, 0, 0, Math.PI * 2); }, NC.cyan, 'rgba(94,231,255,.2)', 2);
-  nShape(c, () => { c.beginPath(); c.moveTo(16, 0); c.lineTo(28, -8); c.lineTo(28, 8); c.closePath(); }, NC.cyan, 'rgba(94,231,255,.2)', 1.6);
-  nLine(c, [-18, -2, -26, -6], NC.white, 2); circ(c, -8, -3, 1.8, '#fff'); nLine(c, [2, 8, 2, 18], NC.pink, 3);
+  c.fillStyle = 'rgba(20,90,130,.28)'; c.fillRect(24, 318, 312, 56);
+  for (const [y, a] of [[336, 0.9], [350, 0.6], [363, 0.4]]) { c.save(); c.globalAlpha = a; neon(c, () => { c.beginPath(); for (let x = 24; x <= 336; x += 4) { const yy = y + Math.sin(x / 9 + y) * 2; x === 24 ? c.moveTo(x, yy) : c.lineTo(x, yy); } }, NC.cyan, 1.4); c.restore(); }
+  nLine(c, [20, 374, 340, 374], NC.gold, 2);
+  // counter: a ledge with two water squirters, then the front panel
+  c.fillStyle = '#2a1446'; c.fillRect(0, 388, W, 16);
+  let g = c.createLinearGradient(0, 404, 0, H); g.addColorStop(0, '#22103a'); g.addColorStop(1, '#0d0619');
+  c.fillStyle = g; c.fillRect(0, 404, W, 76);
+  nLine(c, [0, 388, W, 388], NC.gold, 2.4); nLine(c, [0, 404, W, 404], NC.pink, 1.4);
+  c.fillStyle = 'rgba(255,94,196,.06)'; for (let x = 0; x < W; x += 36) c.fillRect(x, 412, 18, 68);
+  for (let x = 12, k = 0; x < W; x += 24, k++) bulb(c, x, 424, 1.8, [NC.pink, NC.gold, NC.cyan][k % 3]);
+  for (const [x, s, col] of [[44, -1, NC.cyan], [316, 1, NC.pink]]) {
+    c.save(); c.translate(x, 384); c.scale(s, 1);
+    nLine(c, [0, 4, 0, 12], NC.white, 2.4); nLine(c, [-8, 18, 8, 18], NC.white, 2);
+    nShape(c, () => { c.beginPath(); c.ellipse(0, -4, 17, 9.5, 0, 0, Math.PI * 2); }, col, 'rgba(40,20,60,.9)', 2);
+    nShape(c, () => { c.beginPath(); c.moveTo(15, -4); c.lineTo(27, -12); c.lineTo(27, 4); c.closePath(); }, col, 'rgba(40,20,60,.9)', 1.6);
+    nLine(c, [-17, -6, -25, -11], NC.white, 2); circ(c, -7, -7, 1.8, '#fff'); circ(c, -7, -7, 0.9, '#2a1240');
+    c.restore();
+  }
+  c.save(); c.setLineDash([2, 5]); c.globalAlpha = 0.85;
+  neon(c, () => { c.beginPath(); c.moveTo(70, 372); c.quadraticCurveTo(80, 330, 86, 342); c.moveTo(290, 372); c.quadraticCurveTo(280, 330, 274, 342); }, NC.cyan, 1.4);
   c.restore();
-  c.save(); c.setLineDash([2, 5]); c.globalAlpha = 0.8; neon(c, () => { c.beginPath(); c.moveTo(256, 338); c.quadraticCurveTo(230, 296, 200, 318); }, NC.cyan, 1.6); c.restore();
-  for (const [x, y] of [[198, 320], [204, 314], [194, 314]]) circ(c, x, y, 1.4, NC.white);
-  for (let x = 140, k = 0; x < 230; x += 16, k++) bulb(c, x, 380, 1.8, k % 2 ? NC.pink : NC.gold);
+  for (let k = 0; k < 4; k++) { circ(c, 160 + k * 14, 446, 3, NC.gold); circ(c, 160 + k * 14, 446, 1.2, '#fff'); }
 }
 
 /* ===== 9-7 Balloon festival ===== */
@@ -663,8 +664,7 @@ function bgBalloons(c) {
     c.fillStyle = 'rgba(40,20,10,.9)'; c.fillRect(x - r * 0.25, y + r * 1.45, r * 0.5, r * 0.4);
   }
   // crowd
-  c.fillStyle = '#0a0a18';
-  for (let i = 0; i < 24; i++) { const x = 6 + i * 15 + hsh(i) * 6, y = 470 - hsh(i * 7) * 6; ell(c, x, y + 14, 8, 12, '#0a0a18'); circ(c, x, y, 5, '#0a0a18'); if (hsh(i * 9) > 0.7) { c.fillStyle = 'rgba(94,231,255,.7)'; c.fillRect(x + 3, y - 10, 3, 5); } }
+  for (let i = 0; i < 24; i++) { const x = 6 + i * 15 + hsh(i) * 6, y = 470 - hsh(i * 7) * 6; ell(c, x, y + 14, 8, 12, '#1a1a38'); circ(c, x, y, 5, '#1a1a38'); if (hsh(i * 9) > 0.7) { c.fillStyle = 'rgba(94,231,255,.7)'; c.fillRect(x + 3, y - 10, 3, 5); } }
   for (const x of [82, 278]) nLine(c, [x, 386, x, 470], NC.violet, 1.8);
 }
 
@@ -728,10 +728,10 @@ function drawUmbrella(c) {
   });
 }
 function drawPoolSign(c) {
-  spr(c, 'wp-sign', 124, 42, c => {
-    plate(c, -58, -18, 116, 36, 8, NC.cyan, 2.4);
-    label(c, T('泳池', 'POOL'), 8, 1, 70, 20, NC.gold);
-    neon(c, () => { c.beginPath(); for (const y of [-4, 4]) { c.moveTo(-46, y); c.quadraticCurveTo(-42, y - 4, -38, y); c.quadraticCurveTo(-34, y + 4, -30, y); } }, NC.cyan, 1.4);
+  spr(c, 'wp-sign', 108, 42, c => {
+    plate(c, -50, -18, 100, 36, 8, NC.cyan, 2.4);
+    label(c, T('泳池', 'POOL'), 9, 1, 60, 20, NC.gold);
+    neon(c, () => { c.beginPath(); for (const y of [-4, 4]) { c.moveTo(-40, y); c.quadraticCurveTo(-36, y - 4, -32, y); c.quadraticCurveTo(-28, y + 4, -24, y); } }, NC.cyan, 1.4);
   });
 }
 function drawDepthTag(c) {
@@ -805,7 +805,7 @@ function dragonHeadArt(c, shut) {
   if (shut) { c.strokeStyle = '#2a1240'; c.lineWidth = 1.6; c.beginPath(); c.arc(14, -15, 5, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke(); }
   else { circ(c, 15.5, -13.5, 4, '#2a1240'); circ(c, 14, -15.5, 1.6, '#fff'); }
   c.globalAlpha = 0.6; circ(c, 18, -2, 3.5, NC.pink); c.globalAlpha = 1;
-  for (const x of [-20, -6]) neon(c, () => { c.beginPath(); c.arc(x, 4, 5, Math.PI, 0); }, NC.gold, 1.2);
+  neon(c, () => { c.beginPath(); for (const [x, y] of [[-24, -2], [-14, 4], [-4, 8], [-26, 10]]) { c.moveTo(x - 4, y - 3); c.lineTo(x, y + 2); c.lineTo(x + 4, y - 3); } }, NC.gold, 1.1);
 }
 function drawDragonHead(c, a) { const s = blink(a); spr(c, 'p-dh' + s, 120, 84, g => dragonHeadArt(g, s)); }
 function drawDragonTail(c) {
@@ -815,7 +815,7 @@ function drawDragonTail(c) {
     nShape(c, body, NC.green, 'rgba(125,255,176,.22)', 2.4);
     nShape(c, () => { c.beginPath(); c.moveTo(-40, -10); c.lineTo(-52, -18); c.lineTo(-48, -6); c.lineTo(-56, 0); c.lineTo(-42, 0); c.closePath(); }, NC.red, 'rgba(255,74,92,.35)', 1.6);
     for (const [x, y] of [[36, -10], [22, -10], [-12, -12], [-26, -16]]) poly(c, [x - 4, y + 2, x, y - 7, x + 4, y + 2], NC.red);
-    for (const x of [-12, 4, 20, 36]) neon(c, () => { c.beginPath(); c.arc(x, 10, 5, Math.PI, 0); }, NC.gold, 1.2);
+    neon(c, () => { c.beginPath(); for (const [x, y] of [[-30, 2], [-18, 6], [-6, 4], [6, 6], [18, 4], [30, 2], [40, 8], [-12, 12], [12, 12], [28, 12]]) { c.moveTo(x - 4, y - 3); c.lineTo(x, y + 2); c.lineTo(x + 4, y - 3); } }, NC.gold, 1.1);
   });
 }
 function whaleArt(c, f) {
@@ -846,28 +846,28 @@ function bgParade(c) {
   sky(c, [[0, '#0a0619'], [0.5, '#1d0b2e'], [1, '#0d0718']]);
   stars(c, 40, 120, 12);
   // French Quarter facades
-  for (const [x0, w, top, fill] of [[0, 130, 128, '#170c29'], [130, 104, 148, '#1b0e30'], [234, 126, 122, '#150a25']]) {
-    c.fillStyle = fill; c.fillRect(x0, top, w, 300 - top);
-    for (let x = x0 + 12; x < x0 + w - 16; x += 30) for (const y of [top + 20, top + 104]) { c.fillStyle = 'rgba(255,190,110,.32)'; c.fillRect(x, y, 16, 40); c.fillStyle = 'rgba(122,60,150,.5)'; c.fillRect(x - 5, y, 4, 40); c.fillRect(x + 17, y, 4, 40); }
+  for (const [x0, w, top, fill] of [[0, 130, 110, '#170c29'], [130, 104, 128, '#1b0e30'], [234, 126, 104, '#150a25']]) {
+    c.fillStyle = fill; c.fillRect(x0, top, w, 236 - top);
+    for (let x = x0 + 12; x < x0 + w - 16; x += 30) for (const [y, h] of [[top + 12, 34], [top + 76, Math.min(36, 232 - top - 76)]]) { c.fillStyle = 'rgba(255,190,110,.32)'; c.fillRect(x, y, 16, h); c.fillStyle = 'rgba(122,60,150,.5)'; c.fillRect(x - 5, y, 4, h); c.fillRect(x + 17, y, 4, h); }
     c.save(); c.globalAlpha = 0.55;
-    nLine(c, [x0, top + 80, x0 + w, top + 80], NC.cyan, 1.4); nLine(c, [x0, top + 96, x0 + w, top + 96], NC.cyan, 1);
-    neon(c, () => { c.beginPath(); for (let x = x0 + 4; x < x0 + w - 4; x += 8) { c.moveTo(x, top + 96); c.lineTo(x, top + 82); c.moveTo(x + 4, top + 92); c.arc(x + 4, top + 88, 3, Math.PI / 2, Math.PI * 2.5); } }, NC.cyan, 0.7);
+    nLine(c, [x0, top + 54, x0 + w, top + 54], NC.cyan, 1.4); nLine(c, [x0, top + 68, x0 + w, top + 68], NC.cyan, 1);
+    neon(c, () => { c.beginPath(); for (let x = x0 + 4; x < x0 + w - 4; x += 8) { c.moveTo(x, top + 68); c.lineTo(x, top + 56); c.moveTo(x + 4, top + 64); c.arc(x + 4, top + 61, 3, Math.PI / 2, Math.PI * 2.5); } }, NC.cyan, 0.7);
     c.restore();
   }
-  for (const x of [128, 234]) { nLine(c, [x, 190, x, 206], NC.gold, 1.4); glow(c, x, 210, 16, '#ffd166', 0.5); circ(c, x, 210, 3, NC.gold); }
+  for (const x of [128, 234]) { nLine(c, [x, 150, x, 164], NC.gold, 1.4); glow(c, x, 168, 16, '#ffd166', 0.5); circ(c, x, 168, 3, NC.gold); }
   lights(c, 28, 6, 18, 1);
   for (const x of [84, 276]) nLine(c, [x, 30, x, 42], 'rgba(255,255,255,.4)', 0.8);
   // street, crowd
-  let g = c.createLinearGradient(0, 300, 0, H); g.addColorStop(0, '#1a0d2a'); g.addColorStop(1, '#0c0616');
-  c.fillStyle = g; c.fillRect(0, 300, W, 180);
-  nLine(c, [0, 301, W, 301], NC.gold, 1.6);
-  c.save(); c.globalAlpha = 0.5; c.setLineDash([14, 12]); nLine(c, [0, 420, W, 420], NC.gold, 1.2); c.restore();
+  let g = c.createLinearGradient(0, 236, 0, H); g.addColorStop(0, '#1d0e30'); g.addColorStop(1, '#0c0616');
+  c.fillStyle = g; c.fillRect(0, 236, W, 244);
+  nLine(c, [0, 237, W, 237], NC.gold, 1.6);
+  c.save(); c.globalAlpha = 0.5; c.setLineDash([14, 12]); nLine(c, [0, 318, W, 318], NC.gold, 1.2); nLine(c, [0, 428, W, 428], NC.gold, 1.2); c.restore();
   for (let i = 0; i < 70; i++) { const col = [NC.pink, NC.gold, NC.cyan, NC.green, NC.violet][i % 5]; c.globalAlpha = 0.6; c.fillStyle = col; c.save(); c.translate(hsh(i * 3 + 2) * W, 130 + hsh(i * 7 + 3) * 300); c.rotate(hsh(i) * 3); c.fillRect(-1.5, -0.8, 3, 1.6); c.restore(); }
   c.globalAlpha = 1;
   for (let i = 0; i < 22; i++) {
     const x = 8 + i * 16.5 + hsh(i + 4) * 5, y = 462 + hsh(i * 3) * 6;
-    ell(c, x, y + 14, 8, 12, '#07040e'); circ(c, x, y, 5.5, '#07040e');
-    if (i % 3 === 0) { c.strokeStyle = '#07040e'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x + 4, y + 6); c.lineTo(x + 9, y - 10); c.stroke(); for (let k = 0; k < 5; k++) circ(c, x + 6 + Math.sin(k) * 4, y - 8 + k * 3, 1.4, [NC.gold, NC.green, NC.violet][k % 3]); }
+    ell(c, x, y + 14, 8, 12, '#1c1236'); circ(c, x, y, 5.5, '#1c1236');
+    if (i % 3 === 0) { c.strokeStyle = '#1c1236'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x + 4, y + 6); c.lineTo(x + 9, y - 10); c.stroke(); for (let k = 0; k < 5; k++) circ(c, x + 6 + Math.sin(k) * 4, y - 8 + k * 3, 1.4, [NC.gold, NC.green, NC.violet][k % 3]); }
   }
 }
 
@@ -913,7 +913,7 @@ function drawCart(c) {
 }
 function drawStarBalloon(c) {
   spr(c, 'f-bal', 44, 72, c => {
-    neon(c, () => { c.beginPath(); c.moveTo(0, 10); c.quadraticCurveTo(-8, 20, -6, 26); c.quadraticCurveTo(-4, 32, -20, 36); }, NC.white, 1);
+    neon(c, () => { c.beginPath(); c.moveTo(0, 10); c.quadraticCurveTo(-8, 20, -6, 26); c.quadraticCurveTo(-6, 34, -30, 40); }, NC.white, 1);
     const star = () => { c.beginPath(); for (let k = 0; k < 10; k++) { const an = k / 10 * Math.PI * 2 - Math.PI / 2, r = k % 2 ? 9 : 19; c.lineTo(Math.cos(an) * r, -12 + Math.sin(an) * r); } c.closePath(); };
     nShape(c, star, NC.gold, 'rgba(255,209,102,.4)', 2.4);
     poly(c, [-2.5, 10, 2.5, 10, 0, 6], NC.gold);
@@ -1005,9 +1005,9 @@ defineChapter({
       bg: bgCarousel, animated: true,
       objects: [
       { id: 'sign', name: { zh: '木馬招牌', en: 'Carousel sign' }, x: 180, y: 128, w: 150, h: 40, mag: 9, draw: drawCarouselSign, sfx: 'twinkle' },
-      { id: 'horsea', name: { zh: '粉紅木馬', en: 'Pink horse' }, x: 78, y: 280, w: 86, h: 140, mag: 12, draw: drawHorseA, habit: (t, l) => ({ dy: Math.sin(t * 2) * 7 * l }), call: 'carousel' },
+      { id: 'horsea', name: { zh: '粉紅木馬', en: 'Pink horse' }, x: 78, y: 280, w: 90, h: 140, mag: 12, draw: drawHorseA, habit: (t, l) => ({ dy: Math.sin(t * 2) * 7 * l }), call: 'carousel' },
       { id: 'mirror', name: { zh: '鏡子', en: 'Mirror' }, x: 180, y: 256, w: 50, h: 68, near: true, draw: drawMirror, sfx: 'shimmer' },
-      { id: 'horseb', name: { zh: '藍色木馬', en: 'Blue horse' }, x: 282, y: 280, w: 86, h: 140, mag: 6, draw: drawHorseB, habit: (t, l) => ({ dy: -Math.sin(t * 2) * 7 * l }), call: 'park_pony' },
+      { id: 'horseb', name: { zh: '藍色木馬', en: 'Blue horse' }, x: 282, y: 280, w: 90, h: 140, mag: 6, draw: drawHorseB, habit: (t, l) => ({ dy: -Math.sin(t * 2) * 7 * l }), call: 'park_pony' },
       { id: 'swan', name: { zh: '天鵝座椅', en: 'Swan chariot' }, x: 180, y: 384, w: 104, h: 60, mag: 10, draw: drawSwan, sfx: 'park_ride' }
       ] },
     { key: 'park-coaster', title: { zh: "雲霄飛車", en: "Roller Coaster" }, place: { zh: "美國 拉斯維加斯", en: "Las Vegas, USA" },
@@ -1036,11 +1036,11 @@ defineChapter({
       bg: bgGallery, animated: true,
       objects: [
       { id: 'sign', name: { zh: '攤位招牌', en: 'Stall sign' }, x: 180, y: 112, w: 196, h: 42, mag: 10, draw: drawGallerySign, sfx: 'twinkle' },
-      { id: 'duck1', name: { zh: '小鴨靶', en: 'Duck target' }, x: 92, y: 300, w: 58, h: 46, mag: 13, draw: drawDuckA, habit: (t, l) => ({ dx: Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' },
+      { id: 'duck1', name: { zh: '小鴨靶', en: 'Duck target' }, x: 92, y: 322, w: 58, h: 46, mag: 13, draw: drawDuckA, habit: (t, l) => ({ dx: Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' },
       { id: 'scorea', name: { zh: '藍隊記分板', en: 'Blue scoreboard' }, x: 70, y: 192, w: 84, h: 48, mag: 8, link: { to: 'scoreb', k: 0.5 }, draw: drawScoreA, sfx: 'beep' },
       { id: 'plush', name: { zh: '熊熊獎品', en: 'Prize bear' }, x: 180, y: 206, w: 62, h: 80, near: true, draw: drawPlush, sfx: 'boing' },
       { id: 'scoreb', name: { zh: '粉紅記分板', en: 'Pink scoreboard' }, x: 290, y: 192, w: 84, h: 48, mag: 6, draw: drawScoreB, sfx: 'beep' },
-      { id: 'duck2', name: { zh: '小鴨靶２', en: 'Duck target 2' }, x: 268, y: 300, w: 58, h: 46, near: true, draw: drawDuckA, habit: (t, l) => ({ dx: -Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' }
+      { id: 'duck2', name: { zh: '小鴨靶２', en: 'Duck target 2' }, x: 268, y: 322, w: 58, h: 46, near: true, draw: drawDuckA, habit: (t, l) => ({ dx: -Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' }
       ] },
     { key: 'park-balloons', title: { zh: "熱氣球節", en: "Balloon Festival" }, place: { zh: "台灣 台東 鹿野高台", en: "Luye Highland, Taitung, Taiwan" },
       intro: { zh: "天黑後熱氣球點火發光。大招牌會帶動下面的日期牌。", en: "After dark the balloons light up and glow. The big sign turns the date tag below it." },
@@ -1057,7 +1057,7 @@ defineChapter({
       intro: { zh: "泳池招牌會帶動下面的水深牌。滑水道嘛…要不要扶正，你自己想想。", en: "The pool sign turns the depth tag. As for the water slide… think before you straighten it." },
       bg: bgWater, animated: true,
       objects: [
-      { id: 'sign', name: { zh: '泳池招牌', en: 'Pool sign' }, x: 270, y: 60, w: 124, h: 42, mag: 9, link: { to: 'depth', k: 0.5 }, draw: drawPoolSign, sfx: 'twinkle' },
+      { id: 'sign', name: { zh: '泳池招牌', en: 'Pool sign' }, x: 270, y: 60, w: 108, h: 42, mag: 9, link: { to: 'depth', k: 0.5 }, draw: drawPoolSign, sfx: 'twinkle' },
       { id: 'depth', name: { zh: '水深牌', en: 'Depth tag' }, x: 270, y: 104, w: 90, h: 34, mag: 6, draw: drawDepthTag, sfx: 'bell' },
       { id: 'umbrella', name: { zh: '海灘傘', en: 'Beach umbrella' }, x: 306, y: 238, w: 84, h: 120, mag: 12, draw: drawUmbrella, sfx: 'boing' },
       { id: 'dolphin', name: { zh: '海豚浮板', en: 'Dolphin float' }, x: 92, y: 372, w: 96, h: 60, mag: 10, draw: drawDolphin, habit: (t, l) => ({ dy: Math.sin(t * 1.6) * 3 * l }), call: 'park_dolphin' },
@@ -1073,10 +1073,10 @@ defineChapter({
       { id: 'banner', name: { zh: '遊行布條', en: 'Parade banner' }, x: 180, y: 62, w: 212, h: 48, mag: 8, link: { to: 'time', k: 0.5 }, draw: drawParadeBanner, sfx: 'twinkle' },
       { id: 'time', name: { zh: '時間牌', en: 'Time tag' }, x: 180, y: 106, w: 106, h: 34, near: true, draw: drawTimeTag, sfx: 'bell' },
       { id: 'jazz', name: { zh: '爵士招牌', en: 'Jazz sign' }, x: 70, y: 166, w: 92, h: 46, mag: 11, draw: drawJazz, sfx: 'park_neon' },
-      { id: 'dragon', name: { zh: '龍頭花車', en: 'Dragon head float' }, x: 262, y: 248, w: 120, h: 84, mag: 13, link: { to: 'tail', k: 0.6 }, draw: drawDragonHead, habit: (t, l) => ({ dy: Math.sin(t * 2.4) * 2 * l }), call: 'park_dragon' },
-      { id: 'tail', name: { zh: '龍尾花車', en: 'Dragon tail float' }, x: 112, y: 256, w: 110, h: 70, mag: 6, draw: drawDragonTail, sfx: 'park_ride' },
-      { id: 'whale', name: { zh: '鯨魚花車', en: 'Whale float' }, x: 96, y: 372, w: 120, h: 76, mag: 9, draw: drawWhaleFloat, habit: (t, l) => ({ dy: Math.sin(t * 1.5) * 3 * l }), call: 'whale' },
-      { id: 'cake', name: { zh: '蛋糕花車', en: 'Cake float' }, x: 262, y: 368, w: 110, h: 88, near: true, draw: drawCake, sfx: 'park_ride' }
+      { id: 'dragon', name: { zh: '龍頭花車', en: 'Dragon head float' }, x: 262, y: 258, w: 120, h: 84, mag: 13, link: { to: 'tail', k: 0.6 }, draw: drawDragonHead, habit: (t, l) => ({ dy: Math.sin(t * 2.4) * 2 * l }), call: 'park_dragon' },
+      { id: 'tail', name: { zh: '龍尾花車', en: 'Dragon tail float' }, x: 112, y: 266, w: 110, h: 70, mag: 6, draw: drawDragonTail, sfx: 'park_ride' },
+      { id: 'whale', name: { zh: '鯨魚花車', en: 'Whale float' }, x: 96, y: 380, w: 120, h: 76, mag: 9, draw: drawWhaleFloat, habit: (t, l) => ({ dy: Math.sin(t * 1.5) * 3 * l }), call: 'whale' },
+      { id: 'cake', name: { zh: '蛋糕花車', en: 'Cake float' }, x: 262, y: 376, w: 110, h: 88, near: true, draw: drawCake, sfx: 'park_ride' }
       ] },
     { key: 'park-finale', title: { zh: "煙火終章", en: "Fireworks Finale" }, place: { zh: "台灣 台北 兒童新樂園", en: "Children's Amusement Park, Taipei" },
       intro: { zh: "最後一晚！布條帶動謝謝光臨牌，爆米花車拉著星星氣球。木馬回來謝幕了。", en: "Last night! The banner turns the thank-you tag, and the popcorn cart tugs its star balloon. The horse is back for a bow." },
@@ -1084,7 +1084,7 @@ defineChapter({
       objects: [
       { id: 'banner', name: { zh: '煙火布條', en: 'Finale banner' }, x: 180, y: 148, w: 204, h: 48, mag: 7, link: { to: 'thanks', k: 0.5 }, draw: drawFinaleBanner, sfx: 'twinkle' },
       { id: 'thanks', name: { zh: '謝謝光臨牌', en: 'Thank-you tag' }, x: 180, y: 192, w: 112, h: 34, near: true, draw: drawThanks, sfx: 'bell' },
-      { id: 'horse', name: { zh: '旋轉木馬', en: 'Carousel horse' }, x: 52, y: 300, w: 72, h: 118, mag: 11, draw: drawFinaleHorse, habit: (t, l) => ({ dy: Math.sin(t * 2) * 6 * l }), call: 'carousel' },
+      { id: 'horse', name: { zh: '旋轉木馬', en: 'Carousel horse' }, x: 58, y: 300, w: 78, h: 118, mag: 11, draw: drawFinaleHorse, habit: (t, l) => ({ dy: Math.sin(t * 2) * 6 * l }), call: 'carousel' },
       { id: 'bunny', name: { zh: '兔子吉祥物', en: 'Bunny mascot' }, x: 304, y: 300, w: 70, h: 110, mag: 13, draw: drawBunny, habit: (t, l) => ({ dy: -Math.abs(Math.sin(t * 2.6)) * 7 * l }), call: 'park_bunny' },
       { id: 'cart', name: { zh: '爆米花車', en: 'Popcorn cart' }, x: 140, y: 340, w: 84, h: 100, mag: 9, link: { to: 'balloon', k: 0.4 }, draw: drawCart, sfx: 'jingle' },
       { id: 'balloon', name: { zh: '星星氣球', en: 'Star balloon' }, x: 202, y: 254, w: 44, h: 72, near: true, draw: drawStarBalloon, sfx: 'pop' },

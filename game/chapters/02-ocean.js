@@ -25,7 +25,13 @@ function bgReef(c) {
   c.lineCap = 'butt'; c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 1;
   for (let i = 0; i < 30; i++) { c.beginPath(); c.arc(R() * W, R() * 420, 1 + R() * 3, 0, Math.PI * 2); c.stroke(); }
 }
-function ovReef(c) { c.globalAlpha = 0.05; c.drawImage(GRAIN, 0, 0, W, H); c.globalAlpha = 1; }
+// Paper grain over everything. Baked once per canvas size: one 1:1 blit per frame instead of a scaled alpha blend.
+let PAPER = null;
+function ovReef(c) {
+  const cw = c.canvas.width, ch = c.canvas.height;
+  if (!PAPER || PAPER.width !== cw || PAPER.height !== ch) { PAPER = document.createElement('canvas'); PAPER.width = cw; PAPER.height = ch; const p = PAPER.getContext('2d'); p.globalAlpha = 0.05; p.drawImage(GRAIN, 0, 0, cw, ch); }
+  c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(PAPER, 0, 0);
+}
 function drawClown(c, a) {
   const tail = Math.sin(a.t * 12) * 0.35 * (0.3 + a.live);
   c.save(); c.translate(-26, 0); c.rotate(tail);
@@ -123,7 +129,16 @@ function blooms(c, R, n, cols, r0, r1, a, x0 = 0, y0 = 0, w = W, h = H) {
     c.fillStyle = g; c.fillRect(x - r, y - r, 2 * r, 2 * r);
   }
 }
-function rays(c, R, n, col, y0, y1) { for (let i = 0; i < n; i++) { const x = -20 + i * (W + 40) / n + R() * 20, w = 14 + R() * 22; poly(c, [x, y0, x + w, y0, x + w + 70, y1, x + 30, y1], col); } }
+function rays(c, R, n, col, y0, y1) {
+  const g = c.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, col); g.addColorStop(0.6, col); g.addColorStop(1, col.replace(/[\d.]+\)$/, '0)'));
+  for (let i = 0; i < n; i++) { const x = -20 + i * (W + 40) / n + R() * 20, w = 14 + R() * 22; poly(c, [x, y0, x + w, y0, x + w + 70, y1, x + 30, y1], g); }
+}
+// Text that always fits its sign, whatever font has loaded.
+function fitTxt(c, s, x, y, font, col, maxW) {
+  c.font = font; const w = c.measureText(s).width;
+  if (w <= maxW) { txt(c, s, x, y, font, col); return; }
+  c.save(); c.translate(x, y); c.scale(maxW / w, 1); txt(c, s, 0, 0, font, col); c.restore();
+}
 function fizz(c, R, n, y0, y1, a = 0.4) { c.lineWidth = 1; c.strokeStyle = `rgba(255,255,255,${a})`; for (let i = 0; i < n; i++) { c.beginPath(); c.arc(R() * W, y0 + R() * (y1 - y0), 1 + R() * 3, 0, TAU); c.stroke(); } }
 // Granulation: tiny pigment specks that make a wash look painted on paper.
 function specks(c, R, n, col, y0 = 0, y1 = H) { c.fillStyle = col; for (let i = 0; i < n; i++) c.fillRect(R() * W, y0 + R() * (y1 - y0), 0.8 + R(), 0.8 + R()); }
@@ -203,6 +218,7 @@ function drawOtter(c, a) {
   waterline(c, -60, 60, 9, a.t);
 }
 function drawDiveFlag(c, a) {
+  c.translate(0, 7);
   const w = Math.sin(a.t * 3) * 2 * a.live;
   c.strokeStyle = '#5b4a3a'; c.lineWidth = 3; c.beginPath(); c.moveTo(-12, 16); c.lineTo(-12, -42); c.stroke();
   circ(c, -12, -43, 2.5, '#e9c34a');
@@ -266,6 +282,7 @@ function bgWreck(c) {
   specks(c, R, 500, 'rgba(20,50,60,.08)');
 }
 function drawShipBell(c, a) {
+  c.translate(0, 4);
   wash(c, () => rr(c, -32, -44, 64, 10, 3), '#7a5634', 'rgba(50,30,10,.6)');
   c.strokeStyle = 'rgba(60,40,20,.5)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-28, -39); c.lineTo(28, -39); c.stroke();
   circ(c, -24, -39, 1.8, '#3a3a3a'); circ(c, 24, -39, 1.8, '#3a3a3a');
@@ -294,7 +311,7 @@ function drawPuffer(c, a) {
   c.save(); c.beginPath(); c.arc(0, 0, 24, 0, TAU); c.clip(); ell(c, 0, 16, 26, 12, '#fbf0cf'); c.restore();
   [[-10, -12], [-16, -2], [-4, -18], [2, -10], [-12, 8], [-20, -10]].forEach(([x, y]) => circ(c, x, y, 2, 'rgba(120,80,30,.55)'));
   c.restore();
-  c.save(); c.translate(-2, 4); c.rotate(Math.sin(a.t * 8) * 0.4 * L); wash(c, () => { c.beginPath(); c.ellipse(-5, 0, 6, 3.5, 0, 0, TAU); }, '#e8c467', 'rgba(120,90,20,.45)'); c.restore();
+  c.save(); c.translate(-4, 6); c.rotate(Math.sin(a.t * 8) * 0.4 * L); c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 8, Math.PI * 0.75, Math.PI * 1.15); c.closePath(); c.fillStyle = 'rgba(232,196,103,.9)'; c.fill(); c.restore();
   circ(c, 10, -7, 7, '#fff'); eye(c, 12, -7, 3.6);
   blush(c, 12, 5, 4);
   c.strokeStyle = '#8a5a20'; c.lineWidth = 1.6; c.beginPath(); c.arc(25, 3, 3, 0, TAU); c.stroke();
@@ -393,7 +410,7 @@ function drawDolphin(c, a, s = 1) {
 }
 function drawHump(c, a, s, col, belly) {
   const L = 0.3 + a.live, fl = Math.sin(a.t * 1.6) * 0.25 * L;
-  c.scale(s, s);
+  c.scale(s, s); c.translate(0, -8);
   c.save(); c.translate(-92, -2); c.rotate(fl);
   wash(c, () => { c.beginPath(); c.moveTo(4, 0); c.quadraticCurveTo(-8, -8, -20, -24); c.quadraticCurveTo(-12, -6, -6, 0); c.quadraticCurveTo(-12, 6, -20, 24); c.quadraticCurveTo(-8, 8, 4, 0); c.closePath(); }, col, 'rgba(20,35,60,.55)'); c.restore();
   wash(c, () => { c.beginPath(); c.moveTo(-36, -22); c.quadraticCurveTo(-30, -30, -24, -26); c.lineTo(-20, -24); c.closePath(); }, col, 'rgba(20,35,60,.5)');
@@ -454,7 +471,7 @@ function bgJelly(c) {
 }
 function drawGoldJelly(c, a, s = 1) {
   const L = 0.3 + a.live, p = Math.sin(a.t * 2.2) * L;
-  c.scale(s, s);
+  c.scale(s, s); c.translate(0, -4);
   for (let i = 0; i < 6; i++) { const x = -18 + i * 7.2 + Math.sin(a.t * 2 + i) * 2 * L; ell(c, x, 10 + (i % 2) * 5, 6.5, 11, 'rgba(236,170,70,.8)'); }
   for (let i = 0; i < 8; i++) { const x = -24 + i * 6.8, sw = Math.sin(a.t * 1.8 + i * 0.8) * 3 * L; c.strokeStyle = 'rgba(240,190,110,.75)'; c.lineWidth = 3; c.beginPath(); c.moveTo(x * 0.8, 16); c.quadraticCurveTo(x + sw, 30, x * 1.05 + sw, 40); c.stroke(); circ(c, x * 1.05 + sw, 42, 3.4, 'rgba(250,220,160,.9)'); }
   const w = 40 * (1 + 0.05 * p), h = 50 * (1 - 0.04 * p);
@@ -468,6 +485,7 @@ function drawGoldJelly(c, a, s = 1) {
 }
 function drawLittleJelly(c, a) { drawGoldJelly(c, a, 0.68); }
 function drawMoonJelly(c, a) {
+  c.translate(0, -7);
   const L = 0.3 + a.live, p = Math.sin(a.t * 1.8) * L;
   c.strokeStyle = 'rgba(225,235,255,.6)'; c.lineWidth = 0.9;
   for (let i = 0; i < 15; i++) { const x = -40 + i * 5.7, sw = Math.sin(a.t * 2 + i * 0.6) * 3 * L; c.beginPath(); c.moveTo(x, 4); c.quadraticCurveTo(x + sw, 16, x - sw, 24 + (i % 3) * 4); c.stroke(); }
@@ -501,7 +519,7 @@ function drawLakeSign(c, a) {
   circ(c, -50, -28, 1.6, '#4a3520'); circ(c, 50, -28, 1.6, '#4a3520');
   wash(c, () => { c.beginPath(); c.ellipse(-38, -19, 9, 6, 0, 0, TAU); }, '#7fd0e6', 'rgba(30,70,90,.6)');
   c.strokeStyle = '#2b2b2b'; c.lineWidth = 2; c.beginPath(); c.moveTo(-30, -19); c.lineTo(-27, -19); c.lineTo(-27, -31); c.stroke();
-  txt(c, T('只能浮潛', 'Snorkel only'), 8, -19, T('900 16px "Noto Sans TC", sans-serif', '600 20px Caveat, "Noto Sans TC", cursive'), '#3d2a17');
+  fitTxt(c, T('只能浮潛', 'Snorkel only'), 11, -19, T('900 16px "Noto Sans TC", sans-serif', '600 20px Caveat, "Noto Sans TC", cursive'), '#3d2a17', 76);
   waterline(c, -60, 60, 24, a.t, 'rgba(240,240,200,.5)');
 }
 
@@ -608,7 +626,7 @@ function bgDeep(c) {
 function glowDot(c, x, y, r, col, a) { c.globalAlpha = 0.18 * a; circ(c, x, y, r * 2.6, col); c.globalAlpha = 0.35 * a; circ(c, x, y, r * 1.6, col); c.globalAlpha = 1; circ(c, x, y, r, col); }
 function drawSub(c, a) {
   const L = 0.3 + a.live;
-  poly(c, [56, -6, 80, -22, 80, 14, 56, 2], 'rgba(255,240,170,.16)');
+  poly(c, [54, -8, 80, -24, 80, 16, 54, 2], 'rgba(255,240,170,.13)'); poly(c, [54, -6, 80, -14, 80, 6, 54, 0], 'rgba(255,245,190,.2)');
   c.strokeStyle = '#6a6f78'; c.lineWidth = 3; c.lineCap = 'round';
   c.beginPath(); c.moveTo(18, 28); c.lineTo(34, 38); c.lineTo(48, 34); c.stroke();
   c.lineWidth = 2; c.beginPath(); c.moveTo(48, 34); c.lineTo(54, 30); c.moveTo(48, 34); c.lineTo(55, 38); c.stroke(); c.lineCap = 'butt';
@@ -723,8 +741,8 @@ function drawNestSign(c, a) {
   for (const x of [-38, 38]) wash(c, () => rr(c, x - 4, -4, 8, 44, 2), '#7a5636', 'rgba(50,30,10,.6)');
   wash(c, () => rr(c, -55, -38, 110, 46, 6), '#d8b884', 'rgba(110,70,30,.7)');
   c.strokeStyle = 'rgba(110,70,30,.25)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-50, -15); c.lineTo(50, -15); c.stroke();
-  txt(c, T('海龜產卵中', 'Turtles nesting'), 0, -26, T('900 15px "Noto Sans TC", sans-serif', '600 18px Caveat, "Noto Sans TC", cursive'), '#3d2a17');
-  txt(c, T('請關燈・保持安靜', 'Lights off, please'), 0, -4, T('700 11px "Noto Sans TC", sans-serif', '600 15px Caveat, "Noto Sans TC", cursive'), '#8a3a2a');
+  fitTxt(c, T('海龜產卵中', 'Turtles nesting'), 0, -26, T('900 15px "Noto Sans TC", sans-serif', '600 19px Caveat, "Noto Sans TC", cursive'), '#3d2a17', 98);
+  fitTxt(c, T('請關燈・保持安靜', 'Lights off, please'), 0, -4, T('700 11px "Noto Sans TC", sans-serif', '600 16px Caveat, "Noto Sans TC", cursive'), '#8a3a2a', 98);
   for (const x of [-38, 38]) ell(c, x, 40, 8, 2.5, 'rgba(70,60,40,.4)');
 }
 function drawPost(c, a, side) {
@@ -850,7 +868,7 @@ function drawMarketSign(c, a) {
   c.strokeStyle = '#3b3b3b'; c.lineWidth = 1.2; for (const x of [-50, 50]) { c.beginPath(); c.moveTo(x, -27); c.lineTo(x, -14); c.stroke(); }
   wash(c, () => rr(c, -70, -14, 140, 36, 5), '#f4e7c8', 'rgba(110,70,30,.7)');
   c.strokeStyle = 'rgba(192,57,43,.6)'; c.lineWidth = 1.5; c.strokeRect(-65, -9, 130, 26);
-  txt(c, T('鮮魚直送', 'Fresh off the boat'), 0, 4, T('900 18px "Noto Serif TC", serif', '600 21px Caveat, "Noto Sans TC", cursive'), '#c0392b');
+  fitTxt(c, T('鮮魚直送', 'Fresh off the boat'), 0, 4, T('900 18px "Noto Serif TC", serif', '600 21px Caveat, "Noto Sans TC", cursive'), '#c0392b', 100);
   for (const s of [-1, 1]) { c.save(); c.translate(s * 58, 4); c.scale(s, 1); ell(c, 0, 0, 5, 2.6, '#4f7fa0'); poly(c, [-5, 0, -9, -3, -9, 3], '#4f7fa0'); c.restore(); }
 }
 function drawScale(c, a) {
@@ -924,7 +942,7 @@ function drawCitySign(c, a) {
   wash(c, () => rr(c, -78, -12, 156, 36, 10), '#86d3c8', 'rgba(30,110,115,.7)');
   ell(c, -30, -6, 40, 3, 'rgba(255,255,255,.3)');
   for (const s of [-1, 1]) { c.save(); c.translate(s * 66, 6); wash(c, () => { c.beginPath(); c.moveTo(0, 7); c.arc(0, 7, 10, -Math.PI * 0.85, -Math.PI * 0.15); c.closePath(); }, '#f6c7b6', 'rgba(150,80,60,.6)'); c.strokeStyle = 'rgba(150,80,60,.5)'; c.lineWidth = 0.8; for (const d of [-5, 0, 5]) { c.beginPath(); c.moveTo(0, 7); c.lineTo(d, -2); c.stroke(); } c.restore(); }
-  txt(c, T('歡迎光臨 海底城', 'Welcome to Sea City'), 0, 6, T('900 15px "Noto Serif TC", serif', '600 20px Caveat, "Noto Sans TC", cursive'), '#1f4f5a');
+  fitTxt(c, T('歡迎光臨 海底城', 'Welcome to Sea City'), 0, 6, T('900 15px "Noto Serif TC", serif', '600 20px Caveat, "Noto Sans TC", cursive'), '#1f4f5a', 104);
 }
 function drawCityDolphin(c, a) { drawDolphin(c, a, 0.82); }
 function drawClockTower(c, a) {
@@ -1015,7 +1033,7 @@ defineChapter({
       bg: bgKelp, overlay: ovReef, animated: true,
       objects: [
       { id: 'otter', name: { zh: '海獺', en: 'Sea otter' }, x: 110, y: 58, w: 124, h: 50, mag: 9, draw: drawOtter, habit: (t, l) => ({ dx: Math.sin(t * 0.6) * 5 * l, dy: Math.sin(t * 1.6) * 1.5 * l }), call: 'ocean_otter' },
-      { id: 'flag', name: { zh: '潛水旗浮標', en: 'Dive flag buoy' }, x: 285, y: 52, w: 60, h: 88, mag: 13, draw: drawDiveFlag, sfx: 'ocean_buoy' },
+      { id: 'flag', name: { zh: '潛水旗浮標', en: 'Dive flag buoy' }, x: 285, y: 45, w: 60, h: 78, mag: 13, draw: drawDiveFlag, sfx: 'ocean_buoy' },
       { id: 'seal', name: { zh: '港海豹', en: 'Harbor seal' }, x: 220, y: 228, w: 144, h: 64, mag: 6, draw: drawSeal, habit: (t, l) => ({ dx: Math.sin(t * 0.8) * 8 * l, dy: Math.sin(t * 1.5) * 3 * l }), call: 'ocean_seal' },
       { id: 'garibaldi', name: { zh: '橘雀鯛', en: 'Garibaldi' }, x: 105, y: 352, w: 76, h: 50, near: true, draw: drawGaribaldi, habit: (t, l) => ({ dx: Math.sin(t * 1.2) * 7 * l, dy: Math.sin(t * 2.3) * 2 * l }), call: 'bubble' }
       ] },
@@ -1023,7 +1041,7 @@ defineChapter({
       intro: { zh: "老帆船沉睡在白沙上。寶箱、船錨和船鐘都歪了，河豚一緊張就鼓起來。", en: "An old ship sleeps on white sand. The chest, anchor and bell are all askew, and Pufferfish puffs up when nervous." },
       bg: bgWreck, overlay: ovReef, animated: true,
       objects: [
-      { id: 'bell', name: { zh: '船鐘', en: "Ship's bell" }, x: 105, y: 170, w: 70, h: 90, mag: 10, draw: drawShipBell, sfx: 'bell' },
+      { id: 'bell', name: { zh: '船鐘', en: "Ship's bell" }, x: 105, y: 166, w: 70, h: 82, mag: 10, draw: drawShipBell, sfx: 'bell' },
       { id: 'puffer', name: { zh: '河豚', en: 'Pufferfish' }, x: 262, y: 215, w: 78, h: 72, mag: 14, draw: drawPuffer, habit: (t, l) => ({ dx: Math.sin(t * 0.9) * 6 * l, dy: Math.sin(t * 1.7) * 4 * l }), call: 'ocean_puffer' },
       { id: 'anchor', name: { zh: '船錨', en: 'Anchor' }, x: 72, y: 378, w: 92, h: 124, mag: 6, draw: drawAnchor, sfx: 'clunk' },
       { id: 'chest', name: { zh: '寶箱', en: 'Treasure chest' }, x: 205, y: 406, w: 112, h: 78, near: true, draw: drawChest, sfx: 'jingle' },
@@ -1035,8 +1053,8 @@ defineChapter({
       objects: [
       { id: 'boat', name: { zh: '賞鯨船', en: 'Whale-watch boat' }, x: 95, y: 46, w: 140, h: 64, mag: 8, draw: drawBoat, sfx: 'ocean_horn' },
       { id: 'dolphin', name: { zh: '飛旋海豚', en: 'Spinner dolphin' }, x: 268, y: 140, w: 120, h: 56, mag: 11, draw: drawDolphin, habit: (t, l) => ({ dx: Math.sin(t * 1.1) * 7 * l, dy: Math.sin(t * 2.2) * 3 * l }), call: 'ocean_dolphin' },
-      { id: 'mom', name: { zh: '座頭鯨媽媽', en: 'Humpback mom' }, x: 168, y: 262, w: 230, h: 100, mag: 6, draw: drawMomWhale, habit: (t, l) => ({ dy: Math.sin(t * 0.9) * 3 * l }), link: { to: 'calf', k: 0.6 }, call: 'whale' },
-      { id: 'calf', name: { zh: '鯨寶寶', en: 'Whale calf' }, x: 238, y: 374, w: 130, h: 60, mag: 13, draw: drawCalf, habit: (t, l) => ({ dx: Math.sin(t * 1.3) * 5 * l, dy: Math.sin(t * 1.9) * 3 * l }), call: 'ocean_calf' },
+      { id: 'mom', name: { zh: '座頭鯨媽媽', en: 'Humpback mom' }, x: 168, y: 262, w: 230, h: 86, mag: 6, draw: drawMomWhale, habit: (t, l) => ({ dy: Math.sin(t * 0.9) * 3 * l }), link: { to: 'calf', k: 0.6 }, call: 'whale' },
+      { id: 'calf', name: { zh: '鯨寶寶', en: 'Whale calf' }, x: 238, y: 374, w: 130, h: 52, mag: 13, draw: drawCalf, habit: (t, l) => ({ dx: Math.sin(t * 1.3) * 5 * l, dy: Math.sin(t * 1.9) * 3 * l }), call: 'ocean_calf' },
       { id: 'mic', name: { zh: '水下麥克風', en: 'Hydrophone' }, x: 70, y: 398, w: 76, h: 110, near: true, draw: drawHydrophone, sfx: 'beep' }
       ] },
     { key: 'ocean-jelly', title: { zh: "水母燈海", en: "Jellyfish Lights" }, place: { zh: "帛琉 水母湖", en: "Jellyfish Lake, Palau" },
@@ -1044,9 +1062,9 @@ defineChapter({
       bg: bgJelly, overlay: ovReef, animated: true,
       objects: [
       { id: 'sign', name: { zh: '浮潛告示', en: 'Snorkel sign' }, x: 262, y: 50, w: 120, h: 72, mag: 9, draw: drawLakeSign, sfx: 'wood' },
-      { id: 'gold', name: { zh: '黃金水母', en: 'Golden jelly' }, x: 100, y: 185, w: 96, h: 120, mag: 12, draw: drawGoldJelly, habit: (t, l) => ({ dy: Math.sin(t * 1.2) * 6 * l }), link: { to: 'little', k: 0.6 }, call: 'ocean_jelly' },
-      { id: 'little', name: { zh: '小水母', en: 'Little jelly' }, x: 215, y: 250, w: 66, h: 84, mag: 7, draw: drawLittleJelly, habit: (t, l) => ({ dy: Math.sin(t * 1.5 + 1) * 5 * l }), call: 'ocean_jelly' },
-      { id: 'moon', name: { zh: '海月水母', en: 'Moon jelly' }, x: 282, y: 372, w: 92, h: 96, mag: 5, draw: drawMoonJelly, habit: (t, l) => ({ dx: Math.sin(t * 0.5) * 4 * l, dy: Math.sin(t) * 5 * l }), call: 'squish' },
+      { id: 'gold', name: { zh: '黃金水母', en: 'Golden jelly' }, x: 100, y: 185, w: 92, h: 92, mag: 12, draw: drawGoldJelly, habit: (t, l) => ({ dy: Math.sin(t * 1.2) * 6 * l }), link: { to: 'little', k: 0.6 }, call: 'ocean_jelly' },
+      { id: 'little', name: { zh: '小水母', en: 'Little jelly' }, x: 215, y: 250, w: 62, h: 64, mag: 7, draw: drawLittleJelly, habit: (t, l) => ({ dy: Math.sin(t * 1.5 + 1) * 5 * l }), call: 'ocean_jelly' },
+      { id: 'moon', name: { zh: '海月水母', en: 'Moon jelly' }, x: 282, y: 372, w: 92, h: 78, mag: 5, draw: drawMoonJelly, habit: (t, l) => ({ dx: Math.sin(t * 0.5) * 4 * l, dy: Math.sin(t) * 5 * l }), call: 'squish' },
       { id: 'cardinal', name: { zh: '天竺鯛', en: 'Cardinalfish' }, x: 100, y: 385, w: 74, h: 42, near: true, draw: drawCardinal, habit: (t, l) => ({ dx: Math.sin(t * 1.4) * 6 * l, dy: Math.sin(t * 2.6) * 2 * l }), call: 'bubble' }
       ] },
     { key: 'ocean-arctic', title: { zh: "極地冰海", en: "Polar Sea" }, place: { zh: "挪威 斯瓦巴群島", en: "Svalbard, Norway" },
@@ -1064,10 +1082,10 @@ defineChapter({
       intro: { zh: "陽光照不到的深海，生物自己會發光。潛水艇用遙控機器人來探險。", en: "No sunlight reaches this deep, so the creatures make their own. The sub explores with a robot on a cable." },
       bg: bgDeep, overlay: ovReef, animated: true,
       objects: [
-      { id: 'sub', name: { zh: '潛水艇', en: 'Submersible' }, x: 112, y: 100, w: 160, h: 96, mag: 9, draw: drawSub, link: { to: 'rov', k: 0.5 }, sfx: 'beep' },
+      { id: 'sub', name: { zh: '潛水艇', en: 'Submersible' }, x: 112, y: 100, w: 160, h: 84, mag: 9, draw: drawSub, link: { to: 'rov', k: 0.5 }, sfx: 'beep' },
       { id: 'rov', name: { zh: '小機器人', en: 'Robot sub' }, x: 288, y: 168, w: 90, h: 64, mag: 6, draw: drawROV, sfx: 'pop' },
       { id: 'lantern', name: { zh: '燈籠魚', en: 'Lanternfish' }, x: 245, y: 272, w: 90, h: 40, near: true, draw: drawLanternfish, habit: (t, l) => ({ dx: Math.sin(t * 1.3) * 7 * l, dy: Math.sin(t * 2.1) * 2 * l }), call: 'bubble' },
-      { id: 'angler', name: { zh: '鮟鱇魚', en: 'Anglerfish' }, x: 95, y: 292, w: 120, h: 100, mag: 12, draw: drawAngler, habit: (t, l) => ({ dy: Math.sin(t * 1.1) * 4 * l }), call: 'ocean_angler' },
+      { id: 'angler', name: { zh: '鮟鱇魚', en: 'Anglerfish' }, x: 95, y: 292, w: 120, h: 90, mag: 12, draw: drawAngler, habit: (t, l) => ({ dy: Math.sin(t * 1.1) * 4 * l }), call: 'ocean_angler' },
       { id: 'dumbo', name: { zh: '小飛象章魚', en: 'Dumbo octopus' }, x: 268, y: 378, w: 96, h: 96, mag: 8, draw: drawDumbo, habit: (t, l) => ({ dy: Math.sin(t * 1.4) * 6 * l }), call: 'squish' },
       { id: 'comb', name: { zh: '櫛水母', en: 'Comb jelly' }, x: 110, y: 420, w: 64, h: 84, near: true, draw: drawCombJelly, habit: (t, l) => ({ dx: Math.sin(t * 0.7) * 4 * l, dy: Math.sin(t * 1.2) * 4 * l }), call: 'ocean_jelly' }
       ] },

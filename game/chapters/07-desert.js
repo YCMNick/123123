@@ -215,7 +215,7 @@ function fennec(c, a) {
   const ear = (sx) => { c.save(); c.translate(sx * 10, -14); c.rotate(sx * (0.36 - tw * 0.08)); poly(c, [-9, 2, 0, -34, 9, 2], fur); poly(c, [-5, 0, 0, -26, 5, 0], '#f0a39a'); c.restore(); };
   ear(-1); ear(1);
   ell(c, 0, 18, 17, 18, fur); ell(c, 0, 22, 10, 13, cream);
-  c.save(); c.translate(4, 34); c.rotate(wag * 0.08); ell(c, 10, 0, 18, 6, shade); ell(c, 25, -1, 5, 4.4, '#3a2a20'); c.restore();
+  c.save(); c.translate(4, 34); c.rotate(wag * 0.08); ell(c, 24, -1, 6, 5, '#3a2a20'); ell(c, 9, 0, 17, 6.5, shade); c.restore();
   ell(c, -6, 34, 4.5, 3, cream); ell(c, 4, 34, 4.5, 3, cream);
   ell(c, 0, -7, 15, 12, fur); ell(c, 0, -1, 8, 6, cream);
   circ(c, 0, -3.5, 2.3, '#2a1d17');
@@ -352,7 +352,7 @@ function drawDonkey(c, a) {
 /* ===== 7-4 Dune Sunset (Erg Chebbi, Morocco) ===== */
 function bgMerzouga(c) {
   posterOpen(c);
-  skyBands(c, ['#f8dca6', '#f6c488', '#f2a874', '#ea8c66', '#dc6f5d', '#c4575a'], 10, 42);
+  skyBands(c, ['#f8dca6', '#f6c488', '#f2a874', '#ea8c66', '#dc6f5d', '#c4575a'], 10, 50);
   stripeSun(c, 190, 222, 78, '#fbe6b4', '#f2a874', 5);
   c.strokeStyle = '#7a3550'; c.lineWidth = 1.6;
   [[250, 110], [266, 102], [282, 114], [300, 98]].forEach(([x, y]) => { c.beginPath(); c.moveTo(x - 6, y - 3); c.quadraticCurveTo(x - 3, y - 5, x, y); c.quadraticCurveTo(x + 3, y - 5, x + 6, y - 3); c.stroke(); });
@@ -505,7 +505,7 @@ function bgPetra(c) {
   c.fillStyle = lt; c.fillRect(fx - 30, 128, 60, 6); poly(c, [fx - 30, 128, fx, 106, fx + 30, 128], lt); circ(c, fx, 101, 6, lt); c.fillRect(fx - 2, 90, 4, 10);
   // the Siq's walls, dark and curving
   c.fillStyle = '#6e2f35';
-  c.beginPath(); c.moveTo(0, 0); c.lineTo(84, 0); c.quadraticCurveTo(56, 120, 80, 220); c.quadraticCurveTo(96, 300, 70, 360); c.lineTo(0, 380); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(0, 0); c.lineTo(172, 0); c.quadraticCurveTo(70, 30, 66, 130); c.quadraticCurveTo(64, 190, 80, 220); c.quadraticCurveTo(96, 300, 70, 360); c.lineTo(0, 380); c.closePath(); c.fill();
   c.beginPath(); c.moveTo(W, 0); c.lineTo(282, 0); c.quadraticCurveTo(306, 110, 280, 200); c.quadraticCurveTo(262, 290, 296, 350); c.lineTo(W, 370); c.closePath(); c.fill();
   c.fillStyle = '#8a3c40';
   c.beginPath(); c.moveTo(0, 90); c.quadraticCurveTo(40, 160, 30, 250); c.quadraticCurveTo(26, 320, 0, 360); c.closePath(); c.fill();
@@ -662,7 +662,7 @@ function drawMiragePalm(c, a) {
   shimmer(c, a, 50, -40, 40);
 }
 function drawMirageDome(c, a) {
-  c.save(); c.globalAlpha = 0.85;
+  c.save(); c.scale(1.2, 1.2); c.globalAlpha = 0.85;
   c.fillStyle = '#f9fbf6'; c.fillRect(-22, -8, 44, 14); c.beginPath(); c.arc(0, -8, 16, Math.PI, 0); c.fill();
   c.fillStyle = '#9fcfc8'; c.fillRect(8, -8, 14, 14); c.beginPath(); c.moveTo(0, -24); c.arc(0, -8, 16, -Math.PI / 2, 0); c.lineTo(0, -8); c.closePath(); c.fill();
   c.fillStyle = '#3f8a82'; c.fillRect(-4, -2, 8, 8); c.fillRect(-1, -30, 2, 7); circ(c, 0, -31, 2, '#7fbfb6');
@@ -670,7 +670,7 @@ function drawMirageDome(c, a) {
   c.globalAlpha = 0.35; c.save(); c.scale(1, -0.6); c.translate(0, -22);
   c.fillStyle = '#f9fbf6'; c.fillRect(-22, -8, 44, 14); c.beginPath(); c.arc(0, -8, 16, Math.PI, 0); c.fill();
   c.restore(); c.restore();
-  shimmer(c, a, 50, -26, 26);
+  shimmer(c, a, 60, -32, 30);
 }
 function drawDjeridCamel(c, a) {
   dromedary(c, a, { body: '#c08a58', far: '#8a5f3a', leg: '#a8754a', deco: (c) => {
@@ -999,8 +999,8 @@ defineChapter({
       intro: { zh: '鹽湖又平又亮，熱空氣常變出海市蜃樓。兩個幻影會一起晃。', en: 'The salt flat is flat and dazzling, and hot air conjures mirages. The two mirages wobble together.' },
       bg: bgDjerid, animated: true,
       objects: [
-      { id: 'palm', name: { zh: '幻影棕櫚', en: 'Mirage palm' }, x: 70, y: 214, w: 52, h: 86, mag: 10, draw: drawMiragePalm, sfx: 'shimmer', link: { to: 'dome', k: 0.6 } },
-      { id: 'dome', name: { zh: '幻影圓頂', en: 'Mirage dome' }, x: 252, y: 226, w: 52, h: 56, mag: 6, draw: drawMirageDome, sfx: 'shimmer' },
+      { id: 'palm', name: { zh: '幻影棕櫚', en: 'Mirage palm' }, x: 70, y: 210, w: 56, h: 100, mag: 10, draw: drawMiragePalm, sfx: 'shimmer', link: { to: 'dome', k: 0.6 } },
+      { id: 'dome', name: { zh: '幻影圓頂', en: 'Mirage dome' }, x: 252, y: 222, w: 62, h: 74, mag: 6, draw: drawMirageDome, sfx: 'shimmer' },
       { id: 'camel', name: { zh: '駱駝', en: 'Camel' }, x: 82, y: 318, w: 126, h: 96, mag: 8, draw: drawDjeridCamel, habit: (t, l) => ({ dx: Math.sin(t * 1.5) * 3 * l }), call: 'camel' },
       { id: 'car', name: { zh: '老爺車', en: 'Vintage car' }, x: 278, y: 318, w: 120, h: 64, mag: 5, draw: drawVintageCar, sfx: 'beep' },
       { id: 'jerboa', name: { zh: '跳鼠', en: 'Jerboa' }, x: 180, y: 430, w: 72, h: 52, mag: 12, draw: drawJerboa, habit: (t, l) => ({ dy: -Math.abs(Math.sin(t * 3.2)) * 8 * l }), call: 'desert_jerboa' },

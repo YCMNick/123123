@@ -577,7 +577,7 @@ function bgSydney(c) {
     for (let k = 1; k < 5; k++) { c.beginPath(); c.moveTo(x + dir * w * k * 0.18, base); c.quadraticCurveTo(x + dir * w * (0.1 + k * 0.12), base - h * 0.7, x + dir * w * 0.82, base - h); c.stroke(); }
     c.fillStyle = 'rgba(90,55,40,.75)'; c.beginPath(); c.moveTo(x + dir * w * 0.25, base); c.quadraticCurveTo(x + dir * w * 0.55, base - h * 0.35, x + dir * w * 0.72, base); c.closePath(); c.fill();
   };
-  [[196, 296, 26, 26, 1], [214, 296, 30, 38, 1], [236, 296, 32, 52, 1], [262, 295, 36, 70, 1], [286, 295, 38, 62, 1], [312, 294, 34, 46, 1], [334, 294, 28, 30, 1], [356, 294, 22, 22, -1]].forEach(s => shell(...s));
+  [[246, 296, 22, 30, -1], [322, 294, 22, 28, -1], [196, 296, 26, 26, 1], [214, 296, 30, 38, 1], [236, 296, 32, 52, 1], [262, 295, 36, 70, 1], [286, 295, 38, 62, 1], [312, 294, 34, 46, 1], [334, 294, 28, 30, 1], [358, 294, 22, 22, -1]].forEach(s => shell(...s));
   c.fillStyle = 'rgba(255,190,150,.3)'; c.fillRect(184, 292, 176, 3);
   // promenade railing, kiosk and café
   c.fillStyle = '#3d4148'; c.fillRect(0, 343, W, 4); c.fillRect(0, 356, W, 2);
@@ -781,7 +781,6 @@ function bgTaj(c) {
   c.beginPath(); c.moveTo(156, 150); c.bezierCurveTo(144, 118, 162, 98, 180, 89); c.bezierCurveTo(198, 98, 216, 118, 204, 150); c.closePath(); c.fillStyle = lin(c, 150, 0, 210, 0, 0, '#fffaf2', 0.5, '#f3e3d6', 1, '#c8afa6'); c.fill();
   c.fillStyle = '#c9a25a'; c.fillRect(179.2, 68, 1.6, 22); circ(c, 180, 80, 2.2, '#d6b066'); circ(c, 180, 73, 1.6, '#d6b066');
   [140, 220].forEach(x => { c.fillStyle = marble(x - 9, x + 9); c.fillRect(x - 9, 152, 18, 16); c.beginPath(); c.arc(x, 152, 9, Math.PI, 0); c.fill(); c.fillRect(x - 0.6, 136, 1.2, 8); });
-  c.fillStyle = 'rgba(255,190,150,.18)'; c.fillRect(66, 60, 228, 190);
   // garden walls, lawns, paths, pool and cypresses
   [[0, 74], [286, 74]].forEach(([x, w]) => { c.fillStyle = lin(c, 0, 236, 0, 258, 0, '#c9806a', 1, '#9c5b49'); c.fillRect(x, 238, w, 18); c.fillStyle = 'rgba(255,220,190,.4)'; for (let k = x + 3; k < x + w; k += 9) c.fillRect(k, 232, 5, 6); });
   c.fillStyle = lin(c, 0, 256, 0, 480, 0, '#83a35a', 1, '#4d7434'); c.fillRect(0, 256, W, 224);
@@ -792,7 +791,11 @@ function bgTaj(c) {
   c.fillStyle = lin(c, 0, 256, 0, 480, 0, '#d9b4b6', 0.5, '#9fb2d0', 1, '#6f87b0'); c.fill();
   c.save(); c.clip(); c.globalAlpha = 0.35; c.translate(0, 512); c.scale(1, -1); tajSilhouette(c, 180, 256, 0.9, '#fff4ea'); c.restore();
   c.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < 40; i++) { const y = 262 + R() * 210; c.fillRect(px(y, -0.9) + R() * (px(y, 0.9) - px(y, -0.9)), y, 3 + y * 0.02, 0.8); }
-  c.fillStyle = lin(c, 0, 316, 0, 336, 0, '#fbf1e6', 1, '#cdbcb0'); c.fillRect(124, 318, 112, 14);
+  c.fillStyle = 'rgba(40,30,20,.25)'; c.fillRect(110, 334, 146, 6);
+  c.fillStyle = lin(c, 0, 312, 0, 322, 0, '#fffaf2', 1, '#efe4d8'); c.fillRect(104, 312, 152, 10);
+  c.fillStyle = lin(c, 0, 322, 0, 336, 0, '#e6d8cc', 1, '#bfaea2'); c.fillRect(104, 322, 152, 14);
+  c.fillStyle = 'rgba(150,120,110,.35)'; for (let x = 112; x < 252; x += 12) c.fillRect(x, 325, 6, 8);
+  c.fillStyle = 'rgba(255,255,255,.6)'; c.fillRect(104, 312, 152, 1.2);
   for (let k = 0; k < 9; k++) {
     const y = 262 + k * k * 2.8 + k * 6, s = 0.45 + (y - 256) / 120;
     [-1, 1].forEach(d => {
@@ -917,6 +920,7 @@ function bgMoai(c) {
   c.fillStyle = 'rgba(255,190,120,.12)'; c.fillRect(220, 180, 140, 140);
 }
 function drawPukao(c) {
+  c.translate(0, 2);
   softShadow(c, true); c.fillStyle = '#9c4a35'; c.fillRect(-22, -9, 44, 21); softShadow(c, false);
   c.fillStyle = lin(c, -22, 0, 22, 0, 0, '#c26a4c', 0.6, '#9c4632', 1, '#6e2f22'); c.fillRect(-22, -9, 44, 21);
   ell(c, 0, 12, 22, 4, '#6e2f22');
@@ -933,9 +937,10 @@ function drawHorse(c) {
   ell(c, -4, -2, 36, 17, coat);
   c.fillStyle = coat; c.beginPath(); c.moveTo(18, -14); c.quadraticCurveTo(38, -10, 46, 18); c.lineTo(38, 22); c.quadraticCurveTo(30, 4, 14, 6); c.closePath(); c.fill();
   c.fillStyle = '#2e2018'; c.beginPath(); c.moveTo(16, -16); c.quadraticCurveTo(38, -14, 46, 12); c.lineTo(44, 14); c.quadraticCurveTo(34, -8, 16, -11); c.closePath(); c.fill();
-  ell(c, 46, 28, 6.5, 12, '#7a4a2c', -0.35);
-  ell(c, 49, 37, 4.6, 4, '#4a3020', -0.35);
-  circ(c, 43, 22, 1.4, '#120c08'); poly(c, [38, 13, 41, 6, 43, 14], '#5e3a22');
+  c.fillStyle = lin(c, 38, 0, 54, 0, 0, '#8a5432', 1, '#5e3a22'); c.beginPath(); c.moveTo(37, 12); c.lineTo(47, 9); c.quadraticCurveTo(55, 24, 54, 38); c.quadraticCurveTo(50, 43, 45, 40); c.quadraticCurveTo(40, 26, 37, 12); c.closePath(); c.fill();
+  c.fillStyle = '#3e2618'; c.beginPath(); c.moveTo(45, 34); c.quadraticCurveTo(50, 32, 54, 35); c.quadraticCurveTo(54, 41, 48, 42); c.quadraticCurveTo(44, 40, 45, 34); c.closePath(); c.fill();
+  c.fillStyle = '#efe4d0'; c.beginPath(); c.moveTo(45, 14); c.lineTo(47, 14); c.lineTo(50, 30); c.lineTo(48, 30); c.closePath(); c.fill();
+  circ(c, 42, 20, 1.5, '#120c08'); poly(c, [38, 13, 40, 4, 44, 11], '#5e3a22');
   c.fillStyle = 'rgba(255,200,140,.35)'; c.beginPath(); c.ellipse(-4, -14, 30, 4, 0, Math.PI, 0); c.fill();
   c.restore();
 }
@@ -961,9 +966,17 @@ function angkorSilhouette(c, col, rimA) {
   c.fillStyle = col;
   c.fillRect(20, 240, 320, 24); c.fillRect(56, 228, 248, 14);
   for (let x = 24; x < 336; x += 8) c.fillRect(x, 236, 4, 4);
+  // lotus-bud towers built from stacked, notched tiers
   const tower = (x, base, w, h) => {
-    c.beginPath(); c.moveTo(x - w / 2, base); c.lineTo(x - w / 2, base - h * 0.4); c.bezierCurveTo(x - w / 2, base - h * 0.8, x - w * 0.15, base - h * 0.92, x, base - h); c.bezierCurveTo(x + w * 0.15, base - h * 0.92, x + w / 2, base - h * 0.8, x + w / 2, base - h * 0.4); c.lineTo(x + w / 2, base); c.closePath(); c.fillStyle = col; c.fill();
-    if (rimA) { c.fillStyle = `rgba(255,190,140,${rimA})`; for (let k = 1; k < 8; k++) { const y = base - h * (0.12 + k * 0.1), hw = w / 2 * Math.min(1, 1.25 - k * 0.12); c.fillRect(x - hw, y, hw * 2, 1); } }
+    c.fillStyle = col; c.fillRect(x - w / 2 - 2, base - h * 0.3, w + 4, h * 0.3);
+    const n = 7, th = h * 0.62 / n;
+    for (let k = 0; k < n; k++) {
+      const y = base - h * 0.3 - k * th, hw = w / 2 * Math.cos(k / n * 1.25);
+      c.fillRect(x - hw, y - th, hw * 2, th + 0.5);
+      c.beginPath(); c.moveTo(x - hw - 2, y); c.lineTo(x - hw, y - th * 0.9); c.lineTo(x - hw + 1, y); c.moveTo(x + hw + 2, y); c.lineTo(x + hw, y - th * 0.9); c.lineTo(x + hw - 1, y); c.fill();
+      if (rimA) { c.fillStyle = `rgba(255,190,140,${rimA})`; c.fillRect(x - hw, y - 1, hw * 2, 0.9); c.fillStyle = col; }
+    }
+    c.beginPath(); c.moveTo(x - w * 0.12, base - h * 0.92); c.lineTo(x, base - h); c.lineTo(x + w * 0.12, base - h * 0.92); c.fill();
   };
   tower(100, 242, 20, 56); tower(260, 242, 20, 56); tower(140, 230, 24, 76); tower(220, 230, 24, 76); tower(180, 230, 32, 106);
 }
@@ -982,7 +995,7 @@ function bgAngkor(c) {
   palm(26, 150, 1.2); palm(62, 196, 0.9); palm(334, 160, 1.15); palm(302, 200, 0.85);
   // the pond, its reflection and lotus pads
   c.fillStyle = lin(c, 0, 262, 0, 340, 0, '#f6b06a', 0.5, '#b07090', 1, '#4a3a68'); c.fillRect(0, 262, W, 78);
-  c.save(); c.globalAlpha = 0.45; c.translate(0, 526); c.scale(1, -1); angkorSilhouette(c, '#2a1d38', 0); c.restore();
+  c.save(); c.globalAlpha = 0.32; c.translate(0, 526); c.scale(1, -1); angkorSilhouette(c, '#2a1d38', 0); c.restore();
   c.save(); c.globalAlpha = 0.6; c.fillStyle = 'rgba(255,220,160,.55)'; for (let i = 0; i < 70; i++) c.fillRect(170 + (R() - 0.5) * 30, 266 + R() * 70, 4 + R() * 10, 1); c.restore();
   for (let i = 0; i < 160; i++) { c.fillStyle = R() < 0.5 ? 'rgba(255,220,180,.18)' : 'rgba(30,20,50,.25)'; c.fillRect(R() * W, 264 + R() * 76, 5 + R() * 12, 1); }
   for (let i = 0; i < 18; i++) { const x = R() * W, y = 300 + R() * 38; ell(c, x, y, 6 + R() * 6, 2 + R() * 1.5, R() < 0.5 ? '#2f4a2c' : '#3f5f34'); }
@@ -1333,7 +1346,7 @@ defineChapter({
       objects: [
       { id: 'frameL', name: { zh: '左相框', en: 'Left frame' }, x: 45, y: 200, w: 62, h: 76, mag: 9, link: { to: 'frameR', k: 0.7 }, draw: sprite('taj-fL', 62, 76, c => drawTajFrame(c, true)), sfx: 'wood' },
       { id: 'frameR', name: { zh: '右相框', en: 'Right frame' }, x: 315, y: 200, w: 62, h: 76, mag: 5, draw: sprite('taj-fR', 62, 76, c => drawTajFrame(c, false)), sfx: 'wood' },
-      { id: 'bench', name: { zh: '大理石長椅', en: 'Marble bench' }, x: 180, y: 308, w: 140, h: 40, mag: 6, draw: sprite('taj-bench', 140, 40, drawTajBench), sfx: 'wonder_stone' },
+      { id: 'bench', name: { zh: '大理石長椅', en: 'Marble bench' }, x: 180, y: 298, w: 140, h: 40, mag: 6, draw: sprite('taj-bench', 140, 40, drawTajBench), sfx: 'wonder_stone' },
       { id: 'squirrel', name: { zh: '棕櫚松鼠', en: 'Palm squirrel' }, x: 60, y: 345, w: 60, h: 34, mag: 13, draw: sprite('taj-sq', 60, 34, drawPalmSquirrel), habit: (t, l) => ({ dx: Math.sin(t * 1.7) * 5 * l, dy: -Math.max(0, Math.sin(t * 6)) * 1.5 * l }), call: 'wonder_squirrel' },
       { id: 'sign', name: { zh: '景點石牌', en: 'Plaque' }, x: 85, y: 440, w: 130, h: 50, near: true, draw: sprite('taj-sign', 130, 50, drawTajSign), sfx: 'bell' },
       { id: 'plate', name: { zh: '鑲嵌石盤', en: 'Inlay plate' }, x: 190, y: 445, w: 70, h: 60, near: true, draw: sprite('taj-plate', 70, 60, drawInlayPlate), sfx: 'bell' },
@@ -1344,7 +1357,7 @@ defineChapter({
       bg: bgMoai, overlay: photoOverlay('moai', 'rgba(255,160,80,.05)'), animated: true,
       objects: [
       { id: 'tern', name: { zh: '烏領燕鷗', en: 'Sooty tern' }, x: 290, y: 92, w: 70, h: 40, mag: 13, draw: sprite('moai-tern', 70, 40, drawTern), habit: sway(0.8, 9, 3), call: 'wonder_tern' },
-      { id: 'pukao', name: { zh: '紅石帽', en: 'Red topknot' }, x: 165, y: 145, w: 50, h: 36, mag: 9, draw: sprite('moai-pukao', 50, 36, drawPukao), sfx: 'wonder_stone' },
+      { id: 'pukao', name: { zh: '紅石帽', en: 'Red topknot' }, x: 165, y: 148, w: 50, h: 36, mag: 9, draw: sprite('moai-pukao', 50, 36, drawPukao), sfx: 'wonder_stone' },
       { id: 'moai1', name: { zh: '摩艾石像', en: 'Moai' }, x: 70, y: 250, w: 64, h: 150, near: true, draw: sprite('moai-1', 64, 150, c => moaiShape(c, 64, 150)), sfx: 'wonder_stone' },
       { id: 'moai2', name: { zh: '戴帽摩艾', en: 'Hatted moai' }, x: 165, y: 245, w: 70, h: 160, mag: 6, link: { to: 'pukao', k: 0.8 }, draw: sprite('moai-2', 70, 160, c => moaiShape(c, 70, 160)), sfx: 'wonder_stone' },
       { id: 'sign', name: { zh: '國家公園牌', en: 'Park sign' }, x: 85, y: 420, w: 140, h: 56, near: true, draw: sprite('moai-sign', 140, 56, drawRapaSign), sfx: 'wood' },
