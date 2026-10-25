@@ -53,8 +53,9 @@ describe('首頁', () => {
     await page.click('#diff-easy')
     expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
     await page.click('.lv:nth-child(1)')
-    expect(await page.locator('#ovChapter .stages li:nth-child(1) > span').textContent()).toContain(`${Math.round(LV[0].time * 1.35)} 秒`)
+    expect(await page.locator('#ovChapter .stages li:nth-child(1) > span').textContent()).toContain(`${Math.round(LV[0].time * 1.35) * 2} 秒`)
     await page.click('#sheetClose')
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('chayidu.v3')).diff)).toBe('easy')
     await page.reload()
     await page.waitForFunction(() => window.__chayidu)
     expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
@@ -77,13 +78,14 @@ describe('完整流程', () => {
   it('開始 → 說明 → 3、2、1 倒數 → 開始計時', async () => {
     await page.click('#startBtn')
     await expect.poll(() => page.locator('#ovIntro').isVisible()).toBe(true)
-    expect(await page.locator('#goBtn').textContent()).toContain(`${LV[0].time} 秒`)
+    expect(await page.locator('#goBtn').textContent()).toContain(`${LV[0].time * 2} 秒`)
+    expect(await page.locator('#ovIntro .tips').textContent()).toContain('練習關')
     await page.click('#goBtn')
     await expect.poll(() => page.locator('#count').textContent()).toBe('3')
     expect((await state(page)).running).toBe(false)
     await page.waitForFunction(() => window.__chayidu.state().running, null, { timeout: 4000 })
     await page.waitForTimeout(1200)
-    expect((await state(page)).timeLeft).toBeLessThan(LV[0].time - 0.5)
+    expect((await state(page)).timeLeft).toBeLessThan(LV[0].time * 2 - 0.5)
   })
 
   it('拖曳旋轉會出現放大鏡，度數與實際誤差一致', async () => {
@@ -93,7 +95,7 @@ describe('完整流程', () => {
     await page.mouse.move(p.x, p.y)
     await page.mouse.down()
     const q = await canvasPoint(page, 230, 290)
-    await page.mouse.move(q.x, q.y, { steps: 8 })
+    await page.mouse.move(q.x, q.y, { steps: 3 }) // a quick flick: full 1:1 turning
     await page.waitForTimeout(100)
     expect(await page.locator('#loupe').getAttribute('class')).toContain('on')
     const st = await state(page)
@@ -180,6 +182,61 @@ describe('完整流程', () => {
       await page.waitForTimeout(60)
       expect(await canvasSpread(page, '#cv'), `level ${i + 1}`).toBeGreaterThan(15)
     }
+  })
+})
+
+describe('第一次玩', () => {
+  it('第一次打開會先問「你有多在意」，簡單被推薦；選了就不再問', async () => {
+    await context.close()
+    ;({ page, context, errors } = await openGame(browser, { firstRun: true }))
+    expect((await state(page)).overlays.first).toBe(true)
+    expect(await page.locator('#ovFirst .diff[aria-checked="true"] b').textContent()).toContain('看到會歪頭')
+    await page.click('#ovFirst .diff:nth-child(1)')
+    expect((await state(page)).overlays.first).toBe(false)
+    expect(await page.locator('#diffs .diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
+    await page.reload()
+    await page.waitForFunction(() => window.__chayidu)
+    expect((await state(page)).overlays.first).toBe(false)
+    expect(await page.locator('#diffs .diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
+  })
+  it('同一關連輸兩次，結算畫面出現「改用簡單再試」，按了直接用簡單重來', async () => {
+    await page.evaluate((i) => { const G = window.__chayidu; G.quiet(true); G.manualClock(true); G.resetProgress(); for (let k = 0; k < 2; k++) { G.seed(k); G.start(i); G.advance(1000) } }, idx('jp'))
+    await expect.poll(() => page.locator('#rEasy').isVisible()).toBe(true)
+    await page.click('#rEasy')
+    await page.waitForFunction(() => window.__chayidu.state().running, null, { timeout: 4000 })
+    expect((await state(page)).diff).toBe('easy')
+    expect((await state(page)).key).toBe('jp')
+  })
+  it('卡住 8 秒沒進度，還歪著的物品會亮起來', async () => {
+    await page.evaluate(() => { const G = window.__chayidu; G.seed(1); G.start(0) })
+    expect((await state(page)).stalled).toBe(false)
+    await page.waitForTimeout(8500)
+    expect((await state(page)).stalled).toBe(true)
+    await page.evaluate(() => { const G = window.__chayidu; G.setAngle('cow', 0); G.release() })
+    expect((await state(page)).stalled).toBe(false)
+  })
+})
+
+describe('帳號與解鎖', () => {
+  it('沒有設定 Firebase 時，帳號區塊不顯示；網頁版全部關卡都開放', async () => {
+    expect(await page.locator('#accountSect').isVisible()).toBe(false)
+    expect(await page.evaluate(() => window.__chayidu.levels().every((l, i) => window.__chayidu.unlocked(i)))).toBe(true)
+  })
+  it('App 規則：第 1 大關和每個大關的第 1 小關免費，其他上鎖；點上鎖的關卡出現完整版說明，不會開始', async () => {
+    await page.evaluate(() => window.__chayidu.setFreeAll(false))
+    const open = await page.evaluate(() => window.__chayidu.levels().map((l, i) => window.__chayidu.unlocked(i)))
+    expect(open.filter(Boolean).length).toBe(10 + 9)
+    expect(open.slice(0, 11)).toEqual(Array(11).fill(true))
+    expect(open[11]).toBe(false)
+    await page.click('.lv:nth-child(2)')
+    expect(await page.locator('#ovChapter .stages li.locked').count()).toBe(9)
+    await page.click('#ovChapter .stages li:nth-child(2)')
+    expect((await state(page)).overlays.lock).toBe(true)
+    expect((await state(page)).screen).toBe('home')
+    expect(await page.locator('#lockBuy').textContent()).toContain('USD 4.99')
+    await page.click('#lockLater')
+    expect((await state(page)).overlays.lock).toBe(false)
+    await page.evaluate(() => window.__chayidu.setFreeAll(true))
   })
 })
 

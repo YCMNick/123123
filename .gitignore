@@ -29,3 +29,7 @@ dist-ssr
 
 # Test reports
 test-results
+
+# 差一度 private configs (copy the .example files)
+game/account.config.json
+game/store.config.json

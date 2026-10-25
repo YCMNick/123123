@@ -93,7 +93,7 @@ describe('開局', () => {
         for (let s = 1; s <= 40; s++) {
           G.seed(s); G.start(i)
           const st = G.state()
-          if (st.timeLeft !== lv.time || !st.running) bad.push(`${lv.key}/${s}: bad start state`)
+          if (st.timeLeft !== lv.time * (lv.practice ? 2 : 1) || !st.running) bad.push(`${lv.key}/${s}: bad start state`)
           for (const o of st.objs) {
             const meta = lv.objects.find((m) => m.id === o.id), e = Math.abs(o.err)
             if (o.trap) { if (o.angle !== meta.keep) bad.push(`${lv.key}/${s}: trap moved`); continue }
@@ -377,8 +377,50 @@ describe('時間與緊張模式', () => {
       G.seed(20); G.start(0); totals.push(G.state().timeTotal)
       return totals
     })
-    const t = LV[0].time
+    const t = LV[0].time * 2 // 1-1 is a practice stage: double time
     expect(totals).toEqual([t, t, t + C.MERCY_SECS, t])
+  })
+})
+
+describe('新手保護與禪模式', () => {
+  it('1-1～1-3 是練習關：時間加倍，之後恢復正常', () => {
+    expect(LV.slice(0, 3).every((l) => l.practice)).toBe(true)
+    expect(LV.slice(3).some((l) => l.practice)).toBe(false)
+    expect(LV[0].time * 2).toBe(LV[0].time + LV[0].time)
+  })
+  it('禪模式：計時不走、沒有 +2 秒、過關沒有時間分，星數照精準度算', async () => {
+    const r = await run((jp) => {
+      const G = window.__chayidu
+      G.setZen(true); G.resetProgress(); G.seed(4); G.start(jp)
+      const t0 = G.state().timeLeft
+      G.advance(10_000)
+      const stillRunning = G.state().running, t1 = G.state().timeLeft
+      G.setAngle('torii', 0); G.release(); const t2 = G.state().timeLeft
+      for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() }
+      G.done()
+      const res = G.state().lastResult
+      G.setZen(false)
+      return { t0, t1, t2, stillRunning, zen: res.zen, win: res.win, timeBonus: res.timeBonus, stars: res.stars, total: res.total, n: res.count }
+    }, idx('jp'))
+    expect(r.stillRunning).toBe(true)
+    expect(r.t1).toBe(r.t0); expect(r.t2).toBe(r.t0)
+    expect(r).toMatchObject({ zen: true, win: true, timeBonus: 0, stars: 3 })
+    expect(r.total).toBe(r.n * 150)
+  })
+  it('慢慢拖＝精細模式（¼ 增益），快拖 1:1，都不吸附', async () => {
+    const r = await run((jp) => {
+      const G = window.__chayidu
+      G.setZen(false); G.seed(1); G.start(jp)
+      const o = G.levels()[jp].objects.find((x) => x.id === 'torii'), R = 100
+      // sweep 20° around the object's centre, in 1° steps
+      const arc = (from, to) => Array.from({ length: 21 }, (_, k) => { const a = (from + (to - from) * k / 20) * Math.PI / 180; return [o.x + R * Math.cos(a), o.y + R * Math.sin(a)] })
+      const ang = () => G.state().objs.find((x) => x.id === 'torii').angle
+      const a0 = ang(); G.dragSteps('torii', arc(0, 20), 300); const slow = ang() - a0 // ~6 px per 300 ms = slow
+      const a1 = ang(); G.dragSteps('torii', arc(0, 20), 4); const fast = ang() - a1 // 6 px per 4 ms = fast
+      return { slow, fast }
+    }, idx('jp'))
+    expect(r.slow).toBeGreaterThan(3); expect(r.slow).toBeLessThan(8)
+    expect(r.fast).toBeCloseTo(20, 0)
   })
 })
 

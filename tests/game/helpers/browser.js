@@ -14,9 +14,11 @@ export function launch() {
 // How many games to simulate at once: GAME_SIM_PAGES, else half the CPU cores (2-8).
 export const SIM_PAGES = Number(process.env.GAME_SIM_PAGES) || Math.max(2, Math.min(8, Math.floor(os.cpus().length / 2)))
 
-export async function openGame(browser, { width = 400, height = 820 } = {}) {
+export async function openGame(browser, { width = 400, height = 820, firstRun = false } = {}) {
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 })
   const page = await context.newPage()
+  // The first-launch difficulty question is its own test; every other test starts past it.
+  if (!firstRun) await page.addInitScript(() => { if (!localStorage.getItem('chayidu.v3') && !localStorage.getItem('chayidu.v2')) localStorage.setItem('chayidu.v3', JSON.stringify({ onboarded: true })) })
   const errors = []
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })
@@ -36,10 +38,13 @@ export async function openGames(browser, n) {
 
 // Theoretical ceiling: every object perfect, the done button pressed at the
 // first instant, every +2 s bonus collected, the mercy bonus active, trap kept.
+// The clock a stage gets on a difficulty (practice stages get double).
+export const stageTime = (level, d) => Math.round(level.time * d.timeMul) * (level.practice ? 2 : 1)
+
 export function maxScore(level, c, diffKey = 'normal') {
   const d = c.DIFFS.find((x) => x.key === diffKey)
   const n = level.objects.filter((o) => !o.trap).length
   const trap = level.objects.some((o) => o.trap) ? 200 : 0
-  const time = Math.round(level.time * d.timeMul)
+  const time = stageTime(level, d)
   return Math.round((n * 150 + (time + c.MERCY_SECS + n * c.PERFECT_BONUS) * c.TIME_PTS + trap) * d.mult)
 }

@@ -24,11 +24,14 @@ const { scale, levels, DIFFS } = await page.evaluate(() => { const G = window.__
 await browser.close()
 console.log(`Phone ${PHONE.width}×${PHONE.height} @${PHONE.dpr}x · stage ${(scale * 360).toFixed(0)} px wide · 1 unit = ${scale.toFixed(2)} px · lift-off jitter σ = ${JITTER} px\n`)
 
-console.log('Degrees per pixel of finger movement, and the chance one release lands inside the tolerance:')
-console.log('radius(px)  °/px    ' + DIFFS.map((d) => `${d.key} ≤${d.tol}°`.padEnd(14)).join('') + 'perfect ≤0.1°')
-for (const r of [30, 50, 80, 120, 200, 300, 500]) {
-  const degPerPx = 180 / Math.PI / r, sigma = degPerPx * JITTER
-  console.log(`${String(r).padStart(6)}      ${degPerPx.toFixed(2).padStart(5)}   ` + DIFFS.map((d) => (pWithin(d.tol, sigma) * 100).toFixed(0).padStart(4) + '%'.padEnd(10)).join('') + (pWithin(0.1, sigma) * 100).toFixed(0).padStart(4) + '%')
+for (const [label, gain] of [['quick finger (gain 1)', 1], ['slow finger: fine control (gain ¼)', 0.25]]) {
+  console.log(`${label}: degrees per pixel of finger movement, and the chance one release lands inside the tolerance:`)
+  console.log('radius(px)  °/px    ' + DIFFS.map((d) => `${d.key} ≤${d.tol}°`.padEnd(14)).join('') + 'perfect ≤0.1°')
+  for (const r of [30, 50, 80, 120, 200, 300]) {
+    const degPerPx = 180 / Math.PI / r * gain, sigma = degPerPx * JITTER
+    console.log(`${String(r).padStart(6)}      ${degPerPx.toFixed(2).padStart(5)}   ` + DIFFS.map((d) => (pWithin(d.tol, sigma) * 100).toFixed(0).padStart(4) + '%'.padEnd(10)).join('') + (pWithin(0.1, sigma) * 100).toFixed(0).padStart(4) + '%')
+  }
+  console.log('')
 }
 
 // How far can the finger get from each object while staying on the stage?

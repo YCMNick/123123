@@ -24,8 +24,13 @@ const chapters = picked.map(f => {
 }).join('\n');
 const times = JSON.stringify(JSON.parse(readFileSync(join(here, 'times.json'), 'utf8')));
 
-for (const m of ['/*@@CHAPTERS@@*/', '/*@@TIMES@@*/{}']) if (core.split(m).length !== 2) throw new Error(`core.html needs exactly one ${m}`);
-const html = core.replace('/*@@TIMES@@*/{}', () => times).replace('/*@@CHAPTERS@@*/', () => chapters);
+// Optional configs: game/account.config.json (Firebase web config) and game/store.config.json (unlock rules).
+const optional = (name, fallback) => { try { return readFileSync(join(here, name), 'utf8').trim(); } catch { return fallback; } };
+const account = JSON.stringify(JSON.parse(optional('account.config.json', 'null')));
+const storeCfg = JSON.stringify(JSON.parse(optional('store.config.json', '{ "freeAll": true, "price": "USD 4.99", "freeWorlds": 1, "adHours": 24 }')));
+const MARKS = { '/*@@TIMES@@*/{}': times, '/*@@CHAPTERS@@*/': chapters, '/*@@ACCOUNT@@*/null': account, '/*@@STORE@@*/{ freeAll: true, price: \'USD 4.99\', freeWorlds: 1, adHours: 24 }': storeCfg };
+let html = core;
+for (const [m, v] of Object.entries(MARKS)) { if (html.split(m).length !== 2) throw new Error(`core.html needs exactly one ${m}`); html = html.replace(m, () => v); }
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, html);
 console.log(`built ${out} · ${picked.length} worlds · ${(html.length / 1024).toFixed(0)} KB`);

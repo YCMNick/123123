@@ -45,8 +45,9 @@ describe('亂數操作風暴', () => {
         const s = await state(page)
         const visible = async (sel) => page.locator(sel).first().isVisible().catch(() => false)
         let action
-        if (s.overlays.chapter) action = pick(['sheetPlay', 'sheetPlay', 'sheetClose'])
-        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt', 'diff', 'lang', 'audio'])
+        if (s.overlays.lock) action = 'lockLater'
+        else if (s.overlays.chapter) action = pick(['sheetPlay', 'sheetPlay', 'sheetClose'])
+        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt', 'diff', 'lang', 'audio', 'zen'])
         else if (s.overlays.result) action = pick(['result', 'result', 'key'])
         else if (s.overlays.pause) action = pick(['pauseMenu', 'pauseMenu', 'key', 'pauseAudio'])
         else if (s.overlays.intro) action = pick(['go', 'go', 'introHome'])
@@ -60,6 +61,8 @@ describe('亂數操作風暴', () => {
           case 'audio': await page.click(`#${pick(['musicSeg', 'soundSeg'])} button[data-v="${pick(['0', '1'])}"]`); break
           case 'pauseAudio': await page.click(`#${pick(['pMusicSeg', 'pSoundSeg'])} button[data-v="${pick(['0', '1'])}"]`); break
           case 'music': await page.click('#musicBtn'); break
+          case 'zen': await page.click(`#zenSeg button[data-v="${pick(['0', '1'])}"]`); break
+          case 'lockLater': await page.click('#lockLater'); break
           case 'diff': await page.click(`#diff-${pick(['easy', 'normal', 'hard'])}`); break
           case 'sheetClose': await page.click('#sheetClose'); break
           case 'start': await page.click('#startBtn'); break

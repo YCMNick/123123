@@ -58,7 +58,9 @@ const results = await pool(pages, worlds, async (page, c) => {
   floor[0] = await search(8, 120, (s) => floorsOk(page, idx[0], s), `${levels[idx[0]].key} floors`)
   t[0] = Math.max(t[0], floor[0]); r[0] = await casual(page, idx[0], t[0])
   const end = Math.max(0.55, r[0] - 0.25)
+  const fixed = idx.map((i) => levels[i].practice) // practice stages double their time in play; keep their base
   for (let s = 1; s < idx.length; s++) {
+    if (fixed[s]) { floor[s] = t[s]; r[s] = await casual(page, idx[s], t[s]); continue }
     const target = r[0] - (r[0] - end) * (s / (idx.length - 1))
     floor[s] = await search(8, 120, (x) => floorsOk(page, idx[s], x), `${levels[idx[s]].key} floors`)
     const tc = await search(8, 120, async (x) => (await rate(page, idx[s], x, 'casual', 'normal')).winRate >= target)
@@ -66,8 +68,9 @@ const results = await pool(pages, worlds, async (page, c) => {
   }
   // Difficulty never drops: fix each stage against the one before it, walking back when needed.
   for (let s = 1; s < idx.length; s++) {
+    if (fixed[s] || fixed[s - 1]) continue
     while (r[s] > r[s - 1] + STEP && t[s] > floor[s]) r[s] = await casual(page, idx[s], --t[s])
-    for (let k = s; k > 0 && r[k] > r[k - 1] + STEP; k--) {
+    for (let k = s; k > 0 && r[k] > r[k - 1] + STEP && !fixed[k - 1]; k--) {
       while (r[k] > r[k - 1] + STEP && t[k - 1] < 120) r[k - 1] = await casual(page, idx[k - 1], ++t[k - 1])
     }
   }

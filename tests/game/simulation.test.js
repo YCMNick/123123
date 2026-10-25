@@ -2,7 +2,7 @@
 // 檢查每局結果合法、參考機器人的分數精確、設計目標、以及與基準線的漂移。
 import fs from 'node:fs'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { launch, openGames, maxScore, SIM_PAGES } from './helpers/browser.js'
+import { launch, openGames, maxScore, stageTime, SIM_PAGES } from './helpers/browser.js'
 import { runAll, simulate, summarize, pool } from './helpers/sim.js'
 import { evaluateTargets, compareBaseline, writeReport, BASELINE_FILE } from './helpers/report.js'
 
@@ -81,7 +81,7 @@ describe('參考機器人（精確值）', () => {
     for (const d of C.DIFFS) sim.levels.forEach((lv, i) => {
       const n = lv.objects.filter((o) => !o.trap).length
       const trap = lv.objects.some((o) => o.trap) ? 200 : 0
-      const expected = Math.round((n * 150 + (Math.round(lv.time * d.timeMul) + n * C.PERFECT_BONUS) * C.TIME_PTS + trap) * d.mult)
+      const expected = Math.round((n * 150 + (stageTime(lv, d) + n * C.PERFECT_BONUS) * C.TIME_PTS + trap) * d.mult)
       expect(results[d.key][i], `${d.key}/${lv.key}`).toMatchObject({ win: true, stars: 3, aligned: n, prec: 50 * n, total: expected })
     })
   })
