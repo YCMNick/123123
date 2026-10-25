@@ -42,7 +42,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* ---------- home ---------- */
 #home{overflow:hidden}
 #homeBg{position:absolute;inset:0;width:100%;height:100%;display:block}
-#homeToast{top:calc(14px + env(safe-area-inset-top,0px));z-index:8;white-space:normal;text-align:center;max-width:88%}
+#homeToast{top:calc(14px + env(safe-area-inset-top,0px));z-index:8;white-space:nowrap;max-width:94%}
 .home-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden}
 .home-in{width:100%;max-width:560px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:26px;box-sizing:border-box}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -417,7 +417,7 @@ const UI = {
     nickLabel: '暱稱（選填，只存在這台裝置）', nickPh: '例如：Nick', start: '開始遊戲', cont: s => `繼續 ${s}`,
     settings: '設定', lang: '語言', music: '背景音樂', sound: '音效', on: '開', off: '關',
     mode: '模式', timed: '計時', zen: '禪模式', zenNote: '禪模式：不計時，只算精準度。', practice: '練習關・時間加倍',
-    firstRec: '建議新手', pickDiff: '選難度', notTried: '未挑戰', bestOn: (s, p) => `${s} ${p}`, legendE: '簡單', legendN: '普通', legendH: '困難', legendTitle: '站點顏色＝破過的最高難度：', needPrev: '先破前一關，路才會通到這裡', needWorld: '把上一個大關的 10 關都破完，這裡才會開',
+    firstRec: '建議新手', pickDiff: '選難度', notTried: '未挑戰', bestOn: (s, p) => `${s} ${p}`, legendE: '簡單', legendN: '普通', legendH: '困難', legendTitle: '站點顏色＝破過的最高難度：', needPrev: '先破前一關，路才會通', needWorld: '上一個大關 10 關全破，這裡才會開',
     tryEasy: n => `改用「${n}」再試`, ldFine: '精細 ¼', fineHint: '慢慢移動＝精細模式；手指離物品越遠，轉得越細', stallHint: '還歪著的物品會亮起來', goZen: '開始・不計時',
     tZen: '禪模式不計時',
     lockTitle: '完整版', lockLede: '第 1 大關和每個大關的第 1 小關免費。完整版一次買斷：100 關全開、沒有廣告。', lockBuy: p => `解鎖完整版 ${p}`, lockAd: '看一段廣告，免費玩這個大關 24 小時', lockLater: '先不用',
