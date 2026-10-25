@@ -1372,7 +1372,7 @@ defineChapter({
       { id: 'peacock', name: { zh: '孔雀', en: 'Peacock' }, x: 288, y: 420, w: 120, h: 80, mag: 10, draw: sprite('taj-peacock', 120, 80, drawPeacock), habit: sway(0.8, 5), call: 'wonder_peacock' }
       ] },
     { key: 'wonder-moai', title: { zh: '摩艾石像', en: 'Moai' }, place: { zh: '智利 復活節島', en: 'Rapa Nui (Easter Island), Chile' },
-      intro: { zh: '東加里基祭壇上站著 15 尊摩艾。轉動戴帽的那尊，頭上的紅石帽也會跟著轉。', en: 'Fifteen moai stand on Ahu Tongariki. Turn the one with the hat and its red topknot turns too.' },
+      intro: { zh: '通加里基祭壇上站著 15 尊摩艾。轉動戴帽的那尊，頭上的紅石帽也會跟著轉。', en: 'Fifteen moai stand on Ahu Tongariki. Turn the one with the hat and its red topknot turns too.' },
       bg: bgMoai, overlay: photoOverlay('moai', 'rgba(255,160,80,.05)'), animated: true,
       objects: [
       { id: 'tern', name: { zh: '烏領燕鷗', en: 'Sooty tern' }, x: 290, y: 92, w: 70, h: 40, mag: 13, draw: sprite('moai-tern', 70, 40, drawTern), habit: sway(0.8, 9, 3), call: 'wonder_tern' },
