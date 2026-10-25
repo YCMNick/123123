@@ -24,7 +24,7 @@ function spr(c, id, w, h, fn, pad = 18) {
   const k = KPX, key = id + '|' + k + '|' + T('zh', 'en') + '|' + (document.fonts ? document.fonts.status : '');
   let s = SPR.get(key);
   if (!s) {
-    if (SPR.size > 600) SPR.clear();
+    if (SPR.size > 120) SPR.clear(); // keep phone memory bounded (each entry also holds two turned copies)
     s = document.createElement('canvas');
     s.width = Math.ceil((w + pad * 2) * k); s.height = Math.ceil((h + pad * 2) * k);
     s.cx = (w / 2 + pad) * k; s.cy = (h / 2 + pad) * k; s.rot = [];
