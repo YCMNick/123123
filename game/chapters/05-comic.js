@@ -386,16 +386,16 @@ function bgLondon(c) {
 }
 function drawPhoneBox(c) {
   const R = '#d8322f';
-  comicShape(c, () => { c.beginPath(); c.moveTo(-30, -62); c.quadraticCurveTo(0, -78, 30, -62); c.lineTo(30, 72); c.lineTo(-30, 72); c.closePath(); }, R);
+  // A plain street phone booth: flat roof, a PHONE sign and four big panes.
+  comicShape(c, () => rr(c, -30, -66, 60, 138, 4), R);
+  c.beginPath(); c.rect(-34, -72, 68, 8); fs(c, R, 2);
   c.beginPath(); c.rect(-34, 66, 68, 8); fs(c, R, 2);
-  rr(c, -22, -60, 44, 10, 1); fs(c, '#f4f1e8', 1.5);
-  sayF(c, LOCAL('TELEPHONE'), 0, -54.5, 'bold 7.5px Arial, sans-serif', INK, 40);
+  rr(c, -22, -60, 44, 11, 2); fs(c, '#f4f1e8', 1.5);
+  sayF(c, 'PHONE', 0, -54, 'bold 8px Arial, sans-serif', INK, 36);
   rectsInk(c, [[-22, -44, 44, 96]], '#a9d8ef', 2);
-  const s = []; for (let i = 1; i < 3; i++) s.push(-22 + i * 44 / 3, -44, -22 + i * 44 / 3, 52);
-  for (let j = 1; j < 8; j++) s.push(-22, -44 + j * 12, 22, -44 + j * 12);
-  lines(c, s, R, 3);
-  lines(c, [-14, -40, -4, -30, 4, -12, 14, -2], 'rgba(255,255,255,.6)', 2);
-  circ(c, 0, -68, 4, '#ffe58a');
+  lines(c, [0, -44, 0, 52, -22, 4, 22, 4], R, 3);
+  lines(c, [-16, -38, -8, -30, 6, -12, 14, -4], 'rgba(255,255,255,.6)', 2);
+  circ(c, 0, -74, 3, '#ffe58a');
 }
 function drawLondonBus(c) {
   const R = '#d8322f';
@@ -678,7 +678,7 @@ function drawAmpel(c) {
   rr(c, -13, -35, 26, 32, 4); fs(c, '#2b1b1c', 1.8); rr(c, -13, 3, 26, 32, 4); fs(c, '#12281c', 1.8);
   const man = (x, y, col, walk) => {
     c.fillStyle = col; c.beginPath();
-    c.rect(x - 6, y - 12, 12, 2); c.rect(x - 3, y - 15, 6, 3); c.moveTo(x + 3, y - 7); c.arc(x, y - 7, 3, 0, Math.PI * 2);
+    c.moveTo(x + 4, y - 9); c.arc(x, y - 9, 4, 0, Math.PI * 2);
     c.rect(x - 3, y - 4, 6, 9);
     if (walk) { c.moveTo(x - 2, y + 5); c.lineTo(x - 7, y + 12); c.lineTo(x - 4, y + 12); c.lineTo(x, y + 7); c.lineTo(x + 4, y + 12); c.lineTo(x + 7, y + 12); c.lineTo(x + 2, y + 5); c.closePath(); c.rect(x + 3, y - 3, 5, 2); c.rect(x - 8, y - 1, 5, 2); }
     else { c.rect(x - 3, y + 5, 2, 7); c.rect(x + 1, y + 5, 2, 7); c.rect(x - 10, y - 3, 7, 3); c.rect(x + 3, y - 3, 7, 3); }

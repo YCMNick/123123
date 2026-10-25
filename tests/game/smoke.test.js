@@ -183,6 +183,23 @@ describe('完整流程', () => {
   })
 })
 
+describe('舊版存檔', () => {
+  it('v2（只有 10 關、用編號存）的最佳紀錄會搬到 v3，不會歸零', async () => {
+    await page.evaluate(() => {
+      localStorage.removeItem('chayidu.v3')
+      localStorage.setItem('chayidu.v2', JSON.stringify({ nick: 'Nick', sound: false, diff: 'easy', best: { 'normal:0': { score: 1234, stars: 3 }, 'easy:5': { score: 500, stars: 2 } } }))
+    })
+    await page.reload()
+    await page.waitForFunction(() => window.__chayidu)
+    expect(await page.locator('#nick').inputValue()).toBe('Nick')
+    expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
+    expect(await page.locator('.lv:nth-child(6) .prog').textContent()).toContain('已過 1/10')
+    await page.click('#diff-normal')
+    expect(await page.locator('.lv:nth-child(1) .prog').textContent()).toContain('★ 3/30')
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('chayidu.v3')).best)).toEqual({ 'normal:farm': { score: 1234, stars: 3 }, 'easy:polar': { score: 500, stars: 2 } })
+  })
+})
+
 describe('設定：中英切換、背景音樂與音效分開開關', () => {
   it('切到 English：首頁、關卡、結算全部是英文，重新整理後記得', async () => {
     await page.click('#langSeg button[data-v="en"]')

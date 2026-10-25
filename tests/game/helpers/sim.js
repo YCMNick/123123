@@ -4,7 +4,8 @@
 import { PROFILES } from '../balance.config.js'
 
 // Runs inside the page. Must stay self-contained: Playwright serialises it.
-export function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, diff }) {
+// keepProgress: play like one person would, keeping fails (mercy) and moving on after a win.
+export function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, diff, keepProgress = false }) {
   const G = window.__chayidu
   G.setDifficulty(diff)
   // Aim depends on what the loupe shows: a turn hint helps a little, no degree readout hurts a lot.
@@ -29,8 +30,10 @@ export function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, 
   const out = []
   G.quiet(true)
   G.manualClock(true)
+  if (keepProgress) G.resetProgress()
   for (let r = 0; r < runs; r++) {
-    G.resetProgress() // every run is a first attempt, so the mercy bonus never applies
+    if (!keepProgress) G.resetProgress() // every run is a first attempt, so the mercy bonus never applies
+    if (levelIdx >= G.levels().length) break
     G.seed(gameSeed + r)
     G.start(levelIdx)
     const st0 = G.state()
@@ -89,8 +92,9 @@ export function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, 
     out.push({
       win: res.win, total: res.total, stars: res.stars, aligned: res.aligned, count: res.count,
       prec: res.prec, timeBonus: res.timeBonus, secsLeft: res.secsLeft, trapPts: res.trapPts,
-      timeTotal: st0.timeTotal, moves,
+      timeTotal: st0.timeTotal, moves, level: levelIdx,
     })
+    if (keepProgress && res.win) levelIdx++
   }
   G.home()
   return out

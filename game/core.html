@@ -416,7 +416,20 @@ function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w
 /* ---------- storage (per-viewer convenience only) ---------- */
 const store = {
   data: { nick: '', best: {}, sound: true, music: true, lang: '' },
-  load() { try { const d = JSON.parse(localStorage.getItem('chayidu.v3') || 'null'); if (d) Object.assign(this.data, d); } catch (e) {} },
+  load() {
+    try {
+      const d = JSON.parse(localStorage.getItem('chayidu.v3') || 'null');
+      if (d) { Object.assign(this.data, d); return; }
+      // First run of v3 on a device that played v2: carry its progress over. v2 stored the
+      // ten first stages by index; their keys are listed here in that order.
+      const old = JSON.parse(localStorage.getItem('chayidu.v2') || 'null');
+      if (!old) return;
+      const V2 = ['farm', 'reef', 'jp', 'desk', 'fr', 'polar', 'desert', 'it', 'neon', 'space'];
+      Object.assign(this.data, old, { best: {} });
+      for (const [k, v] of Object.entries(old.best || {})) { const [diff, i] = k.split(':'); if (V2[+i]) this.data.best[`${diff}:${V2[+i]}`] = v; }
+      this.save();
+    } catch (e) {}
+  },
   save() { try { localStorage.setItem('chayidu.v3', JSON.stringify(this.data)); } catch (e) {} }
 };
 

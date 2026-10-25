@@ -500,12 +500,13 @@ function drawPhoneBox(c) {
   softShadow(c, true); c.fillStyle = '#b8191b'; c.fillRect(-29, -66, 58, 146); softShadow(c, false);
   const red = lin(c, -31, 0, 31, 0, 0, '#e8423a', 0.4, '#c81d1f', 1, '#7e0d10');
   c.fillStyle = red; c.fillRect(-31, 70, 62, 10); c.fillRect(-28, -66, 56, 138);
-  c.beginPath(); c.moveTo(-31, -66); c.quadraticCurveTo(0, -86, 31, -66); c.closePath(); c.fill(); c.fillRect(-31, -68, 62, 5);
+  // A plain street phone booth: flat roof, a PHONE sign and four big panes.
+  c.fillRect(-33, -74, 66, 8);
   rr(c, -22, -62, 44, 9, 1.5); c.fillStyle = '#f7f1e3'; c.fill();
-  txt(c, 'TELEPHONE', 0, -57.3, '700 6.6px "Noto Sans TC", Arial, sans-serif', '#1d1d1d');
-  for (let r = 0; r < 8; r++) for (let k = 0; k < 3; k++) {
-    const x = -20 + k * 13.6, y = -47 + r * 11.5;
-    c.fillStyle = lin(c, x, y, x + 12, y + 10, 0, '#f7d7a0', 0.4, '#6d6a72', 1, '#2b2c38'); c.fillRect(x, y, 12.2, 10);
+  txt(c, 'PHONE', 0, -57.3, '700 7px "Noto Sans TC", Arial, sans-serif', '#1d1d1d');
+  for (let r = 0; r < 2; r++) for (let k = 0; k < 2; k++) {
+    const x = -21 + k * 22, y = -47 + r * 47;
+    c.fillStyle = lin(c, x, y, x + 20, y + 44, 0, '#f7d7a0', 0.4, '#6d6a72', 1, '#2b2c38'); c.fillRect(x, y, 20, 45);
   }
   c.fillStyle = 'rgba(255,255,255,.25)'; c.beginPath(); c.moveTo(-20, -47); c.lineTo(-6, -47); c.lineTo(-20, 0); c.closePath(); c.fill();
   c.fillStyle = '#2b1a14'; c.fillRect(19, 0, 4, 10);
