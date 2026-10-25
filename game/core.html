@@ -75,27 +75,23 @@ button{font:inherit;color:inherit;cursor:pointer}
 .map{position:relative;width:100%;border-radius:0 0 18px 18px;overflow:hidden}
 #mapBg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .map-nodes{position:absolute;inset:0}
-.lv{position:absolute;transform:translate(-50%,-50%);width:88px;height:88px;padding:0;background:none;border:0;text-align:center}
-.lv .medal{width:88px;height:88px;border-radius:50%;overflow:hidden;border:4px solid #fff;box-shadow:0 0 0 4px var(--wood),0 6px 0 4px var(--wood-dark),0 10px 20px rgba(40,25,5,.35);background:var(--cream-2);display:grid;place-items:center;transition:transform .1s}
+.lv{position:absolute;transform:translate(-50%,-50%);width:80px;height:80px;padding:0;background:none;border:0;text-align:center}
+.lv .medal{width:80px;height:80px;border-radius:50%;overflow:hidden;border:4px solid #fff;box-shadow:0 0 0 3px var(--wood),0 5px 0 3px var(--wood-dark),0 10px 20px rgba(40,25,5,.35);background:var(--cream-2);display:grid;place-items:center;transition:transform .1s}
 .lv:hover .medal{transform:scale(1.04)}
 .lv:active .medal{transform:translateY(3px)}
-.lv.cleared .medal{box-shadow:0 0 0 4px var(--gold),0 6px 0 4px var(--gold-dark),0 10px 20px rgba(40,25,5,.35)}
+.lv.cleared .medal{box-shadow:0 0 0 3px var(--gold),0 5px 0 3px var(--gold-dark),0 10px 20px rgba(40,25,5,.35)}
 .lv canvas{width:84px;height:112px;display:block}
-.lv .sign{position:absolute;top:50%;left:calc(100% + 10px);transform:translateY(-50%);width:max-content;max-width:150px;text-align:left;background:linear-gradient(#a8703a,var(--wood));color:#fff;border-radius:12px;padding:5px 10px 6px;box-shadow:0 3px 0 var(--wood-dark);display:grid;gap:0}
-.lv.flip .sign{left:auto;right:calc(100% + 10px);text-align:right}
-.lv .sign::before{content:"";position:absolute;top:50%;left:-9px;margin-top:-6px;border:6px solid transparent;border-right-color:var(--wood);border-left:0}
-.lv.flip .sign::before{left:auto;right:-9px;border-right:0;border-left:6px solid var(--wood)}
+.lv .sign{position:absolute;top:calc(100% - 4px);width:max-content;max-width:160px;text-align:center;background:linear-gradient(#a8703a,var(--wood));color:#fff;border-radius:12px;padding:4px 12px 6px;box-shadow:0 3px 0 var(--wood-dark);display:grid;gap:0}
 .lv .k{font-family:var(--f-display);font-weight:800;font-size:10px;letter-spacing:.06em;color:#ffe9a8}
 .lv .n{font-family:var(--f-display);font-weight:800;font-size:17px;line-height:1.2;color:#fff;text-shadow:0 1px 0 var(--wood-dark)}
 .lv .prog{font-family:var(--f-num);font-weight:700;font-size:11px;color:#fff3cf;margin-top:2px}
-.st{position:absolute;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;border:3px solid #fff;background:linear-gradient(#fffaf0,var(--cream-2));box-shadow:0 0 0 2px var(--wood),0 3px 0 2px var(--wood-dark);padding:0;font-family:var(--f-num);font-weight:800;font-size:10px;color:var(--wood-dark);display:grid;place-items:center;line-height:1}
-.st.done{background:linear-gradient(#9ae66e,var(--green));color:#fff}
-.st.three{background:linear-gradient(#ffe066,var(--gold));color:var(--wood-dark)}
-.st.next{width:32px;height:32px;font-size:12px;background:linear-gradient(#fff,#ffe9a8);animation:pulse 1.4s ease-in-out infinite}
+.st{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:3px solid var(--wood);background:radial-gradient(circle at 40% 35%,#fffdf5,#e9d7ad);box-shadow:0 3px 0 var(--wood-dark),0 4px 8px rgba(40,25,5,.3);padding:0;font-family:var(--f-num);font-weight:800;font-size:12px;color:var(--wood-dark);display:grid;place-items:center;line-height:1}
+.st.done{background:radial-gradient(circle at 40% 35%,#b4f08f,var(--green));color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.st.three{background:radial-gradient(circle at 40% 35%,#fff0a8,var(--gold));color:var(--wood-dark)}
+.st.next{width:38px;height:38px;font-size:14px;background:radial-gradient(circle at 40% 35%,#fff,#ffe9a8);animation:pulse 1.4s ease-in-out infinite}
 .st.locked{opacity:.55;filter:grayscale(1)}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--wood),0 3px 0 2px var(--wood-dark),0 0 0 0 rgba(255,204,51,.6)}50%{box-shadow:0 0 0 2px var(--wood),0 3px 0 2px var(--wood-dark),0 0 0 10px rgba(255,204,51,0)}}
-.here{position:absolute;transform:translate(-50%,-100%);margin-top:-22px;background:var(--danger);color:#fff;font-family:var(--f-display);font-weight:800;font-size:11px;padding:3px 9px;border-radius:10px;white-space:nowrap;box-shadow:0 2px 0 #9c2a1a;pointer-events:none;animation:bob 1.2s ease-in-out infinite}
-.here::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--danger);border-bottom:0}
+@keyframes pulse{0%,100%{box-shadow:0 3px 0 var(--wood-dark),0 0 0 0 rgba(255,204,51,.7)}50%{box-shadow:0 3px 0 var(--wood-dark),0 0 0 12px rgba(255,204,51,0)}}
+.here{position:absolute;width:52px;height:52px;transform:translate(-50%,-100%);margin-top:-6px;pointer-events:none;animation:bob 1.2s ease-in-out infinite;transform-origin:50% 100%;filter:drop-shadow(0 3px 2px rgba(40,25,5,.35))}
 .mapmark{position:absolute;transform:translate(-50%,-50%);background:linear-gradient(#fffaf0,var(--cream-2));color:var(--wood-dark);font-family:var(--f-display);font-weight:800;font-size:12px;padding:4px 12px;border-radius:12px;box-shadow:0 0 0 3px var(--wood),0 3px 0 3px var(--wood-dark);white-space:nowrap;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.st.next,.here{animation:none}}
 .s{color:#d9c99a} .s.on{color:var(--gold-dark)}
@@ -1328,9 +1324,9 @@ function drawHomeBg() {
   c.fillStyle = 'rgba(40,120,30,.18)'; c.fillRect(0, h * 0.93, w, h * 0.07);
   for (let i = 0; i < 40; i++) { const x = R(0, w), y = R(h * 0.84, h); circ(c, x, y, R(1.5, 3), ['#fff', '#ffd1dc', '#ffe66d', '#fff'][i % 4]); }
 }
-function drawHen() {
-  const cv = $('#hen'), dpr = Math.min(window.devicePixelRatio || 1, 2), S0 = 104;
-  cv.width = cv.height = S0 * dpr; const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, S0, S0);
+function drawHen(cv = $('#hen'), S0 = 104) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), k = S0 / 104;
+  cv.width = cv.height = Math.round(S0 * dpr); const c = cv.getContext('2d'); c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0); c.clearRect(0, 0, 104, 104);
   c.translate(52, 58);
   ell(c, 0, 40, 30, 6, 'rgba(40,70,20,.22)');
   // tail feathers, body, wing
@@ -1382,62 +1378,70 @@ function showLock(L) {
 }
 function nextIndex(from = 0, to = LEVELS.length) { for (let i = from; i < to; i++) if (!clearedOf(i)) return i; return from; }
 /* ---------- the journey map: ten worlds up a winding path, from the farm at the bottom to orbit at the top ---------- */
-const MAP = { seg: 330, top: 110, bottom: 100, xs: [0.25, 0.76, 0.23, 0.75, 0.26, 0.77, 0.24, 0.75, 0.25, 0.76], t0: 0.2, t1: 0.84 };
+const MAP = { seg: 360, top: 120, bottom: 110, xs: [0.3, 0.7] };
+// A winding road: Catmull-Rom through the world signs and two bends between each pair, sampled
+// finely so stops can be spaced by distance along the road.
 function mapLayout(w) {
   const n = CHAPTERS.length, H = MAP.top + n * MAP.seg + MAP.bottom;
-  const node = c => ({ x: w * MAP.xs[c % MAP.xs.length], y: H - MAP.bottom - c * MAP.seg });
-  const nodes = CHAPTERS.map((ch, c) => node(c));
-  const finish = { x: w * 0.5, y: MAP.top * 0.55 };
-  // one cubic curve per world, from its sign to the next one (the last climbs to the finish)
-  const segs = nodes.map((p, c) => { const q = c + 1 < n ? nodes[c + 1] : finish; return [p, { x: p.x, y: p.y - MAP.seg * 0.5 }, { x: q.x, y: q.y + MAP.seg * 0.5 }, q]; });
-  const bez = ([p0, p1, p2, p3], t) => { const u = 1 - t; return { x: u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x, y: u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y }; };
-  const dots = LEVELS.map(L => bez(segs[L.chapter], MAP.t0 + (MAP.t1 - MAP.t0) * L.stage / 9));
-  return { w, H, nodes, segs, dots, finish, bez };
-}
-// Biome colours and little motifs for each world's stretch of the map.
-const MAP_BANDS = {
-  animal: ['#8fdd62', '#6cc84a'], ocean: ['#5fc0ee', '#3f9fd6'], oldtown: ['#f2b56f', '#d9834a'], home: ['#f6e9cc', '#e8d6ad'], comic: ['#ffe27a', '#ffc94a'],
-  polar: ['#eaf7ff', '#c6e6f7'], desert: ['#f6cf7b', '#e4a94c'], wonder: ['#d6e6a9', '#b7d184'], park: ['#5a3a7e', '#36215a'], space: ['#1b2250', '#0b0f2b'],
-};
-function drawMapBg(lay) {
-  const cv = $('#mapBg'), dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-  cv.width = Math.round(lay.w * dpr); cv.height = Math.round(lay.H * dpr);
-  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const rng = mulberry(11), R = (a, b) => a + rng() * (b - a), w = lay.w;
-  // bands, bottom (world 1) to top (space), blended at the seams
-  CHAPTERS.forEach((ch, i) => {
-    const y1 = lay.nodes[i].y + (i === 0 ? MAP.bottom : MAP.seg / 2), y0 = i + 1 < CHAPTERS.length ? lay.nodes[i + 1].y + MAP.seg / 2 : 0;
-    const [a, b] = MAP_BANDS[ch.key] || ['#ccc', '#aaa'];
-    const g = c.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, a); g.addColorStop(1, b);
-    c.fillStyle = g; c.fillRect(0, y0 - 1, w, y1 - y0 + 2);
-    // seam: a soft fade into the band above
-    if (i + 1 < CHAPTERS.length) { const [na] = MAP_BANDS[CHAPTERS[i + 1].key]; const f = c.createLinearGradient(0, y0 - 40, 0, y0 + 40); f.addColorStop(0, na); f.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = f; c.fillRect(0, y0 - 40, w, 80); }
-    c.save(); c.beginPath(); c.rect(0, y0, w, y1 - y0); c.clip();
-    const mid = (y0 + y1) / 2;
-    switch (ch.key) {
-      case 'animal': for (let k = 0; k < 60; k++) circ(c, R(0, w), R(y0, y1), R(1.5, 3), ['#fff', '#ffd1dc', '#ffe66d'][k % 3]); for (let k = 0; k < 5; k++) ell(c, R(0, w), R(y0 + 20, y1 - 20), R(18, 34), R(10, 16), 'rgba(50,140,40,.25)'); break;
-      case 'ocean': c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 2; for (let k = 0; k < 14; k++) { const x = R(0, w), y = R(y0, y1); c.beginPath(); for (let j = 0; j <= 24; j += 2) c.lineTo(x + j, y + (j % 4 ? 2 : -2)); c.stroke(); } break;
-      case 'oldtown': c.fillStyle = 'rgba(90,40,60,.22)'; for (let k = 0; k < 9; k++) { const x = R(0, w), hh = R(26, 70), ww = R(16, 30); c.fillRect(x, y1 - hh, ww, hh); c.fillRect(x + 4, y1 - hh - 8, ww - 8, 8); } break;
-      case 'home': c.strokeStyle = 'rgba(120,90,40,.16)'; c.lineWidth = 1; for (let y = y0; y < y1; y += 22) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); } break;
-      case 'comic': c.fillStyle = 'rgba(200,60,40,.25)'; for (let y = y0 + 6; y < y1; y += 12) for (let x = (Math.round(y / 12) % 2) * 6; x < w; x += 12) circ(c, x, y, 2, 'rgba(200,60,40,.22)'); break;
-      case 'polar': for (let k = 0; k < 50; k++) circ(c, R(0, w), R(y0, y1), R(1, 2.5), '#fff'); for (let k = 0; k < 4; k++) poly(c, [R(0, w) - 40, y1, R(0, w), y1 - R(40, 90), R(0, w) + 40, y1], 'rgba(255,255,255,.55)'); break;
-      case 'desert': c.fillStyle = 'rgba(160,100,30,.18)'; for (let k = 0; k < 6; k++) { const x = R(-40, w), y = R(y0 + 30, y1); c.beginPath(); c.ellipse(x, y, R(60, 120), R(14, 26), 0, Math.PI, 0); c.fill(); } break;
-      case 'wonder': c.fillStyle = 'rgba(90,110,40,.2)'; for (let k = 0; k < 7; k++) { const x = R(0, w); c.fillRect(x, y1 - R(30, 60), 8, 60); } break;
-      case 'park': for (let k = 0; k < 70; k++) circ(c, R(0, w), R(y0, y1), R(1.5, 3.5), ['#ff5ec4', '#5ee7ff', '#ffd166', '#9ae66e'][k % 4]); break;
-      case 'space': for (let k = 0; k < 90; k++) circ(c, R(0, w), R(y0, y1), R(0.6, 1.8), 'rgba(255,255,255,' + R(0.4, 1).toFixed(2) + ')'); break;
+  const nodes = CHAPTERS.map((ch, c) => ({ x: w * MAP.xs[c % 2], y: H - MAP.bottom - c * MAP.seg }));
+  const finish = { x: w * 0.5, y: MAP.top * 0.5 };
+  const way = [], nodeAt = [];
+  nodes.forEach((p, c) => {
+    const q = c + 1 < n ? nodes[c + 1] : finish, far = p.x < w / 2 ? 0.74 : 0.26, near = p.x < w / 2 ? 0.28 : 0.72;
+    nodeAt.push(way.length); way.push(p);
+    if (c + 1 < n) { way.push({ x: w * far, y: p.y - MAP.seg * 0.33 }); way.push({ x: w * near, y: p.y - MAP.seg * 0.66 }); }
+    else way.push({ x: w * far, y: p.y - MAP.seg * 0.45 });
+    if (c + 1 === n) { nodeAt.push(way.length); way.push(q); }
+  });
+  // sample the spline
+  const pts = [], at = []; let len = 0;
+  const P = i => way[Math.max(0, Math.min(way.length - 1, i))];
+  for (let i = 0; i < way.length - 1; i++) {
+    const p0 = P(i - 1), p1 = P(i), p2 = P(i + 1), p3 = P(i + 2);
+    for (let k = 0; k < 24; k++) {
+      const t = k / 24, t2 = t * t, t3 = t2 * t;
+      const x = 0.5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
+      const y = 0.5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
+      if (pts.length) len += Math.hypot(x - pts[pts.length - 1].x, y - pts[pts.length - 1].y);
+      if (k === 0) at[i] = len;
+      pts.push({ x, y });
     }
+  }
+  const last = way[way.length - 1]; len += Math.hypot(last.x - pts[pts.length - 1].x, last.y - pts[pts.length - 1].y); pts.push(last); at[way.length - 1] = len;
+  const lens = pts.map((q, i) => i ? undefined : 0); let acc = 0; for (let i = 1; i < pts.length; i++) { acc += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); lens[i] = acc; }
+  const atLen = L => { let i = lens.findIndex(v => v >= L); if (i < 0) i = pts.length - 1; if (i === 0) return pts[0]; const f = (L - lens[i - 1]) / Math.max(1e-6, lens[i] - lens[i - 1]); return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * f, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * f }; };
+  // stops: ten per world, spaced by road distance between its sign and the next one
+  const dots = LEVELS.map(L => { const c = L.chapter, L0 = at[nodeAt[c]], L1 = c + 1 < n ? at[nodeAt[c + 1]] : at[way.length - 1]; return atLen(L0 + (L1 - L0) * (0.13 + 0.74 * L.stage / 9)); });
+  return { w, H, nodes, finish, pts, dots };
+}
+function drawMapBg(lay) {
+  const cv = $('#mapBg'), dpr = Math.min(window.devicePixelRatio || 1, 1.5), w = lay.w;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(lay.H * dpr);
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.fillStyle = '#9fdcf8'; c.fillRect(0, 0, w, lay.H);
+  // each world's stretch of the road shows that world's own scenery (its first stage), softened
+  const k = w / W, img = {};
+  CHAPTERS.forEach((ch, i) => {
+    const L = LEVELS.find(x => x.chapter === i);
+    const y1 = lay.nodes[i].y + (i === 0 ? MAP.bottom : MAP.seg / 2), y0 = i + 1 < CHAPTERS.length ? lay.nodes[i + 1].y + MAP.seg / 2 : 0;
+    const bh = y1 - y0, kk = Math.max(k, bh / H), iw = W * kk, ih = H * kk; // cover the band, crop the rest
+    img[i] = buildBg(L, kk * dpr);
+    c.save(); c.beginPath(); c.rect(0, y0, w, bh); c.clip();
+    const align = { space: 0, park: 0.1, animal: 1, desert: 0.7, polar: 0.35 }[ch.key] ?? 0.5; // 0 = show the top of the scene, 1 = the bottom
+    c.drawImage(img[i], (w - iw) / 2, y0 + (bh - ih) * align, iw, ih);
+    c.fillStyle = 'rgba(255,255,255,.14)'; c.fillRect(0, y0, w, y1 - y0);
     c.restore();
-    // a soft label of the world number on the band
-    c.font = '800 12px "Baloo 2", "Huninn", sans-serif'; c.fillStyle = 'rgba(0,0,0,.18)'; c.textAlign = 'left'; c.fillText(String(i + 1).padStart(2, '0'), 10, mid + 4);
+    if (i + 1 < CHAPTERS.length) { const g = c.createLinearGradient(0, y0 - 14, 0, y0 + 26); g.addColorStop(0, 'rgba(40,25,5,0)'); g.addColorStop(0.5, 'rgba(40,25,5,.28)'); g.addColorStop(1, 'rgba(40,25,5,0)'); c.fillStyle = g; c.fillRect(0, y0 - 14, w, 40); }
   });
   // Earth at the finish
-  const f = lay.finish; circ(c, f.x, f.y + 36, 22, '#2f7dd6'); ell(c, f.x - 6, f.y + 32, 7, 5, '#5aa56e'); ell(c, f.x + 7, f.y + 44, 6, 4, '#5aa56e'); circ(c, f.x, f.y + 36, 25, 'rgba(120,200,255,.25)');
-  // the path: brown outline, cream dashes
-  const path = () => { c.beginPath(); lay.segs.forEach(([p0, p1, p2, p3], i) => { if (i === 0) c.moveTo(p0.x, p0.y); c.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y); }); };
+  const f = lay.finish; circ(c, f.x, f.y + 34, 26, 'rgba(120,200,255,.35)'); circ(c, f.x, f.y + 34, 22, '#2f7dd6'); ell(c, f.x - 6, f.y + 30, 7, 5, '#5aa56e'); ell(c, f.x + 7, f.y + 42, 6, 4, '#5aa56e');
+  // the road
+  const road = () => { c.beginPath(); lay.pts.forEach((q, i) => i ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y)); };
   c.lineCap = 'round'; c.lineJoin = 'round';
-  path(); c.strokeStyle = 'rgba(60,35,10,.35)'; c.lineWidth = 16; c.stroke();
-  path(); c.strokeStyle = '#fff6dc'; c.lineWidth = 10; c.stroke();
-  path(); c.strokeStyle = '#c9a96a'; c.lineWidth = 4; c.setLineDash([2, 12]); c.stroke(); c.setLineDash([]);
+  road(); c.strokeStyle = 'rgba(60,35,10,.32)'; c.lineWidth = 24; c.stroke();
+  road(); c.strokeStyle = '#e9d7ad'; c.lineWidth = 16; c.stroke();
+  road(); c.strokeStyle = '#fff6dc'; c.lineWidth = 11; c.stroke();
+  road(); c.strokeStyle = 'rgba(138,90,43,.55)'; c.lineWidth = 2; c.setLineDash([5, 11]); c.stroke(); c.setLineDash([]);
 }
 function buildCards() {
   const box = $('#levels'), map = $('#map'), w = map.clientWidth || 360, lay = mapLayout(w);
@@ -1446,7 +1450,7 @@ function buildCards() {
   CHAPTERS.forEach((ch, c) => {
     const idx = LEVELS.map((L, i) => i).filter(i => LEVELS[i].chapter === c);
     const done = idx.filter(clearedOf).length, stars = idx.reduce((a, i) => a + starsOf(i), 0), p = lay.nodes[c];
-    const btn = document.createElement('button'); btn.className = 'lv' + (done === idx.length ? ' cleared' : '') + (p.x > w / 2 ? ' flip' : ''); btn.type = 'button';
+    const btn = document.createElement('button'); btn.className = 'lv' + (done === idx.length ? ' cleared' : ''); btn.type = 'button';
     btn.style.left = p.x + 'px'; btn.style.top = p.y + 'px';
     btn.setAttribute('aria-label', `${U('worldK', c + 1, tr(ch.style))} ${tr(ch.name)}`);
     btn.innerHTML = `<span class="medal"><canvas width="84" height="112" aria-hidden="true"></canvas></span><span class="sign">
@@ -1455,6 +1459,9 @@ function buildCards() {
       <span class="prog">${U('worldProg', done, idx.length, stars, idx.length * 3)}</span></span>`;
     btn.onclick = () => { saveNick(); openChapter(c); };
     box.appendChild(btn);
+    // the road arrives from the inner side, so the sign sits on the outer side, nudged in if it would leave the map
+    const sign = btn.querySelector('.sign'), sw = sign.offsetWidth;
+    if (p.x < w / 2) sign.style.right = -Math.max(0, 8 - (p.x + 40 - sw)) + 'px'; else sign.style.left = -Math.max(0, (p.x - 40 + sw) - (w - 8)) + 'px';
   });
   // the small stops: one per stage, along the path
   LEVELS.forEach((L, i) => {
@@ -1464,9 +1471,9 @@ function buildCards() {
     st.setAttribute('aria-label', `${stageLabel(L)} ${tr(L.title)}`); st.title = `${stageLabel(L)} ${tr(L.title)}`;
     st.onclick = () => { saveNick(); if (unlocked(L)) startLevel(i); else showLock(L); };
     box.appendChild(st);
-    if (i === n) { const h = document.createElement('span'); h.className = 'here'; h.textContent = U('mapHere'); h.style.left = d.x + 'px'; h.style.top = d.y + 'px'; box.appendChild(h); }
+    if (i === n) { const h = document.createElement('canvas'); h.className = 'here'; h.setAttribute('aria-label', U('mapHere')); h.style.left = d.x + 'px'; h.style.top = d.y + 'px'; box.appendChild(h); drawHen(h, 52); }
   });
-  for (const [cls, pt, txt] of [['mapmark', { x: lay.nodes[0].x, y: lay.nodes[0].y + 70 }, U('mapStart')], ['mapmark', { x: lay.finish.x, y: lay.finish.y - 4 }, U('mapFinish')]]) {
+  for (const [cls, pt, txt] of [['mapmark', { x: lay.nodes[0].x, y: lay.nodes[0].y + 112 }, U('mapStart')], ['mapmark', { x: lay.finish.x, y: lay.finish.y - 4 }, U('mapFinish')]]) {
     const m = document.createElement('span'); m.className = cls; m.style.left = pt.x + 'px'; m.style.top = pt.y + 'px'; m.textContent = txt; box.appendChild(m);
   }
   $('#startBtn').textContent = clearedOf(0) ? U('cont', stageLabel(LEVELS[n])) : U('start');
