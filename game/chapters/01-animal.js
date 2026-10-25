@@ -602,13 +602,16 @@ function bgHoney(c) {
   c.fillStyle = '#6aa7d8'; [[264, 160], [300, 160]].forEach(([x, y]) => { c.fillRect(x, y, 5, 9); c.fillRect(x + 9, y, 5, 9); });
   c.fillStyle = '#c9925a'; c.fillRect(283, 168, 9, 16);
   c.fillStyle = '#8fbf5a'; c.fillRect(0, 182, W, H - 182);
-  for (let i = -9; i <= 9; i++) { // lavender rows: little mounds that grow towards us
+  for (let i = -9; i <= 9; i++) { // lavender rows: a soft band with flower spikes that grow towards us
     const tx = 180 + i * 6, bx = 180 + i * 46;
-    poly(c, [tx - 1.2, 186, tx + 1.2, 186, bx + 13, H, bx - 13, H], '#8a6cc2');
-    for (let k = 0; k < 22; k++) {
-      const u = k / 21, e = u * u, y = 186 + (H - 186) * e, x = tx + (bx - tx) * e, r = 1.5 + e * 15;
-      ell(c, x, y - r * 0.3, r, r * 0.7, '#9b7bd0'); ell(c, x - r * 0.25, y - r * 0.6, r * 0.5, r * 0.3, '#b89ae8');
-      if (k > 8 && k % 2) for (let j = -1; j <= 1; j++) circ(c, x + j * r * 0.5, y - r * 0.85 - Math.abs(j) * -r * 0.15, 0.6 + e * 1.4, '#d4c0f7');
+    poly(c, [tx - 1.4, 186, tx + 1.4, 186, bx + 16, H, bx - 16, H], '#8a6cc2');
+    for (let k = 0; k < 26; k++) {
+      const u = k / 25, e = u * u, y = 188 + (H - 188) * e, x = tx + (bx - tx) * e, hw = 1.4 + e * 15, sh = 2 + e * 14;
+      for (let j = -2; j <= 2; j++) {
+        const sx = x + j * hw * 0.42, sy = y - Math.abs(j) * e * 2;
+        seg(c, [sx, sy, sx + j * 0.4, sy - sh], j % 2 ? '#a585dc' : '#9474cc', 0.8 + e * 2.2);
+        circ(c, sx + j * 0.4, sy - sh, 0.5 + e * 1.6, '#c9b2f4');
+      }
     }
   }
   ell(c, 180, 368, 140, 9, 'rgba(60,40,80,.2)');
@@ -824,7 +827,7 @@ function bgWetland(c) {
 function flapWing(c, x0, x1, tx, ty, col) { c.beginPath(); c.moveTo(x0, -1); c.quadraticCurveTo(x0 - 2, ty * 0.6, tx, ty); c.quadraticCurveTo(x1 + 2, ty * 0.45, x1, -1); c.closePath(); c.fillStyle = col; c.fill(); c.strokeStyle = 'rgba(60,70,90,.18)'; c.lineWidth = 1; c.stroke(); }
 function drawSpoonbill(c, a) {
   const f = Math.sin(a.t * 5) * a.live;
-  flapWing(c, -14, 8, -2, -12 - 12 * f, '#dcdcd2');
+  flapWing(c, -12, 10, -2, -15 - 10 * f, '#dcdcd2');
   seg(c, [-26, 3, -48, 5], '#2b2b2b', 2); seg(c, [-26, 5, -46, 8], '#2b2b2b', 2);
   poly(c, [-26, -3, -36, 0, -26, 4], '#f0f0e8');
   ell(c, -6, 0, 24, 9, '#fbfbf6');
@@ -834,18 +837,18 @@ function drawSpoonbill(c, a) {
   seg(c, [41, -3, 55, -1], '#2b2b2b', 3.2); ell(c, 56, -1, 4, 3, '#2b2b2b');
   circ(c, 36.5, -5, 1.3, '#fff');
   blush(c, 33, 0, 2.6, 1.6);
-  flapWing(c, -12, 10, -10, -18 - 10 * f, '#fbfbf6'); seg(c, [-10, -18 - 10 * f, -4, -12 - 6 * f], '#2b2b2b', 1.2);
+  flapWing(c, -18, 12, -16, -21 - 7 * f, '#fbfbf6');
 }
 function drawEgret(c, a) {
   const f = Math.sin(a.t * 5 + 1.6) * a.live;
-  flapWing(c, -14, 6, -4, -12 - 11 * f, '#dcdcd2');
+  flapWing(c, -12, 8, -4, -14 - 10 * f, '#dcdcd2');
   seg(c, [-20, 2, -44, 4], '#2b2b2b', 2); ell(c, -46, 4, 3.5, 1.8, '#f2c230');
   ell(c, -4, 0, 20, 8, '#fbfbf6');
   c.beginPath(); c.moveTo(12, -2); c.quadraticCurveTo(22, -16, 26, -6); stroke(c, '#fbfbf6', 6);
   ell(c, 28, -7, 6.5, 5, '#fbfbf6');
   seg(c, [32, -7, 50, -5], '#2b2b2b', 2.4);
   circ(c, 30, -8, 2, '#f2d84a'); circ(c, 30, -8, 1.1, '#111');
-  flapWing(c, -12, 8, -12, -17 - 10 * f, '#fbfbf6');
+  flapWing(c, -16, 10, -16, -20 - 8 * f, '#fbfbf6');
 }
 function drawSwallow(c, a, flip) {
   const hop = Math.abs(Math.sin(a.t * 4)) * 1.5 * a.live;

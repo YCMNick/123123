@@ -431,8 +431,8 @@ function bgArizona(c) {
 }
 function drawParkSign(c) {
   c.fillStyle = '#6b4a2b'; c.fillRect(-46, 0, 7, 40); c.fillRect(39, 0, 7, 40);
-  rr(c, -58, -38, 116, 44, 4); c.fillStyle = '#6a4630'; c.fill(); c.strokeStyle = '#f3e3c3'; c.lineWidth = 1.6; rr(c, -54, -34, 108, 36, 3); c.stroke();
-  txt(c, T('巨人柱國家公園', "SAGUARO NAT'L PARK"), 0, -21, T(`700 13px "Noto Serif TC", serif`, `700 11px ${SERIF}`), '#f3e3c3');
+  rr(c, -62, -38, 124, 44, 4); c.fillStyle = '#6a4630'; c.fill(); c.strokeStyle = '#f3e3c3'; c.lineWidth = 1.6; rr(c, -58, -34, 116, 36, 3); c.stroke();
+  txt(c, T('巨人柱國家公園', "SAGUARO NAT'L PARK"), 0, -21, T(`700 13px "Noto Serif TC", serif`, `700 10px ${SERIF}`), '#f3e3c3');
   txt(c, T('亞利桑那州 · 土桑', 'TUCSON · ARIZONA'), 0, -7, T(`500 9px "Noto Sans TC", sans-serif`, `700 8px ${SERIF}`), '#f1c27f');
 }
 function drawSaguaro(c) {
@@ -964,7 +964,7 @@ defineChapter({
       objects: [
       { id: 'woodpecker', name: { zh: '吉拉啄木鳥', en: 'Gila woodpecker' }, x: 46, y: 214, w: 56, h: 34, trap: true, keep: -80, draw: drawWoodpecker,
         trapNote: { zh: '啄木鳥本來就是直直攀在樹幹上，靠硬尾羽撐住！', en: 'Woodpeckers really do cling upright to trunks, propped on their stiff tails!' } },
-      { id: 'sign', name: { zh: '公園路牌', en: 'Park sign' }, x: 172, y: 212, w: 118, h: 80, near: true, draw: drawParkSign, sfx: 'wood' },
+      { id: 'sign', name: { zh: '公園路牌', en: 'Park sign' }, x: 172, y: 212, w: 126, h: 80, near: true, draw: drawParkSign, sfx: 'wood' },
       { id: 'saguaro', name: { zh: '巨人柱', en: 'Saguaro' }, x: 300, y: 238, w: 76, h: 170, mag: 6, draw: drawSaguaro, sfx: 'boing' },
       { id: 'roadrunner', name: { zh: '走鵑', en: 'Roadrunner' }, x: 152, y: 316, w: 96, h: 62, mag: 12, draw: drawRoadrunner, habit: (t, l) => ({ dx: Math.sin(t * 2.6) * 5 * l }), call: 'desert_roadrunner' },
       { id: 'gateL', name: { zh: '左柵門', en: 'Left gate' }, x: 98, y: 420, w: 72, h: 46, mag: 11, draw: drawGateL, sfx: 'wood', link: { to: 'gateR', k: 0.6 } },
