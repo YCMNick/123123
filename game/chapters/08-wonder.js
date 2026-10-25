@@ -944,7 +944,7 @@ function drawPukao(c) {
   c.fillStyle = 'rgba(255,200,130,.6)'; c.fillRect(19, -8, 2.4, 19);
 }
 function drawHorse(c) {
-  c.save(); c.scale(-1, 1);
+  c.save(); c.translate(0, -11); c.scale(-1, 1);
   const coat = lin(c, 0, -20, 0, 18, 0, '#9a6038', 1, '#5e3a22');
   c.fillStyle = '#3a2a20'; c.beginPath(); c.moveTo(-38, -10); c.quadraticCurveTo(-50, 6, -44, 24); c.lineTo(-40, 24); c.quadraticCurveTo(-42, 8, -34, -6); c.closePath(); c.fill();
   [[-28, 0.9], [-18, 1], [14, 0.9], [24, 1]].forEach(([x, d]) => { c.fillStyle = d < 1 ? '#5a3820' : '#6e4428'; c.fillRect(x - 3, 6, 6, 32); c.fillStyle = '#2a1e16'; c.fillRect(x - 3.4, 36, 6.8, 5); });
@@ -1381,7 +1381,7 @@ defineChapter({
       { id: 'moai2', name: { zh: '戴帽摩艾', en: 'Hatted moai' }, x: 165, y: 245, w: 70, h: 160, mag: 6, link: { to: 'pukao', k: 0.8 }, draw: sprite('moai-2', 70, 160, c => moaiShape(c, 70, 160)), sfx: 'wonder_stone' },
       { id: 'sign', name: { zh: '國家公園牌', en: 'Park sign' }, x: 85, y: 420, w: 140, h: 56, near: true, draw: sprite('moai-sign', 140, 56, drawRapaSign), sfx: 'wood' },
       { id: 'tripod', name: { zh: '三腳架相機', en: 'Tripod camera' }, x: 196, y: 404, w: 56, h: 108, mag: 7, draw: sprite('moai-tripod', 56, 108, drawTripod), sfx: 'wonder_shutter' },
-      { id: 'horse', name: { zh: '野馬', en: 'Wild horse' }, x: 288, y: 398, w: 120, h: 90, mag: 11, draw: sprite('moai-horse', 120, 90, drawHorse), habit: (t, l) => ({ dy: Math.max(0, Math.sin(t * 1.6)) * 2.5 * l }), call: 'wonder_horse' }
+      { id: 'horse', name: { zh: '野馬', en: 'Wild horse' }, x: 288, y: 409, w: 120, h: 66, mag: 11, draw: sprite('moai-horse', 120, 66, drawHorse), habit: (t, l) => ({ dy: Math.max(0, Math.sin(t * 1.6)) * 2.5 * l }), call: 'wonder_horse' }
       ] },
     { key: 'wonder-angkor', title: { zh: '吳哥窟', en: 'Angkor Wat' }, place: { zh: '柬埔寨 暹粒', en: 'Siem Reap, Cambodia' },
       intro: { zh: '日出時，吳哥窟的五座塔倒映在池塘裡。兩張明信片夾在同一條線上。', en: "At sunrise, Angkor Wat's five towers sit mirrored in the pond. Two postcards share one string." },
