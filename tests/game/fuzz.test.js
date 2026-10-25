@@ -22,7 +22,7 @@ async function checkInvariants(page, label) {
   const s = await state(page)
   const problems = []
   if (!Number.isFinite(s.timeLeft) || s.timeLeft < 0) problems.push(`timeLeft ${s.timeLeft}`)
-  if (s.screen === 'game' && !/^\d+(\.\d)?$/.test(s.timerText)) problems.push(`timer text "${s.timerText}"`)
+  if (s.screen === 'game' && !(s.zen ? s.timerText === '∞' : /^\d+(\.\d)?$/.test(s.timerText))) problems.push(`timer text "${s.timerText}"`)
   for (const o of s.objs) if (!Number.isFinite(o.angle) || o.angle <= -180 - 1e-9 || o.angle > 180 + 1e-9) problems.push(`${o.id} angle ${o.angle}`)
   const open = Object.entries(s.overlays).filter(([, v]) => v).map(([k]) => k)
   if (open.length > 1) problems.push(`overlays ${open.join('+')}`)

@@ -466,6 +466,7 @@ function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0
 function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 
 /* ---------- storage (per-viewer convenience only) ---------- */
+let saveHook = () => {}; // the account module hooks in here to sync a save to the cloud
 const store = {
   data: { nick: '', best: {}, sound: true, music: true, lang: '' },
   load() {
@@ -482,7 +483,7 @@ const store = {
       this.save();
     } catch (e) {}
   },
-  save() { this.data.updatedAt = Date.now(); try { localStorage.setItem('chayidu.v3', JSON.stringify(this.data)); } catch (e) {} if (typeof ACC !== 'undefined') ACC.changed(); }
+  save() { this.data.updatedAt = Date.now(); try { localStorage.setItem('chayidu.v3', JSON.stringify(this.data)); } catch (e) {} saveHook(); }
 };
 
 /* ---------- Q sound library: every sound in the game uses this cute recipe ----------
@@ -1346,6 +1347,7 @@ const ACC = {
     if (u) $('#accWho').textContent = U('accSignedIn', u.displayName || u.email || u.uid.slice(0, 8));
   },
 };
+saveHook = () => ACC.changed();
 $('#accApple').onclick = () => ACC.provider('apple');
 $('#accGoogle').onclick = () => ACC.provider('google');
 $('#accEmailBtn').onclick = () => { const f = $('#accEmailForm'); f.hidden = !f.hidden; if (!f.hidden) $('#accEmail').focus(); };
