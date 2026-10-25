@@ -108,6 +108,12 @@ function heart(c, x, y, s, fill) {
   c.bezierCurveTo(x + s * 0.6, y - s * 1.1, x + s * 1.4, y - s * 0.1, x, y + s * 0.9);
   c.fillStyle = fill; c.fill();
 }
+// Text that must fit its label even before the web font is ready.
+function fit(c, s, x, y, maxW, font, col, align = 'center') {
+  c.font = font; const w = c.measureText(s).width;
+  if (w <= maxW) return txt(c, s, x, y, font, col, align);
+  c.save(); c.translate(x, y); c.scale(maxW / w, 1); txt(c, s, 0, 0, font, col, align); c.restore();
+}
 const hand = (px, wt = 700) => `${wt} ${px}px Caveat, "Noto Sans TC", cursive`;
 const sans = (px, wt = 700) => `${wt} ${px}px "Noto Sans TC", sans-serif`;
 const RED = 'rgba(214,72,60,.8)', BLUE = 'rgba(64,110,170,.7)', SUN = 'rgba(255,214,90,.85)', LEAF = 'rgba(110,165,100,.65)', WOOD = 'rgba(190,140,85,.6)';
@@ -185,7 +191,7 @@ function drawSpices(c) {
     c.fillStyle = fill; c.fillRect(x - 11, 16 - h * 0.62, 22, h * 0.62 - 3);
     skR(c, x - 15, 16 - h, 30, 8, 2, lid, 1.2, 0.85);
     skR(c, x - 12, 9 - h * 0.45, 24, 13, 1, '#fffdf8', 0.8, 0.6);
-    txt(c, label, x, 15.5 - h * 0.45, hand(11), INK(0.85));
+    fit(c, label, x, 15.5 - h * 0.45, 21, hand(11), INK(0.85));
   }
   skR(c, -64, 16, 128, 8, 2, 'rgba(170,120,70,.65)', 1.3, 0.85);
   skP(c, [-50, 24, -42, 24, -50, 28], 'rgba(170,120,70,.65)', 0.9, 0.7); skP(c, [50, 24, 42, 24, 50, 28], 'rgba(170,120,70,.65)', 0.9, 0.7);
@@ -238,8 +244,8 @@ function bgBath(c) {
   for (let r = 0; r < 7; r++) for (let k = 0; k < 8; k++) c.fillRect(k * 48 + 6, r * 48 + 6, 12, 2);
   for (let r = 0; r < 7; r++) for (let k = 0; k < 8; k++) if ((r * 3 + k) % 4 === 0) hatch(c, k * 48 + 26, r * 48 + 26, 18, 18, 4, 0.08);
   // the empty slot behind the patterned tile
-  c.fillStyle = 'rgba(150,135,110,.45)'; c.fillRect(144, 240, 48, 48);
-  for (let i = 0; i < 7; i++) pencilLine(c, 147, 245 + i * 6.5, 189, 245 + i * 6.5, 0.6, 0.3);
+  c.fillStyle = 'rgba(150,135,110,.45)'; c.fillRect(192, 240, 48, 48);
+  for (let i = 0; i < 7; i++) pencilLine(c, 195, 245 + i * 6.5, 237, 245 + i * 6.5, 0.6, 0.3);
   for (let x = 0; x <= W; x += 48) pencilLine(c, x, 0, x, 336, 0.8, 0.45);
   for (let y = 0; y <= 336; y += 48) pencilLine(c, 0, y, W, y, 0.8, 0.45);
   // floor
@@ -344,7 +350,13 @@ function bgWardrobe(c) {
   // middle shelf and drawers
   c.fillStyle = 'rgba(80,50,20,.07)'; c.fillRect(22, 292, 316, 8);
   skR(c, 22, 300, 316, 12, 1, 'rgba(190,140,85,.7)', 1.3, 0.9);
-  for (const y of [322, 398]) { skR(c, 32, y, 296, 70, 3, 'rgba(215,180,130,.6)', 1.3, 0.85); skR(c, 160, y + 31, 40, 8, 4, 'rgba(160,160,170,.85)', 1, 0.8); hatch(c, 34, y + 56, 292, 12, 4, 0.1); }
+  sk(c, p => { p.moveTo(232, 326); p.quadraticCurveTo(236, 306, 246, 314); p.lineTo(252, 318); p.quadraticCurveTo(246, 324, 244, 330); p.closePath(); }, 1, 0.8, 'rgba(255,214,90,.9)');
+  ln(c, p => { p.moveTo(238, 314); p.lineTo(244, 318); }, 1.6, 'rgba(214,72,60,.7)');
+  [[322, T('襪子', 'Socks')], [398, T('冬衣', 'Winter')]].forEach(([y, label]) => {
+    skR(c, 32, y, 296, 70, 3, 'rgba(215,180,130,.6)', 1.3, 0.85); skR(c, 160, y + 31, 40, 8, 4, 'rgba(160,160,170,.85)', 1, 0.8); hatch(c, 34, y + 56, 292, 12, 4, 0.1);
+    skR(c, 162, y + 10, 36, 14, 1, 'rgba(200,200,208,.9)', 0.9, 0.7); c.fillStyle = '#fffdf6'; c.fillRect(165, y + 12.5, 30, 9);
+    fit(c, label, 180, y + 17.5, 28, hand(10), INK(0.8));
+  });
   c.fillStyle = 'rgba(160,110,60,.45)'; c.fillRect(22, 470, 316, 10);
 }
 const SHIRT = p => { p.moveTo(-42, -52); p.lineTo(-14, -60); p.lineTo(0, -50); p.lineTo(14, -60); p.lineTo(42, -52); p.lineTo(36, 70); p.quadraticCurveTo(0, 80, -36, 70); p.closePath(); };
@@ -396,7 +408,7 @@ function drawSleepyCat(c, a) {
   skE(c, -32, 2, 16, 13, G, 1.3, 0.85);
   ln(c, p => { p.moveTo(-41, 0); p.quadraticCurveTo(-38, 3, -35, 0); p.moveTo(-29, 0); p.quadraticCurveTo(-26, 3, -23, 0); }, 1.1, INK(0.8));
   ell(c, -32, 6, 2, 1.4, 'rgba(240,130,140,.9)');
-  ln(c, p => { p.moveTo(48, 12); p.quadraticCurveTo(30, 26, -10, 19); }, 7, G);
+  ln(c, p => { p.moveTo(48, 12); p.quadraticCurveTo(30, 26, -10, 19); }, 7, 'rgba(130,130,142,.85)');
   sk(c, p => { p.moveTo(48, 12); p.quadraticCurveTo(30, 26, -10, 19); }, 0.8, 0.5);
   skE(c, -16, 15, 7, 4, '#eeeef2', 1, 0.7);
   if (a.live > 0.05) {
@@ -457,7 +469,7 @@ function drawPolaroid(c) {
   ell(c, -14, -22, 8, 3, 'rgba(255,255,255,.9)');
   for (const [x, col] of [[-10, RED], [2, BLUE]]) { circ(c, x, 2, 3.2, 'rgba(250,215,180,1)'); ln(c, p => { p.moveTo(x, 5); p.lineTo(x, 13); p.moveTo(x - 4, 8); p.lineTo(x + 4, 8); p.moveTo(x, 13); p.lineTo(x - 3, 19); p.moveTo(x, 13); p.lineTo(x + 3, 19); }, 1.6, col); }
   c.restore(); pencilRect(c, -29, -32, 58, 54, 1, 0.7);
-  txt(c, T('墾丁！', 'Beach day!'), 0, 32, hand(13), INK(0.8));
+  fit(c, T('墾丁！', 'Beach day!'), 0, 32, 62, hand(13), INK(0.8));
   skE(c, 0, -37, 5, 4.5, 'rgba(214,72,60,.9)', 1, 0.8);
 }
 function drawKidArt(c) {
@@ -471,16 +483,16 @@ function drawKidArt(c) {
   const fig = (x, top, h, col) => cr(col, 2, p => { p.arc(x, top + 4, 4, 0, Math.PI * 2); p.moveTo(x, top + 8); p.lineTo(x, top + h * 0.7); p.moveTo(x - 6, top + 13); p.lineTo(x + 6, top + 13); p.moveTo(x, top + h * 0.7); p.lineTo(x - 4, top + h); p.moveTo(x, top + h * 0.7); p.lineTo(x + 4, top + h); });
   fig(26, -4, 30, 'rgba(64,110,170,.85)'); fig(38, -2, 28, 'rgba(214,72,60,.85)'); fig(48, 8, 18, 'rgba(160,80,200,.8)');
   cr('rgba(90,170,90,.85)', 2, p => { p.moveTo(-52, 32); for (let x = -48; x <= 52; x += 6) p.lineTo(x, x % 12 ? 36 : 29); });
-  txt(c, T('我的家', 'MY HOME'), 24, -32, hand(14), 'rgba(160,80,200,.85)');
+  fit(c, T('我的家', 'MY HOME'), 27, -32, 52, hand(14), 'rgba(160,80,200,.85)');
   heart(c, 0, -42, 5, 'rgba(240,120,150,.95)');
 }
 function drawWhiteboard(c) {
   skR(c, -52, -56, 104, 104, 5, 'rgba(205,210,215,.9)', 1.4, 0.9);
   skR(c, -46, -50, 92, 92, 3, '#ffffff', 1, 0.6);
-  txt(c, T('待辦事項', 'TO DO'), 0, -38, hand(16), 'rgba(64,110,170,.95)');
+  fit(c, T('待辦事項', 'TO DO'), 0, -38, 80, hand(16), 'rgba(64,110,170,.95)');
   ln(c, p => { p.moveTo(-24, -28); p.lineTo(24, -28); }, 1.2, 'rgba(64,110,170,.6)');
   [T('倒垃圾', 'Trash out'), T('買貓砂', 'Cat litter'), T('繳電費', 'Pay bills')].forEach((s, i) => {
-    const y = -14 + i * 18; pencilRect(c, -40, y - 5, 10, 10, 1, 0.7); txt(c, s, -24, y, hand(13), INK(0.8), 'left');
+    const y = -14 + i * 18; pencilRect(c, -40, y - 5, 10, 10, 1, 0.7); fit(c, s, -24, y, 66, hand(13), INK(0.8), 'left');
   });
   ln(c, p => { p.moveTo(-39, -15); p.lineTo(-35, -10); p.lineTo(-28, -21); }, 1.6, 'rgba(214,72,60,.95)');
   skR(c, -40, 48, 80, 6, 2, 'rgba(190,195,200,.95)', 1, 0.8);
@@ -498,7 +510,7 @@ function drawList(c) {
   c.fillStyle = 'rgba(255,214,90,.85)'; c.fillRect(-38, -40, 76, 9); pencilLine(c, -38, -31, 38, -31, 1, 0.6);
   ln(c, p => { for (const y of [-12, 2, 16, 30]) { p.moveTo(-34, y); p.lineTo(34, y); } }, 0.7, 'rgba(110,160,210,.5)');
   [T('牛奶', 'Milk'), T('雞蛋', 'Eggs'), T('吐司', 'Bread'), T('貓罐頭', 'Cat food')].forEach((s, i) => {
-    const y = -18 + i * 14; ln(c, p => p.arc(-28, y, 3, 0, Math.PI * 2), 0.9, INK(0.6)); txt(c, s, -20, y, hand(13), INK(0.85), 'left');
+    const y = -18 + i * 14; ln(c, p => p.arc(-28, y, 3, 0, Math.PI * 2), 0.9, INK(0.6)); fit(c, s, -20, y, 54, hand(13), INK(0.85), 'left');
   });
   heart(c, 28, 39, 3.5, 'rgba(240,120,150,.8)');
   skE(c, 0, -42, 6, 4.5, 'rgba(120,170,110,.95)', 1, 0.8);
@@ -527,6 +539,7 @@ function bgBedroom(c) {
   skE(c, 316, 466, 30, 6, 'rgba(120,165,215,.35)', 1, 0.5);
   sk(c, p => { p.moveTo(18, 330); p.lineTo(18, 270); p.quadraticCurveTo(18, 250, 40, 250); p.lineTo(246, 250); p.quadraticCurveTo(268, 250, 268, 270); p.lineTo(268, 330); p.closePath(); }, 1.5, 0.9, 'rgba(170,120,70,.5)');
   for (let x = 48; x < 250; x += 24) pencilLine(c, x, 262, x, 326, 0.8, 0.35);
+  c.fillStyle = PAPER; rr(c, 6, 318, 276, 170, 10); c.fill();
   sk(c, p => rr(p, 6, 318, 276, 170, 10), 1.5, 0.9, 'rgba(120,165,215,.35)');
   c.strokeStyle = 'rgba(64,110,170,.2)'; c.lineWidth = 0.9; c.beginPath();
   for (let x = 40; x < 280; x += 34) { c.moveTo(x, 360); c.lineTo(x, 480); }
@@ -642,7 +655,7 @@ function bgMarket(c) {
     skR(c, 14, y, 332, 16, 1, 'rgba(228,230,234,.97)', 1.3, 0.9);
     c.fillStyle = 'rgba(255,236,150,.85)'; c.fillRect(16, y + 3, 328, 10);
   }
-  for (const [x, y, p] of [[30, 160, '$59'], [106, 160, '$25'], [290, 160, '$35'], [176, 300, '$29'], [40, 440, '$199'], [150, 440, '$20'], [270, 440, '$89']]) {
+  for (const [x, y, p] of [[30, 160, '$59'], [106, 160, '$25'], [236, 160, '$35'], [176, 300, '$29'], [40, 440, '$199'], [150, 440, '$20'], [270, 440, '$89']]) {
     c.fillStyle = '#fffdf8'; c.fillRect(x, y + 4, 30, 8); txt(c, p, x + 15, y + 8.5, '700 7px "JetBrains Mono", monospace', 'rgba(214,72,60,.95)');
   }
   // tape between the two milk cartons
@@ -681,7 +694,7 @@ function drawWobbler(c, a) {
   sk(c, p => { p.moveTo(0, 32); p.quadraticCurveTo(b + 4, 22, b * 0.6, 10); }, 0.6, 0.4);
   const x = b * 0.6;
   skE(c, x - 24, -10, 5, 8, 'rgba(255,200,70,.95)', 0.9, 0.7, 0.4); skE(c, x + 24, -10, 5, 8, 'rgba(255,200,70,.95)', 0.9, 0.7, -0.4);
-  skE(c, x, -14, 25, 25, SUN, 1.4, 0.9);
+  skE(c, x, -14, 25, 25, '#ffd85e', 1.4, 0.9);
   ln(c, p => { p.moveTo(x - 2, -38); p.lineTo(x - 4, -42); p.moveTo(x + 2, -38); p.lineTo(x + 4, -42); }, 1.2, INK(0.7));
   circ(c, x - 8, -20, 2.6, INK(0.9)); circ(c, x + 8, -20, 2.6, INK(0.9)); circ(c, x - 7, -21, 0.9, '#fff'); circ(c, x + 9, -21, 0.9, '#fff');
   poly(c, [x - 4, -15, x + 4, -15, x, -10], 'rgba(240,140,60,1)');
@@ -719,7 +732,7 @@ function bgOffice(c) {
   c.fillStyle = 'rgba(170,190,210,.15)'; c.fillRect(0, 0, W, 324);
   // whiteboard with a rising bar chart
   skR(c, 172, 20, 174, 132, 3, 'rgba(205,210,215,.92)', 1.4, 0.9); skR(c, 178, 26, 162, 120, 2, '#ffffff', 1, 0.6);
-  txt(c, T('本季業績', 'SALES'), 186, 38, hand(15), 'rgba(64,110,170,.95)', 'left');
+  fit(c, T('本季業績', 'SALES'), 186, 38, 70, hand(15), 'rgba(64,110,170,.95)', 'left');
   pencilLine(c, 196, 140, 334, 140, 1.1, 0.8); pencilLine(c, 196, 140, 196, 52, 1.1, 0.8);
   [[205, 126, BLUE], [235, 113, LEAF], [265, 100, SUN], [295, 86, RED]].forEach(([x, top, col]) => skR(c, x, top, 18, 140 - top, 1, col, 1, 0.7));
   skR(c, 196, 152, 130, 5, 2, 'rgba(190,195,200,.95)', 1, 0.8);
@@ -839,9 +852,9 @@ function bgClass(c) {
   skR(c, 21, 67, 240, 168, 1, 'rgba(58,92,78,.93)', 1, 0.6);
   for (const [x, y, rx] of [[70, 150, 40], [200, 210, 50], [140, 100, 30]]) ell(c, x, y, rx, rx * 0.4, 'rgba(255,255,255,.05)');
   const ch = 'rgba(255,255,255,.82)';
-  txt(c, T('直角 = 90°', 'Right angle = 90°'), 104, 176, hand(T(17, 16)), ch);
+  fit(c, T('直角 = 90°', 'Right angle = 90°'), 104, 176, 120, hand(T(17, 16)), ch);
   ln(c, p => { p.moveTo(36, 184); p.lineTo(36, 204); p.lineTo(56, 204); p.moveTo(36, 198); p.lineTo(42, 198); p.lineTo(42, 204); }, 1.4, ch);
-  txt(c, T('10/25（日）', 'Sun 10/25'), 222, 222, hand(14), ch);
+  fit(c, T('10/25（日）', 'Sun 10/25'), 222, 222, 72, hand(14), ch);
   // garland with phonetic cards
   sk(c, p => { p.moveTo(24, 72); p.quadraticCurveTo(80, 82, 150, 85); p.quadraticCurveTo(206, 86, 258, 72); }, 1, 0.7);
   skR(c, 196, 88, 40, 44, 3, '#fffdf8', 1.2, 0.8); c.fillStyle = 'rgba(120,170,110,.9)'; c.fillRect(196, 88, 40, 6);
@@ -960,7 +973,7 @@ function bgMoving(c) {
   skR(c, 104, 222, 152, 8, 2, '#efe6d4', 1.1, 0.8);
   // light switch and outlet
   skR(c, 266, 160, 14, 20, 2, PAPER, 1, 0.7); skR(c, 271, 165, 4, 8, 1, '#e2e2e2', 0.7, 0.5);
-  skR(c, 92, 300, 12, 14, 2, PAPER, 0.9, 0.6);
+  skR(c, 80, 300, 11, 14, 2, PAPER, 0.9, 0.6);
   // floor with sunlight
   boards(c, 328, '#e9dcc4', 18);
   for (let y = 328, r = 0; y < H; y += 18, r++) for (let x = (r % 3) * 50 + 20; x < W; x += 150) pencilLine(c, x, y, x, y + 18, 0.7, 0.25);
@@ -1002,7 +1015,7 @@ function boxBase(c, w, h) {
 }
 function drawBoxBottom(c) {
   boxBase(c, 76, 60);
-  txt(c, T('廚房', 'KITCHEN'), -4, 10, hand(T(17, 15)), INK(0.9));
+  fit(c, T('廚房', 'KITCHEN'), -4, 10, 58, hand(T(17, 15)), INK(0.9));
   ln(c, p => { for (const x of [22, 30]) { p.moveTo(x, -10); p.lineTo(x, -24); p.moveTo(x - 3, -20); p.lineTo(x, -24); p.lineTo(x + 3, -20); } }, 1.2, INK(0.75));
 }
 function drawBoxTop(c) {
@@ -1036,7 +1049,7 @@ function drawBoxCat(c, a) {
   c.restore();
   skR(c, -36, -4, 72, 46, 1, 'rgba(205,165,115,.88)', 1.4, 0.9);
   skE(c, -11, -4, 6, 4, '#fbfaf6', 1, 0.8); skE(c, 11, -4, 6, 4, '#fbfaf6', 1, 0.8);
-  txt(c, T('雜物', 'MISC'), 0, 20, hand(17), INK(0.85));
+  fit(c, T('雜物', 'MISC'), 0, 20, 60, hand(17), INK(0.85));
 }
 function drawMonstera(c) {
   ln(c, p => { for (const [x, y] of [[-14, -26], [12, -32], [-4, -40], [14, -8], [-16, -4]]) { p.moveTo(0, 12); p.quadraticCurveTo(x * 0.3, y * 0.5, x, y); } }, 1.4, 'rgba(90,140,80,.85)');
@@ -1105,7 +1118,7 @@ defineChapter({
       { id: 'mirror', name: { zh: '鏡子', en: 'Mirror' }, x: 100, y: 96, w: 116, h: 120, mag: 7, draw: drawMirror, sfx: 'shimmer' },
       { id: 'cup', name: { zh: '牙刷杯', en: 'Toothbrush cup' }, x: 58, y: 186, w: 40, h: 56, mag: 12, pad: 12, draw: drawCup, sfx: 'home_clink' },
       { id: 'towel', name: { zh: '毛巾', en: 'Towel' }, x: 286, y: 128, w: 92, h: 132, mag: 9, draw: drawTowel, sfx: 'home_fluff' },
-      { id: 'tile', name: { zh: '花磚', en: 'Patterned tile' }, x: 168, y: 264, w: 46, h: 46, near: true, pad: 10, draw: drawTile, sfx: 'home_tile' },
+      { id: 'tile', name: { zh: '花磚', en: 'Patterned tile' }, x: 216, y: 264, w: 46, h: 46, near: true, pad: 10, draw: drawTile, sfx: 'home_tile' },
       { id: 'duck', name: { zh: '小黃鴨', en: 'Rubber duck' }, x: 262, y: 306, w: 56, h: 50, mag: 14, draw: drawDuck, habit: (t, l) => ({ dx: Math.sin(t * 1.3) * 2 * l, dy: Math.sin(t * 2.6) * 1.5 * l }), call: 'home_squeak' }
       ] },
     { key: 'home-closet', title: { zh: "衣櫃", en: "The Wardrobe" }, place: { zh: "你的衣櫃", en: "Your closet" },

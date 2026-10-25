@@ -155,7 +155,7 @@ function drawPisa(c) {
 // an offscreen canvas and then only stamps that picture.
 const SPRITES = new Map();
 // The margin is lopsided because softShadow falls down and to the right.
-function sprite(id, w, h, fn, lt = 8, rb = 16) {
+function sprite(id, w, h, fn, lt = 6, rb = 14) {
   const get = k => {
     const key = id + '|' + LANG + '|' + k;
     let s = SPRITES.get(key);

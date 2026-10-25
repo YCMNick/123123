@@ -1075,7 +1075,7 @@ defineChapter({
       { id: 'mic', name: { zh: '水下麥克風', en: 'Hydrophone' }, x: 70, y: 398, w: 76, h: 110, near: true, draw: drawHydrophone, sfx: 'beep' }
       ] },
     { key: 'ocean-jelly', title: { zh: "水母燈海", en: "Jellyfish Lights" }, place: { zh: "帛琉 水母湖", en: "Jellyfish Lake, Palau" },
-      intro: { zh: "湖裡住著成千上萬隻金色水母，陽光一照，像一盞盞小燈。", en: "Millions of golden jellyfish live in this lake. In the sun they glow like little lamps." },
+      intro: { zh: "湖裡住著成千上萬隻金色水母，陽光一照，像一盞盞小燈。", en: "Countless golden jellyfish live in this lake. In the sun they glow like little lamps." },
       bg: bgJelly, overlay: ovReef, animated: true,
       objects: [
       { id: 'sign', name: { zh: '浮潛告示', en: 'Snorkel sign' }, x: 262, y: 50, w: 120, h: 72, mag: 9, draw: drawLakeSign, sfx: 'wood' },
@@ -1128,12 +1128,12 @@ defineChapter({
       { id: 'boat', name: { zh: '漁船', en: 'Fishing boat' }, x: 250, y: 168, w: 150, h: 72, mag: 7, draw: drawFishBoat, sfx: 'ocean_horn' },
       { id: 'slip', name: { zh: '船台滑道', en: 'Slipway' }, x: 82, y: 196, w: 130, h: 40, trap: true, keep: 6, draw: drawSlipway,
         trapNote: { zh: '船台滑道本來就是斜的，船才滑得進海裡', en: 'A slipway slopes on purpose, so boats can slide into the sea' } },
-      { id: 'lanternL', name: { zh: '左燈籠', en: 'Left lantern' }, x: 40, y: 288, w: 44, h: 64, mag: 13, draw: drawLantern, link: { to: 'lanternR', k: 0.6 }, sfx: 'bell' },
+      { id: 'lanternL', name: { zh: '左燈籠', en: 'Left lantern' }, x: 40, y: 288, w: 44, h: 64, mag: 10, draw: drawLantern, link: { to: 'lanternR', k: 0.6 }, sfx: 'bell' },
       { id: 'sign', name: { zh: '魚攤招牌', en: 'Stall sign' }, x: 180, y: 288, w: 150, h: 54, near: true, draw: drawMarketSign, sfx: 'wood' },
       { id: 'lanternR', name: { zh: '右燈籠', en: 'Right lantern' }, x: 320, y: 288, w: 44, h: 64, mag: 8, draw: drawLantern, sfx: 'bell' },
       { id: 'scale', name: { zh: '磅秤', en: 'Scale' }, x: 78, y: 405, w: 96, h: 100, mag: 6, draw: drawScale, sfx: 'clunk' },
       { id: 'crate', name: { zh: '漁獲箱', en: 'Fish crate' }, x: 205, y: 428, w: 120, h: 64, near: true, draw: drawCrate, sfx: 'ocean_drip' },
-      { id: 'cat', name: { zh: '橘貓', en: 'Ginger cat' }, x: 316, y: 420, w: 64, h: 84, mag: 11, draw: drawCat, call: 'ocean_cat' }
+      { id: 'cat', name: { zh: '橘貓', en: 'Ginger cat' }, x: 316, y: 420, w: 64, h: 84, mag: 9, draw: drawCat, call: 'ocean_cat' }
       ] },
     { key: 'ocean-city', title: { zh: "海底城", en: "City Under the Sea" }, place: { zh: "日本 與那國島", en: "Yonaguni, Japan" },
       intro: { zh: "海底有一片像階梯的巨大岩石，大家叫它海底遺跡。今天，海裡的朋友都搬進來了。", en: "Giant stone steps lie on the seabed here, called the underwater ruins. Today, all our sea friends have moved in." },
@@ -1142,11 +1142,11 @@ defineChapter({
       { id: 'sign', name: { zh: '城門招牌', en: 'City sign' }, x: 180, y: 58, w: 172, h: 56, near: true, draw: drawCitySign, sfx: 'twinkle' },
       { id: 'dolphin', name: { zh: '海豚', en: 'Dolphin' }, x: 300, y: 142, w: 100, h: 48, mag: 10, draw: drawCityDolphin, habit: (t, l) => ({ dx: Math.sin(t * 1.1) * 4 * l, dy: Math.sin(t * 2) * 3 * l }), call: 'ocean_dolphin' },
       { id: 'clock', name: { zh: '鐘塔', en: 'Clock tower' }, x: 62, y: 218, w: 76, h: 160, mag: 5, draw: drawClockTower, sfx: 'bell' },
-      { id: 'seaA', name: { zh: '海馬', en: 'Seahorse' }, x: 168, y: 205, w: 48, h: 84, mag: 12, draw: drawSeahorseA, habit: (t, l) => ({ dy: Math.sin(t * 1.5) * 3 * l }), link: { to: 'seaB', k: 0.7 }, call: 'ocean_seahorse' },
+      { id: 'seaA', name: { zh: '海馬', en: 'Seahorse' }, x: 168, y: 205, w: 48, h: 84, mag: 9, draw: drawSeahorseA, habit: (t, l) => ({ dy: Math.sin(t * 1.5) * 3 * l }), link: { to: 'seaB', k: 0.7 }, call: 'ocean_seahorse' },
       { id: 'seaB', name: { zh: '海馬伴侶', en: 'Seahorse partner' }, x: 216, y: 205, w: 48, h: 84, mag: 7, draw: drawSeahorseB, habit: (t, l) => ({ dy: Math.sin(t * 1.5) * 3 * l }), call: 'ocean_seahorse' },
       { id: 'turtle', name: { zh: '海龜', en: 'Sea turtle' }, x: 292, y: 272, w: 110, h: 70, near: true, draw: drawTurtle, habit: (t, l) => ({ dy: Math.sin(t * 1.3) * 3 * l }), call: 'turtle' },
-      { id: 'lamp', name: { zh: '水母路燈', en: 'Jelly streetlamp' }, x: 150, y: 400, w: 60, h: 110, mag: 9, draw: drawJellyLamp, sfx: 'shimmer' },
-      { id: 'shutL', name: { zh: '左窗板', en: 'Left shutter' }, x: 240, y: 395, w: 30, h: 62, mag: 14, draw: drawShutterL, link: { to: 'shutR', k: 0.6 }, sfx: 'wood' },
+      { id: 'lamp', name: { zh: '水母路燈', en: 'Jelly streetlamp' }, x: 150, y: 400, w: 60, h: 110, mag: 7, draw: drawJellyLamp, sfx: 'shimmer' },
+      { id: 'shutL', name: { zh: '左窗板', en: 'Left shutter' }, x: 240, y: 395, w: 30, h: 62, mag: 11, draw: drawShutterL, link: { to: 'shutR', k: 0.6 }, sfx: 'wood' },
       { id: 'shutR', name: { zh: '右窗板', en: 'Right shutter' }, x: 300, y: 395, w: 30, h: 62, mag: 6, draw: drawShutterR, sfx: 'wood' }
       ] },
   ],
