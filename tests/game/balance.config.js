@@ -9,7 +9,9 @@ export const PROFILES = {
   // Has played a few rounds.
   casual: { scan: [1, 2.5], coarse: [1, 2], fine: [1.5, 3], sigma: 0.3, polish: 0.25, polishTime: [1.5, 3], confirm: [0.3, 1], trapFooled: 0.35 },
   // Practised player chasing perfects.
-  expert: { scan: [0.5, 1.5], coarse: [0.6, 1.2], fine: [0.8, 1.8], sigma: 0.15, polish: 0.7, polishTime: [1, 2], confirm: [0.2, 0.5], trapFooled: 0.1 },
+  // When everything is aligned it goes back to polish each non-perfect object (p), while
+  // more than `keep` seconds are left.
+  expert: { scan: [0.5, 1.5], coarse: [0.6, 1.2], fine: [0.8, 1.8], sigma: 0.15, polish: 0.7, polishTime: [1, 2], confirm: [0.2, 0.5], trapFooled: 0.1, chase: { p: 0.85, keep: 4 } },
 }
 
 // Design targets, checked against the simulation metrics. A failing target

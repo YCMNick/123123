@@ -46,8 +46,8 @@ async function floorsOk(page, i, sec) {
   return true
 }
 // Smallest whole second in [lo, hi] for which pred holds (pred grows with time).
-async function search(lo, hi, pred) {
-  if (!(await pred(hi))) return hi
+async function search(lo, hi, pred, what = '') {
+  if (!(await pred(hi))) { console.warn(`WARNING: ${what} not reachable even at ${hi}s`); return hi }
   while (lo < hi) { const mid = Math.floor((lo + hi) / 2); if (await pred(mid)) hi = mid; else lo = mid + 1 }
   return lo
 }
@@ -55,12 +55,12 @@ async function search(lo, hi, pred) {
 const results = await pool(pages, worlds, async (page, c) => {
   const idx = levels.map((l, i) => i).filter((i) => levels[i].chapter === c)
   const t = idx.map((i) => times[levels[i].key] ?? levels[i].time), floor = idx.map(() => 8), r = []
-  floor[0] = await search(8, 120, (s) => floorsOk(page, idx[0], s))
+  floor[0] = await search(8, 120, (s) => floorsOk(page, idx[0], s), `${levels[idx[0]].key} floors`)
   t[0] = Math.max(t[0], floor[0]); r[0] = await casual(page, idx[0], t[0])
   const end = Math.max(0.55, r[0] - 0.25)
   for (let s = 1; s < idx.length; s++) {
     const target = r[0] - (r[0] - end) * (s / (idx.length - 1))
-    floor[s] = await search(8, 120, (x) => floorsOk(page, idx[s], x))
+    floor[s] = await search(8, 120, (x) => floorsOk(page, idx[s], x), `${levels[idx[s]].key} floors`)
     const tc = await search(8, 120, async (x) => (await rate(page, idx[s], x, 'casual', 'normal')).winRate >= target)
     t[s] = Math.max(tc, floor[s]); r[s] = await casual(page, idx[s], t[s])
   }

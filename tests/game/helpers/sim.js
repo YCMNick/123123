@@ -69,6 +69,17 @@ export function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, 
       if (!off.length) break
       for (const id of off) adjust(id)
     }
+    // Players chasing stars go back over whatever is aligned but not yet perfect.
+    if (profile.chase) {
+      for (const o of G.state().objs.filter((o) => !o.trap && o.aligned && !o.perfect)) {
+        if (!alive() || G.state().timeLeft < profile.chase.keep || rand() >= profile.chase.p) continue
+        G.advance(uni(profile.polishTime))
+        if (!alive()) break
+        G.setAngle(o.id, target[o.id] + sign() * Math.abs(gauss()) * 0.04)
+        G.release()
+        moves++
+      }
+    }
     if (alive() && G.state().doneEnabled) {
       G.advance(uni(profile.confirm))
       if (alive()) G.done()
