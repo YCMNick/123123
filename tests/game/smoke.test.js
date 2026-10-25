@@ -128,6 +128,9 @@ describe('完整流程', () => {
     await page.click('#doneBtn')
     await expect.poll(() => page.locator('#ovResult h2').textContent()).toContain('過關')
     const r = (await state(page)).lastResult
+    expect(await page.locator('#ovResult .say-h').textContent()).toBe(r.comment.headline)
+    expect(await page.locator('#ovResult .say-b').textContent()).toBe(r.comment.line)
+    expect(await page.locator('#ovResult .say-by').textContent()).toBe('— 母雞')
     await page.waitForTimeout(1100) // count-up animation
     expect(Number(await page.locator('#rTotal').textContent())).toBe(r.total)
     await page.click('#rNext')

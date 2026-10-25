@@ -138,6 +138,9 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
 - `DIFFS` defines three difficulties (看到會歪頭 / 忍不住伸手 / 不轉正睡不著):
   alignment tolerance, time multiplier, score multiplier and how much the
   loupe reveals. Best scores are stored per difficulty.
+- `COMMENTS` holds the result lines: one narrator per chapter, five tiers
+  (`far`/`close` for a lost round, `pass`/`good`/`perfect` by stars), at
+  least two lines each. A new chapter needs its own entry (tests enforce it).
 - `window.__chayidu` is the test hook (seeded RNG, manual clock, pure
   `computeScore`, state snapshot). `tests/game` depends on it: keep its API
   stable, or update the tests in the same change.

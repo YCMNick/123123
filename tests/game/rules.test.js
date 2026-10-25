@@ -184,6 +184,58 @@ describe('三種難度', () => {
   })
 })
 
+describe('結算評語', () => {
+  const TIERS = ['far', 'close', 'pass', 'good', 'perfect']
+  it('每個大關都有自己的旁白，五種等級各至少 2 句，文字不重複、長度適中', async () => {
+    const all = await run(() => window.__chayidu.comments())
+    expect(Object.keys(all).sort()).toEqual(CH.map((c) => c.key).sort())
+    const seen = new Set()
+    for (const [key, c] of Object.entries(all)) {
+      expect(c.by, key).toBeTruthy()
+      expect(Object.keys(c.tiers).sort(), key).toEqual([...TIERS].sort())
+      for (const t of TIERS) {
+        expect(c.tiers[t].length, `${key}/${t}`).toBeGreaterThanOrEqual(2)
+        for (const [h, line] of c.tiers[t]) {
+          expect(h.length, h).toBeLessThanOrEqual(14)
+          expect(line.length, line).toBeLessThanOrEqual(30)
+          expect(seen.has(line), `重複：${line}`).toBe(false)
+          seen.add(line)
+        }
+      }
+    }
+  })
+  it('等級判定：過關看星數，沒過看差多少', async () => {
+    const g = await run(() => {
+      const G = window.__chayidu
+      return [
+        G.gradeTier({ win: true, stars: 1, aligned: 5, count: 5 }), G.gradeTier({ win: true, stars: 2, aligned: 5, count: 5 }), G.gradeTier({ win: true, stars: 3, aligned: 5, count: 5 }),
+        G.gradeTier({ win: false, stars: 0, aligned: 4, count: 5 }), G.gradeTier({ win: false, stars: 0, aligned: 3, count: 7 }), G.gradeTier({ win: false, stars: 0, aligned: 0, count: 4 }),
+      ]
+    })
+    expect(g).toEqual(['pass', 'good', 'perfect', 'close', 'far', 'far'])
+  })
+  it('結算時給出對應大關、對應等級的評語，同一關連續兩次不會一樣', async () => {
+    const r = await run(() => {
+      const G = window.__chayidu, out = []
+      for (let k = 0; k < 6; k++) {
+        G.resetProgress(); G.seed(30 + k); G.start(1)
+        if (k % 2) G.advance(10_000)
+        else { for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() } G.done() }
+        out.push(G.state().lastResult.comment)
+      }
+      return out
+    })
+    const ocean = (await run(() => window.__chayidu.comments())).ocean
+    r.forEach((c, k) => {
+      expect(c.by).toBe('海龜')
+      expect(c.tier).toBe(k % 2 ? 'far' : 'perfect')
+      expect(ocean.tiers[c.tier].map((x) => x[1])).toContain(c.line)
+    })
+    expect(r[0].line).not.toBe(r[2].line)
+    expect(r[2].line).not.toBe(r[4].line)
+  })
+})
+
 describe('會動的生物', () => {
   it('轉正時發出牠自己的叫聲；不是生物的物品不會叫', async () => {
     const r = await run(([farm, jp]) => {

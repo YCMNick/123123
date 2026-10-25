@@ -169,6 +169,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tips{margin:0;padding-left:1.1em;color:var(--muted);font-size:14px;display:grid;gap:4px}
 .hintbox{background:var(--panel-2);border-left:3px solid var(--brass);border-radius:8px;padding:8px 12px;font-size:14px}
 .bigstars{font-size:34px;letter-spacing:.12em;line-height:1}
+.say{position:relative;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:12px 14px 10px;margin-top:6px;display:grid;gap:2px}
+.say::before{content:"";position:absolute;left:26px;top:-9px;width:16px;height:16px;background:var(--panel-2);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg)}
+.say-h{font-family:var(--f-display);font-weight:900;font-size:21px;line-height:1.3;color:var(--brass)}
+.say-perfect .say-h{color:var(--gold)}
+.say-far .say-h,.say-close .say-h{color:var(--warn)}
+.say-b{font-size:15px;line-height:1.6;text-wrap:pretty}
+.say-by{font-size:12px;color:var(--muted);text-align:right}
 .errs{list-style:none;margin:0;padding:0;display:grid;font-size:14px}
 .errs li{display:grid;grid-template-columns:minmax(0,1fr) auto 4.5em;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px dashed var(--line)}
 .errs .v{font-family:var(--f-num);font-variant-numeric:tabular-nums;text-align:right}
@@ -1412,6 +1419,85 @@ const CHAPTERS = [
   { key: 'space', name: '夜空宇宙', blurb: '離開地球前的最後一站：無重力也要對齊。', stages: ['軌道站', '月球基地', '火星殖民地', '土星環', '衛星維修', '流星雨', '黑洞邊緣', '星座連線', '太空電梯', '回到地球'] },
 ];
 
+
+/* ---------- result comments: one narrator per chapter, several lines per tier ----------
+   Tiers: far / close = not cleared (far off, almost); pass / good / perfect = cleared with 1 / 2 / 3 stars. */
+const COMMENTS = {
+  animal: { by: '母雞', tiers: {
+    far: [['咯咯咯？！', '大家都還歪著頭等你耶，小豬說牠脖子好痠。'], ['農場大亂鬥', '乳牛邊嚼草邊搖頭：這樣不行喔～']],
+    close: [['差一點點咯！', '就差最後幾隻，綿羊已經在幫你數羊了。'], ['只差一步', '母雞把蛋都孵好了，你也快好了吧？']],
+    pass: [['過關咯噠！', '大家勉強站好了，但小豬偷偷還在晃。'], ['及格啦～', '乳牛：哞～算你過，下次再站正一點。']],
+    good: [['站得挺直！', '整個農場排排站，連母雞都忘了啄米。'], ['好農夫', '綿羊說：這麼整齊，今晚可以安心睡了。']],
+    perfect: [['完美牧場♪', '一度都不差！全場動物一起為你合唱咯咯哞哼咩～'], ['動物模範生', '母雞決定把今天第一顆蛋送給你。']] } },
+  ocean: { by: '海龜', tiers: {
+    far: [['咕嚕咕嚕…', '整片珊瑚礁都在打轉，小丑魚游到頭暈了。'], ['潮水亂了', '章魚八隻手都抓不住你歪掉的東西。']],
+    close: [['差一個泡泡', '就差一點點，螃蟹在旁邊橫著幫你加油。'], ['快到岸了', '海龜慢慢說：別…急…你…快…好…了…']],
+    pass: [['浮上水面！', '過關了，但鯨魚覺得還有點歪，噴了一口水。'], ['及格泡泡', '小丑魚：咕嚕～勉強可以回家了。']],
+    good: [['游得很順！', '大家排成一列，像在海底開遊行。'], ['海洋好幫手', '章魚用八隻手同時給你按讚。']],
+    perfect: [['完美海流♪', '一度都不差！鯨魚為你唱了一整首歌。'], ['深海傳說', '海龜活了一百歲，第一次看到這麼正的珊瑚礁。']] } },
+  oldtown: { by: '招財貓', tiers: {
+    far: [['喵…？', '巷子裡的招牌全都歪了，老闆今天先休息。'], ['燈籠亂飄', '招財貓揮手揮到一半停下來：這要怎麼開店？']],
+    close: [['差一格像素', '只差一點點，拉麵已經煮好在等你了。'], ['快對齊了喵', '再一下下，燈籠就要亮起來了。']],
+    pass: [['開店營業！', '勉強對齊，招財貓還是覺得鳥居有點斜。'], ['及格喵～', '老闆：可以開店了，但別讓客人仔細看。']],
+    good: [['街道整齊！', '鳥居、燈籠、販賣機排得像明信片一樣。'], ['好街坊', '招財貓的手揮得特別起勁。']],
+    perfect: [['完美古都♪', '一格像素都不差！招財貓招來了滿滿的福氣。'], ['京都職人', '連老師傅都點頭：這才叫對齊。']] } },
+  home: { by: '便利貼', tiers: {
+    far: [['書房大地震？', '便利貼嚇到快掉下來，尺還躺在地上。'], ['好亂喔', '月曆都不知道今天是幾號了。']],
+    close: [['再整理一下', '就差一點，便利貼已經幫你寫好「快完成了」。'], ['差一把尺', '拿尺量一量，下次一定可以。']],
+    pass: [['勉強能看', '可以工作了，但相框好像還在偷偷歪。'], ['及格便利貼', '「整理書房」先打一個勾，下次打兩個。']],
+    good: [['清清爽爽！', '坐在這張桌子前，連打字都變快了。'], ['整理達人', '辭典說：終於可以好好站著了。']],
+    perfect: [['完美書房♪', '零誤差！便利貼感動到黏得更緊了。'], ['收納之神', '筆電、尺、月曆一起為你鼓掌（月曆用紙鼓掌）。']] } },
+  comic: { by: '對話框', tiers: {
+    far: [['砰！大失敗！', '這一格漫畫畫歪了，作者要重畫了啦！'], ['咦咦咦？！', '艾菲爾鐵塔斜得比比薩還厲害。']],
+    close: [['待續…', '就差一格！下一集一定會成功！'], ['好可惜！', '對話框只來得及說出「Bonj…」']],
+    pass: [['過關！咻！', '勉強畫完這一頁，編輯說可以先交稿。'], ['及格啦！', '咖啡館招牌還有點斜，但咖啡很香。']],
+    good: [['漂亮的分鏡！', '每一格都整整齊齊，讀者大聲叫好！'], ['巴黎好心情', '路燈亮起來，連蒙娜麗莎都笑得更開了。']],
+    perfect: [['完美跨頁♪', '一度都不差！這一頁要放進漫畫史冊！'], ['Bonjour 冠軍！', '對話框開心到自己變成金色了。']] } },
+  polar: { by: '企鵝', tiers: {
+    far: [['凍歪了…', '冰屋快倒了，企鵝只好去跟雪人擠一擠。'], ['暴風雪來了', '路標指向四面八方，大家都迷路了。']],
+    close: [['差一片雪花', '只差一點點，極光已經在天上等你了。'], ['快到了嘎！', '企鵝搖搖擺擺地說：再一下下！']],
+    pass: [['安全抵達！', '過關了，但雪人的帽子好像還歪歪的。'], ['及格冰塊', '企鵝拍拍翅膀：勉強算你過嘎～']],
+    good: [['冰原好整齊！', '雪橇、冰屋、路標排排站，連極光都看呆了。'], ['北極好鄰居', '企鵝決定今晚請你吃魚。']],
+    perfect: [['完美極光♪', '一度都不差！極光為你跳了一整晚的舞。'], ['北極點認證', '路標說：這裡是全世界最正的地方。']] } },
+  desert: { by: '駱駝', tiers: {
+    far: [['沙塵暴！', '金字塔快被吹倒了，駱駝嚼草嚼到忘記吞。'], ['迷路了…', '海市蜃樓都看不下去，自己先消失了。']],
+    close: [['差一粒沙', '再一下下，綠洲就在前面了！'], ['快到開羅了', '路牌說：只剩最後 1 公里！']],
+    pass: [['抵達綠洲！', '勉強過關，但棕櫚樹還在風中搖頭。'], ['及格駱駝', '駱駝慢吞吞地說：嗯…可以…啦…']],
+    good: [['海報級風景！', '整幅畫面整齊得可以印成旅遊海報。'], ['沙漠嚮導', '駱駝願意免費載你一程。']],
+    perfect: [['完美金字塔♪', '一度都不差！法老都從金字塔裡探頭出來看。'], ['倒影大師', '你連倒影都轉對了，沙漠為你颳起一陣掌聲。']] } },
+  wonder: { by: '比薩斜塔', tiers: {
+    far: [['連我都看不下去', '我斜是天生的，其他東西不能也斜啊！'], ['觀光客傻眼', '大家拍照時都歪著頭在拍。']],
+    close: [['差一點就正了', '再一下下，可以準備拍明信片了。'], ['快完成了', '斜塔：加油，我斜斜地幫你頂著。']],
+    pass: [['拍照打卡！', '勉強過關，照片要用修圖軟體再轉一下。'], ['及格紀念照', '冰淇淋都快融化了，還好你及時完成。']],
+    good: [['明信片等級！', '整個廣場整整齊齊，只有我還是斜的（本來就是）。'], ['好眼光', '窗板、招牌都正了，斜塔對你點點頭（斜斜地）。']],
+    perfect: [['奇景認證♪', '一度都不差，而且你沒有扶正我！真懂我！'], ['世界遺產級', '這次對齊，可以列入世界遺產保護了。']] } },
+  park: { by: '旋轉木馬', tiers: {
+    far: [['燈泡短路了', '霓虹燈閃到一半熄掉，木馬也停下來了。'], ['樂園打烊…', '招牌歪成這樣，客人都找不到入口了。']],
+    close: [['再轉一圈！', '只差一點點，木馬再跑一圈就好了！'], ['快亮了', 'OPEN 招牌已經在偷偷閃了。']],
+    pass: [['開園囉！', '勉強開園了，但箭頭招牌好像指錯方向。'], ['及格門票', '票價 $5，你剛好買到最後一張。']],
+    good: [['閃閃發亮！', '霓虹燈全亮，整個樂園都在為你閃。'], ['樂園好夥伴', '木馬上下跑得特別開心。']],
+    perfect: [['完美霓虹♪', '一度都不差！摩天輪為你多轉了一圈。'], ['今晚的主角', '全場燈光一起打在你身上！']] } },
+  space: { by: '太空人', tiers: {
+    far: [['休士頓，有問題…', '太空站轉來轉去，太空人頭好暈。'], ['無重力失控', '火箭指向月球以外的地方了。']],
+    close: [['倒數 1…', '只差一點點，對接就要成功了！'], ['訊號微弱', '太陽能板再轉一下，電就充飽了。']],
+    pass: [['對接成功！', '勉強完成任務，但望遠鏡拍到的星星有點斜。'], ['及格任務', '太空人比了個讚（戴著手套看不太出來）。']],
+    good: [['軌道漂亮！', '整座太空站整齊得從地球都看得到。'], ['優秀組員', '任務徽章閃閃發亮。']],
+    perfect: [['宇宙級完美♪', '一度都不差！地球上的人都抬頭為你鼓掌。'], ['傳奇太空人', '你是第一個在無重力下對齊所有東西的人。']] } },
+};
+// Which tier a result falls in: cleared rounds by stars, failed rounds by how close they got.
+function gradeTier(r) {
+  if (r.win) return ['pass', 'good', 'perfect'][Math.max(1, Math.min(3, r.stars)) - 1];
+  return r.count - r.aligned <= 1 || r.aligned / r.count >= 0.6 ? 'close' : 'far';
+}
+// Pick a line for this chapter and tier, never the same one twice in a row.
+function pickComment(chapterKey, tier) {
+  const c = COMMENTS[chapterKey], list = c.tiers[tier], memo = S.lastComment || (S.lastComment = {});
+  let k = Math.floor(S.rng() * list.length);
+  if (list.length > 1 && memo[chapterKey + tier] === k) k = (k + 1) % list.length;
+  memo[chapterKey + tier] = k;
+  return { tier, headline: list[k][0], line: list[k][1], by: c.by };
+}
+
 /* ---------- levels ---------- */
 const LEVELS = [
   { key: 'farm', chapter: 0, title: '農場早晨', style: '扁平插畫', place: '台灣 宜蘭', song: 'farm', time: 31, bg: bgFarm, animated: true,
@@ -1811,6 +1897,7 @@ function finish(win) {
   store.save();
   r.best = store.data.best[key].score;
   S.session[S.levelIdx] = r.total;
+  r.comment = pickComment(chapterOf(S.L).key, gradeTier(r));
   S.lastResult = r;
   if (win) AU.win(); else AU.fail();
   showResult(r);
@@ -1841,6 +1928,7 @@ function showResult(r) {
     <p class="eyebrow">${stageLabel(L)} ${chapterOf(L).name}・${L.title} · 難度「${DF().name}」</p>
     <h2>${r.win ? nick + '過關' : '時間到'}</h2>
     <div class="bigstars" aria-label="${r.stars} 顆星">${stars}</div>
+    <div class="say say-${r.comment.tier}"><p class="say-h">${r.comment.headline}</p><p class="say-b">${r.comment.line}</p><p class="say-by">— ${r.comment.by}</p></div>
     ${r.trapMsg ? `<p class="hintbox">${r.trapMsg}</p>` : ''}
     <ul class="errs">${rows}</ul>
     <div class="tally">${tallyHtml}</div>
@@ -2077,6 +2165,8 @@ window.__chayidu = {
     objects: L.objects.map(o => ({ id: o.id, name: o.name, trap: !!o.trap, keep: o.keep ?? null, near: !!o.near, mag: o.mag ?? null, target: o.target ?? 0,
       call: o.call || null, habit: !!o.habit, link: o.link ? Object.assign({}, o.link) : null, x: o.x, y: o.y, w: o.w, h: o.h })) })),
   chapters: () => CHAPTERS.map(c => ({ key: c.key, name: c.name, stages: c.stages.slice() })),
+  comments: () => JSON.parse(JSON.stringify(COMMENTS)),
+  gradeTier: (r) => gradeTier(r),
   // calibration only: try a different time budget for a level
   setLevelTime(i, sec) { LEVELS[i].time = sec; },
   sfxLog: () => S.sfxLog.slice(),
