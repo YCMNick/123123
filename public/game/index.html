@@ -369,7 +369,7 @@ const LOCAL_TEXT = new Set();
 const LOCAL = s => (LOCAL_TEXT.add(s), s);
 const UI = {
   zh: {
-    eyebrow: '強迫對齊・地球宇宙', badge: '免註冊・打開就玩',
+    eyebrow: '強迫對齊・地球宇宙', badge: '不登入也能玩',
     title: '差一<span id="tilt" role="img" aria-label="度（歪的，可以拖曳轉正）">度</span>', titleLabel: '差一度',
     tiltStart: d => `「度」歪了 <strong id="tiltDeg">${d}</strong>，拖曳它轉轉看`,
     tiltWin: d => `「度」只差 <strong id="tiltDeg">${d}</strong>。很好，你就是這個遊戲要找的人。`,
@@ -384,7 +384,7 @@ const UI = {
     tZen: '禪模式不計時',
     account: '帳號', accLede: '不登入也能玩。登入後進度會存到雲端，換手機也在。', accApple: '用 Apple 登入', accGoogle: '用 Google 登入', accEmail: '用 Email 登入',
     accEmailPh: 'Email', accPassPh: '密碼（至少 6 位）', accEmailGo: '登入或註冊', accSignedIn: n => `已登入：${n}`, accOut: '登出', accDelete: '刪除帳號', accDeleteAsk: '確定刪除帳號？雲端進度會一起刪除，無法復原。',
-    accSynced: '進度已同步', accErr: m => `登入失敗：${m}`, accReauth: '為了安全，請先登出再登入一次，然後再刪除帳號。',
+    accSynced: '進度已同步', accErr: m => `登入失敗：${m}`, accLoading: '帳號功能載入中…', accFailed: m => `帳號功能暫時無法使用（${m}）。不登入也能照常玩。`, accReauth: '為了安全，請先登出再登入一次，然後再刪除帳號。',
     lockTitle: '完整版', lockLede: '第 1 大關和每個大關的第 1 小關免費。完整版一次買斷：100 關全開、沒有廣告、雲端存檔。', lockBuy: p => `解鎖完整版 ${p}`, lockAd: '看一段廣告，免費玩這個大關 24 小時', lockLater: '先不用',
     lockNote: '購買與廣告在 App 內完成。', locked: '完整版解鎖', unlockedAd: h => `這個大關已開放 ${h} 小時`,
     diffTitle: '難度：歪掉的東西，你有多在意？', worldsTitle: '地球宇宙・十大關卡，每個大關 10 個小關',
@@ -412,7 +412,7 @@ const UI = {
     stageInfo: (n, t) => `${n} 件 · ${t} 秒`, stageBest: s => `最佳 ${s}`, play: s => `開始 ${s}`, back: '返回',
   },
   en: {
-    eyebrow: 'An alignment game · Earth universe', badge: 'No sign-up · just play',
+    eyebrow: 'An alignment game · Earth universe', badge: 'No account needed',
     title: 'Just One <span id="tilt" role="img" aria-label="Degree (crooked, drag to straighten)">Degree</span>', titleLabel: 'Just One Degree',
     tiltStart: d => `“Degree” is off by <strong id="tiltDeg">${d}</strong>. Drag it straight.`,
     tiltWin: d => `Only <strong id="tiltDeg">${d}</strong> off. You're exactly who this game is for.`,
@@ -427,7 +427,7 @@ const UI = {
     tZen: 'Zen mode: no clock',
     account: 'Account', accLede: 'No account needed to play. Sign in to keep your progress in the cloud, on any phone.', accApple: 'Sign in with Apple', accGoogle: 'Sign in with Google', accEmail: 'Sign in with email',
     accEmailPh: 'Email', accPassPh: 'Password (6+ characters)', accEmailGo: 'Sign in or sign up', accSignedIn: n => `Signed in: ${n}`, accOut: 'Sign out', accDelete: 'Delete account', accDeleteAsk: 'Delete your account? Cloud progress is deleted too. This cannot be undone.',
-    accSynced: 'Progress synced', accErr: m => `Sign-in failed: ${m}`, accReauth: 'For safety, sign out and back in, then delete the account.',
+    accSynced: 'Progress synced', accErr: m => `Sign-in failed: ${m}`, accLoading: 'Loading account features…', accFailed: m => `Account features are unavailable right now (${m}). You can still play without signing in.`, accReauth: 'For safety, sign out and back in, then delete the account.',
     lockTitle: 'Full version', lockLede: 'World 1 and the first stage of every world are free. The full version is a one-time purchase: all 100 stages, no ads, cloud save.', lockBuy: p => `Unlock the full version ${p}`, lockAd: 'Watch an ad to play this world free for 24 hours', lockLater: 'Not now',
     lockNote: 'Purchases and ads happen in the app.', locked: 'Full version', unlockedAd: h => `This world is open for ${h} more hours`,
     diffTitle: 'Difficulty: how much do crooked things bother you?', worldsTitle: 'Earth universe · 10 worlds, 10 stages each',
@@ -12799,6 +12799,8 @@ function applyLang() {
   document.querySelectorAll('.nudge').forEach((b, k) => b.setAttribute('aria-label', U('nudge')[k]));
   $('#nick').placeholder = U('nickPh'); $('#accEmail').placeholder = U('accEmailPh'); $('#accPass').placeholder = U('accPassPh');
   $('#rules').innerHTML = U('rules').map(([b, t]) => `<li><b>${b}</b><span>${t}</span></li>`).join('');
+  if (typeof ACC !== 'undefined' && ACC.status === 'loading') $('#accLede').textContent = U('accLoading');
+  else if (typeof ACC !== 'undefined' && ACC.status.startsWith('failed')) $('#accLede').textContent = U('accFailed', ACC.status.slice(8));
   const title = $('#title'); title.innerHTML = U('title'); title.setAttribute('aria-label', U('titleLabel')); title.classList.toggle('en', LANG === 'en');
   markSeg($('#langSeg'), LANG);
   select(S.selected);
@@ -12815,10 +12817,11 @@ function toast(msg, ms = 1800) { const t = $('#toast'); t.textContent = msg; t.c
 
 /* ---------- account: Firebase (Apple / Google / email) and cloud save. Loads only when ACCOUNT is configured. ---------- */
 const ACC = {
-  user: null, fb: null, pending: null,
+  user: null, fb: null, pending: null, status: 'off',
   async init() {
     if (!ACCOUNT || !ACCOUNT.apiKey) return;
-    $('#accountSect').hidden = false;
+    $('#accountSect').hidden = false; this.status = 'loading';
+    $('#accLede').textContent = U('accLoading'); $('#accOut').hidden = true;
     // The SDK comes from jsdelivr by default (a CDN the artifact page may load from); ACCOUNT.sdkBase can point at gstatic instead.
     const V = ACCOUNT.sdk || '10.14.1', base = ACCOUNT.sdkBase || `https://cdn.jsdelivr.net/npm/firebase@${V}/`;
     const mod = name => base.includes('gstatic') ? `${base}firebase-${name}.js` : `${base}${name}/+esm`;
@@ -12828,7 +12831,13 @@ const ACC = {
       this.fb.a = auth.getAuth(this.fb.app); this.fb.db = fs.getFirestore(this.fb.app);
       auth.onAuthStateChanged(this.fb.a, u => { this.user = u; this.render(); if (u) this.pull(); });
       auth.getRedirectResult(this.fb.a).catch(e => this.fail(e));
-    } catch (e) { console.warn('account unavailable', e); $('#accountSect').hidden = true; }
+      this.status = 'ready'; $('#accLede').textContent = U('accLede'); this.render();
+    } catch (e) {
+      // Keep the section, say why: a blocked CDN or a bad config should be visible, not silent.
+      const why = (e && (e.code || e.message)) || String(e);
+      this.status = 'failed: ' + why; console.warn('account unavailable', e);
+      $('#accLede').textContent = U('accFailed', why); $('#accOut').hidden = true; $('#accIn').hidden = true;
+    }
   },
   fail(e) { toast(U('accErr', (e && e.code) || (e && e.message) || String(e)), 3500); },
   async provider(kind) {
@@ -12876,6 +12885,7 @@ const ACC = {
   // Called by store.save(): a save a few seconds after the last change.
   changed() { if (!this.user) return; clearTimeout(this.pending); this.pending = setTimeout(() => this.push().catch(e => console.warn(e)), 2500); },
   render() {
+    if (this.status !== 'ready') return;
     const u = this.user; $('#accOut').hidden = !!u; $('#accEmailForm').hidden = true; $('#accIn').hidden = !u;
     if (u) $('#accWho').textContent = U('accSignedIn', u.displayName || u.email || u.uid.slice(0, 8));
   },
@@ -13062,6 +13072,7 @@ window.__chayidu = {
   // Simulate the app build (free world 1 + first stages) or the web build (everything open).
   setFreeAll(on) { FREE_ALL = !!on; buildCards(); },
   accountConfigured: !!(ACCOUNT && ACCOUNT.apiKey),
+  accountStatus: () => ACC.status,
   unlocked: i => unlocked(LEVELS[i]),
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, stage: L.stage, chapterName: tr(chapterOf(L).name), title: tr(L.title), titles: L.title,
     place: L.place, intro: L.intro, time: L.time, practice: isPractice(L), animated: !!L.animated,

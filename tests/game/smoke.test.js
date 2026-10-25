@@ -222,8 +222,12 @@ describe('第一次玩', () => {
 describe('帳號與解鎖', () => {
   it('沒有設定 Firebase 時帳號區塊不顯示（有設定時顯示，但離線載入不到 SDK 會收起來，不報錯）；網頁版全部關卡都開放', async () => {
     const configured = await page.evaluate(() => window.__chayidu.accountConfigured)
-    if (configured) await page.waitForTimeout(1500) // the SDK import fails offline; the section hides itself again
-    expect(await page.locator('#accountSect').isVisible()).toBe(false)
+    if (configured) {
+      // Offline the SDK import fails: the section stays, says why, and offers no buttons.
+      await expect.poll(() => page.evaluate(() => window.__chayidu.accountStatus())).toMatch(/^failed/)
+      expect(await page.locator('#accLede').textContent()).toContain('暫時無法使用')
+      expect(await page.locator('#accOut').isVisible()).toBe(false)
+    } else expect(await page.locator('#accountSect').isVisible()).toBe(false)
     expect(await page.evaluate(() => window.__chayidu.levels().every((l, i) => window.__chayidu.unlocked(i)))).toBe(true)
   })
   it('App 規則：第 1 大關和每個大關的第 1 小關免費，其他上鎖；點上鎖的關卡出現完整版說明，不會開始', async () => {
