@@ -153,9 +153,13 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
   stored per device.
 - Home: a sunny cartoon look (painted sky canvas `#homeBg`, wooden boards,
   chunky buttons, the hen host). Worlds are picked on a journey map
-  (`mapLayout`/`drawMapBg`/`buildCards`): ten world signs up a winding path
-  from the farm to orbit, with a stop (`.st`) per stage; `showHere()` scrolls
-  to the next stop. World signs keep the `.lv` class and a `.prog` label.
+  (`mapLayout`/`drawMapBg`/`buildCards`): ten world signs down a winding road
+  from the farm (top) to orbit (bottom), each world's stretch drawn with its
+  own scenery, a stop (`.st`) per stage; `showHere()` scrolls to the next
+  stop. World signs keep the `.lv` class and a `.prog` label.
+- Progression: stages open in order (`available(i)`: the previous stage is
+  cleared, so a new world needs the whole previous one); `tryStart(i)` applies
+  the store lock first, then this. The test hook's `start(i)` bypasses it.
 - Difficulty is picked per stage on the stage card (`showIntro`), which shows
   the record on each difficulty; records stay per difficulty (`bestOn`), a
   stage counts as cleared on any (`clearedOf`), stops and sheet rows show the

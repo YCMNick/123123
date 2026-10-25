@@ -42,6 +42,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* ---------- home ---------- */
 #home{overflow:hidden}
 #homeBg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#homeToast{top:calc(14px + env(safe-area-inset-top,0px));z-index:8;white-space:normal;text-align:center;max-width:88%}
 .home-scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden}
 .home-in{width:100%;max-width:560px;margin:0 auto;padding-block:14px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:26px;box-sizing:border-box}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px}
@@ -88,6 +89,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .st{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:3px solid var(--wood);background:radial-gradient(circle at 40% 35%,#fffdf5,#e9d7ad);box-shadow:0 3px 0 var(--wood-dark),0 4px 8px rgba(40,25,5,.3);padding:0;font-family:var(--f-num);font-weight:800;font-size:12px;color:var(--wood-dark);display:grid;place-items:center;line-height:1}
 .st.next{width:38px;height:38px;font-size:14px;background:radial-gradient(circle at 40% 35%,#fff,#ffe9a8);animation:pulse 1.4s ease-in-out infinite}
 .st.locked{opacity:.55;filter:grayscale(1)}
+.st.off{background:radial-gradient(circle at 40% 35%,#e6dcc4,#cbbd98);color:#a08f68;border-color:#9c7d4e;box-shadow:0 3px 0 #7a5d33}
+.stages li.off{opacity:.55}
 @keyframes pulse{0%,100%{box-shadow:0 3px 0 var(--wood-dark),0 0 0 0 rgba(255,204,51,.7)}50%{box-shadow:0 3px 0 var(--wood-dark),0 0 0 12px rgba(255,204,51,0)}}
 .here{position:absolute;width:52px;height:52px;transform:translate(-50%,-100%);margin-top:-6px;pointer-events:none;animation:bob 1.2s ease-in-out infinite;transform-origin:50% 100%;filter:drop-shadow(0 3px 2px rgba(40,25,5,.35))}
 .mapmark{position:absolute;transform:translate(-50%,-50%);background:linear-gradient(#fffaf0,var(--cream-2));color:var(--wood-dark);font-family:var(--f-display);font-weight:800;font-size:12px;padding:4px 12px;border-radius:12px;box-shadow:0 0 0 3px var(--wood),0 3px 0 3px var(--wood-dark);white-space:nowrap;pointer-events:none}
@@ -266,6 +269,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <!-- HOME -->
   <section id="home" class="screen">
     <canvas id="homeBg" aria-hidden="true"></canvas>
+    <div class="toast" id="homeToast" role="status"></div>
     <div class="home-scroll" id="homeScroll">
     <div class="home-in">
       <div class="top">
@@ -413,7 +417,7 @@ const UI = {
     nickLabel: '暱稱（選填，只存在這台裝置）', nickPh: '例如：Nick', start: '開始遊戲', cont: s => `繼續 ${s}`,
     settings: '設定', lang: '語言', music: '背景音樂', sound: '音效', on: '開', off: '關',
     mode: '模式', timed: '計時', zen: '禪模式', zenNote: '禪模式：不計時，只算精準度。', practice: '練習關・時間加倍',
-    firstRec: '建議新手', pickDiff: '選難度', notTried: '未挑戰', bestOn: (s, p) => `${s} ${p}`, legendE: '簡單', legendN: '普通', legendH: '困難', legendTitle: '站點顏色＝破過的最高難度：',
+    firstRec: '建議新手', pickDiff: '選難度', notTried: '未挑戰', bestOn: (s, p) => `${s} ${p}`, legendE: '簡單', legendN: '普通', legendH: '困難', legendTitle: '站點顏色＝破過的最高難度：', needPrev: '先破前一關，路才會通到這裡', needWorld: '把上一個大關的 10 關都破完，這裡才會開',
     tryEasy: n => `改用「${n}」再試`, ldFine: '精細 ¼', fineHint: '慢慢移動＝精細模式；手指離物品越遠，轉得越細', stallHint: '還歪著的物品會亮起來', goZen: '開始・不計時',
     tZen: '禪模式不計時',
     lockTitle: '完整版', lockLede: '第 1 大關和每個大關的第 1 小關免費。完整版一次買斷：100 關全開、沒有廣告。', lockBuy: p => `解鎖完整版 ${p}`, lockAd: '看一段廣告，免費玩這個大關 24 小時', lockLater: '先不用',
@@ -453,7 +457,7 @@ const UI = {
     nickLabel: 'Nickname (optional, saved on this device only)', nickPh: 'e.g. Nick', start: 'Play', cont: s => `Continue ${s}`,
     settings: 'Settings', lang: 'Language', music: 'Music', sound: 'Sound effects', on: 'On', off: 'Off',
     mode: 'Mode', timed: 'Timed', zen: 'Zen', zenNote: 'Zen mode: no clock, precision only.', practice: 'Practice · double time',
-    firstRec: 'For new players', pickDiff: 'Pick a difficulty', notTried: 'Not tried', bestOn: (s, p) => `${s} ${p}`, legendE: 'Easy', legendN: 'Normal', legendH: 'Hard', legendTitle: 'Stop colour = hardest difficulty cleared:',
+    firstRec: 'For new players', pickDiff: 'Pick a difficulty', notTried: 'Not tried', bestOn: (s, p) => `${s} ${p}`, legendE: 'Easy', legendN: 'Normal', legendH: 'Hard', legendTitle: 'Stop colour = hardest difficulty cleared:', needPrev: 'Clear the previous stage first', needWorld: 'Clear all 10 stages of the previous world to open this one',
     tryEasy: n => `Try again on ${n}`, ldFine: 'fine ¼', fineHint: 'Move slowly for fine control; the farther from the object, the finer it turns', stallHint: 'Objects still off will light up', goZen: 'Start · no clock',
     tZen: 'Zen mode: no clock',
     lockTitle: 'Full version', lockLede: 'World 1 and the first stage of every world are free. The full version is a one-time purchase: all 100 stages, no ads.', lockBuy: p => `Unlock the full version ${p}`, lockAd: 'Watch an ad to play this world free for 24 hours', lockLater: 'Not now',
@@ -1149,7 +1153,7 @@ function showResult(r) {
   </div>`;
   ov.hidden = false;
   const on = (id, fn) => { const b = $(id); if (b) b.onclick = fn; };
-  on('#rNext', () => { if (unlocked(LEVELS[i + 1])) startLevel(i + 1); else showLock(LEVELS[i + 1]); });
+  on('#rNext', () => tryStart(i + 1));
   on('#rRetry', () => startLevel(i, true));
   on('#rEasy', () => { setDiff(0); startLevel(i, true); });
   on('#rHome', goHome);
@@ -1303,7 +1307,7 @@ function setLang(l) {
 }
 
 let toastT;
-function toast(msg, ms = 1800) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms); }
+function toast(msg, ms = 1800) { const t = $(gameEl.hidden ? '#homeToast' : '#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms); }
 
 
 /* ---------- home scenery: a painted sky and hills behind the boards, and the hen who hosts the home page ---------- */
@@ -1364,6 +1368,8 @@ function henHop() { const el = $('#hen'); el.classList.remove('happy'); void el.
 const bestOn = (i, d) => store.data.best[`${d.key}:${LEVELS[i].key}`] || null;
 const starsOf = i => Math.max(0, ...DIFFS.map(d => (bestOn(i, d) || {}).stars || 0));
 const clearedOf = i => starsOf(i) > 0;
+// Stages open in order: a stage needs the one before it cleared (so a new world needs the whole previous world).
+const available = i => i === 0 || clearedOf(i - 1);
 const topDiff = i => { let t = -1; DIFFS.forEach((d, k) => { if (((bestOn(i, d) || {}).stars || 0) > 0) t = k; }); return t; }; // highest difficulty cleared, -1 if none
 const pips = i => `<span class="pips" aria-hidden="true">${DIFFS.map((d, k) => `<i class="${((bestOn(i, d) || {}).stars || 0) > 0 ? 'on ' + d.key[0] : ''}"></i>`).join('')}</span>`;
 // First stage not yet cleared on this difficulty (in order), else the very first.
@@ -1375,6 +1381,13 @@ function unlocked(L) {
   return !!until && until > Date.now();
 }
 // Native bridges (set by the iOS shell): window.Store.buy() → Promise<boolean>, window.Ads.rewarded() → Promise<boolean>.
+// Tapping a stage: the store lock first (the offer should be visible), then the road ahead.
+function tryStart(i) {
+  const L = LEVELS[i];
+  if (!unlocked(L)) { showLock(L); return false; }
+  if (!available(i)) { toast(U(L.stage === 0 ? 'needWorld' : 'needPrev'), 2600); return false; }
+  startLevel(i); return true;
+}
 function showLock(L) {
   const ov = $('#ovLock'), ch = CHAPTERS[L.chapter];
   ov.innerHTML = `<div class="card">
@@ -1396,19 +1409,19 @@ function showLock(L) {
 }
 function nextIndex(from = 0, to = LEVELS.length) { for (let i = from; i < to; i++) if (!clearedOf(i)) return i; return from; }
 /* ---------- the journey map: ten worlds up a winding path, from the farm at the bottom to orbit at the top ---------- */
-const MAP = { seg: 360, top: 120, bottom: 110, xs: [0.3, 0.7] };
+const MAP = { seg: 360, top: 110, bottom: 120, xs: [0.3, 0.7] };
 // A winding road: Catmull-Rom through the world signs and two bends between each pair, sampled
 // finely so stops can be spaced by distance along the road.
 function mapLayout(w) {
   const n = CHAPTERS.length, H = MAP.top + n * MAP.seg + MAP.bottom;
-  const nodes = CHAPTERS.map((ch, c) => ({ x: w * MAP.xs[c % 2], y: H - MAP.bottom - c * MAP.seg }));
-  const finish = { x: w * 0.5, y: MAP.top * 0.5 };
+  const nodes = CHAPTERS.map((ch, c) => ({ x: w * MAP.xs[c % 2], y: MAP.top + c * MAP.seg }));
+  const finish = { x: w * 0.5, y: H - MAP.bottom * 0.45 };
   const way = [], nodeAt = [];
   nodes.forEach((p, c) => {
     const q = c + 1 < n ? nodes[c + 1] : finish, far = p.x < w / 2 ? 0.74 : 0.26, near = p.x < w / 2 ? 0.28 : 0.72;
     nodeAt.push(way.length); way.push(p);
-    if (c + 1 < n) { way.push({ x: w * far, y: p.y - MAP.seg * 0.33 }); way.push({ x: w * near, y: p.y - MAP.seg * 0.66 }); }
-    else way.push({ x: w * far, y: p.y - MAP.seg * 0.45 });
+    if (c + 1 < n) { way.push({ x: w * far, y: p.y + MAP.seg * 0.33 }); way.push({ x: w * near, y: p.y + MAP.seg * 0.66 }); }
+    else way.push({ x: w * far, y: p.y + MAP.seg * 0.45 });
     if (c + 1 === n) { nodeAt.push(way.length); way.push(q); }
   });
   // sample the spline
@@ -1441,7 +1454,7 @@ function drawMapBg(lay) {
   const k = w / W, img = {};
   CHAPTERS.forEach((ch, i) => {
     const L = LEVELS.find(x => x.chapter === i);
-    const y1 = lay.nodes[i].y + (i === 0 ? MAP.bottom : MAP.seg / 2), y0 = i + 1 < CHAPTERS.length ? lay.nodes[i + 1].y + MAP.seg / 2 : 0;
+    const y0 = i === 0 ? 0 : lay.nodes[i].y - MAP.seg / 2, y1 = i + 1 < CHAPTERS.length ? lay.nodes[i + 1].y - MAP.seg / 2 : lay.H;
     const bh = y1 - y0, kk = Math.max(k, bh / H), iw = W * kk, ih = H * kk; // cover the band, crop the rest
     img[i] = buildBg(L, kk * dpr);
     c.save(); c.beginPath(); c.rect(0, y0, w, bh); c.clip();
@@ -1449,10 +1462,10 @@ function drawMapBg(lay) {
     c.drawImage(img[i], (w - iw) / 2, y0 + (bh - ih) * align, iw, ih);
     c.fillStyle = 'rgba(255,255,255,.14)'; c.fillRect(0, y0, w, y1 - y0);
     c.restore();
-    if (i + 1 < CHAPTERS.length) { const g = c.createLinearGradient(0, y0 - 14, 0, y0 + 26); g.addColorStop(0, 'rgba(40,25,5,0)'); g.addColorStop(0.5, 'rgba(40,25,5,.28)'); g.addColorStop(1, 'rgba(40,25,5,0)'); c.fillStyle = g; c.fillRect(0, y0 - 14, w, 40); }
+    if (i + 1 < CHAPTERS.length) { const g = c.createLinearGradient(0, y1 - 26, 0, y1 + 14); g.addColorStop(0, 'rgba(40,25,5,0)'); g.addColorStop(0.5, 'rgba(40,25,5,.28)'); g.addColorStop(1, 'rgba(40,25,5,0)'); c.fillStyle = g; c.fillRect(0, y1 - 26, w, 40); }
   });
   // Earth at the finish
-  const f = lay.finish; circ(c, f.x, f.y + 34, 26, 'rgba(120,200,255,.35)'); circ(c, f.x, f.y + 34, 22, '#2f7dd6'); ell(c, f.x - 6, f.y + 30, 7, 5, '#5aa56e'); ell(c, f.x + 7, f.y + 42, 6, 4, '#5aa56e');
+  const f = lay.finish; circ(c, f.x, f.y - 22, 26, 'rgba(120,200,255,.35)'); circ(c, f.x, f.y - 22, 22, '#2f7dd6'); ell(c, f.x - 6, f.y - 26, 7, 5, '#5aa56e'); ell(c, f.x + 7, f.y - 14, 6, 4, '#5aa56e');
   // the road
   const road = () => { c.beginPath(); lay.pts.forEach((q, i) => i ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y)); };
   c.lineCap = 'round'; c.lineJoin = 'round';
@@ -1485,14 +1498,14 @@ function buildCards() {
   LEVELS.forEach((L, i) => {
     const d = lay.dots[i], st = document.createElement('button'); st.type = 'button';
     const td = topDiff(i);
-    st.className = 'st' + (td >= 0 ? ' ' + DIFFS[td].key[0] : '') + (i === n ? ' next' : '') + (unlocked(L) ? '' : ' locked');
+    st.className = 'st' + (td >= 0 ? ' ' + DIFFS[td].key[0] : '') + (i === n ? ' next' : '') + (unlocked(L) ? '' : ' locked') + (available(i) ? '' : ' off');
     st.style.left = d.x + 'px'; st.style.top = d.y + 'px'; st.textContent = L.stage + 1; st.dataset.i = i;
     st.setAttribute('aria-label', `${stageLabel(L)} ${tr(L.title)}`); st.title = `${stageLabel(L)} ${tr(L.title)}`;
-    st.onclick = () => { saveNick(); if (unlocked(L)) startLevel(i); else showLock(L); };
+    st.onclick = () => { saveNick(); tryStart(i); };
     box.appendChild(st);
     if (i === n) { const h = document.createElement('canvas'); h.className = 'here'; h.setAttribute('aria-label', U('mapHere')); h.style.left = d.x + 'px'; h.style.top = d.y + 'px'; box.appendChild(h); drawHen(h, 52); }
   });
-  for (const [cls, pt, txt] of [['mapmark', { x: lay.nodes[0].x, y: lay.nodes[0].y + 112 }, U('mapStart')], ['mapmark', { x: lay.finish.x, y: lay.finish.y - 4 }, U('mapFinish')]]) {
+  for (const [cls, pt, txt] of [['mapmark', { x: lay.nodes[0].x, y: lay.nodes[0].y - 64 }, U('mapStart')], ['mapmark', { x: lay.finish.x, y: lay.finish.y + 24 }, U('mapFinish')]]) {
     const m = document.createElement('span'); m.className = cls; m.style.left = pt.x + 'px'; m.style.top = pt.y + 'px'; m.textContent = txt; box.appendChild(m);
   }
   $('#startBtn').textContent = clearedOf(0) ? U('cont', stageLabel(LEVELS[n])) : U('start');
@@ -1507,8 +1520,8 @@ function openChapter(c) {
   const rows = idx.map(i => {
     const L = LEVELS[i], n = L.objects.filter(o => !o.trap).length;
     const st = [0, 1, 2].map(j => `<span class="s ${j < starsOf(i) ? 'on' : ''}">★</span>`).join('');
-    const open = unlocked(L);
-    return `<li class="play${i === nx ? ' next' : ''}${clearedOf(i) ? ' done' : ''}${open ? '' : ' locked'}" data-i="${i}" tabindex="0" role="button"><b>${stageLabel(L)}</b><strong>${tr(L.title)}</strong><span>${open ? U('stageInfo', n, Math.round(L.time) * (isPractice(L) ? PRACTICE_MUL : 1)) : U('locked')} ${pips(i)} ${st}</span></li>`;
+    const open = unlocked(L), can = available(i);
+    return `<li class="play${i === nx ? ' next' : ''}${clearedOf(i) ? ' done' : ''}${open ? '' : ' locked'}${can ? '' : ' off'}" data-i="${i}" tabindex="0" role="button"><b>${stageLabel(L)}</b><strong>${tr(L.title)}</strong><span>${open ? U('stageInfo', n, Math.round(L.time) * (isPractice(L) ? PRACTICE_MUL : 1)) : U('locked')} ${pips(i)} ${st}</span></li>`;
   }).join('');
   ov.innerHTML = `<div class="card">
     <p class="eyebrow">${U('worldK', c + 1, tr(ch.style))}</p>
@@ -1518,7 +1531,7 @@ function openChapter(c) {
     <div class="row"><button class="btn primary" id="sheetPlay">${U('play', stageLabel(LEVELS[nx]))}</button><button class="btn ghost" id="sheetClose">${U('back')}</button></div>
   </div>`;
   ov.hidden = false;
-  const go = i => { if (!unlocked(LEVELS[i])) { showLock(LEVELS[i]); return; } ov.hidden = true; startLevel(i); };
+  const go = i => { if (tryStart(i)) ov.hidden = true; };
   ov.querySelectorAll('.stages li').forEach(li => {
     li.onclick = () => go(+li.dataset.i);
     li.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(+li.dataset.i); } };
@@ -1537,7 +1550,7 @@ function drawThumbs() {
   });
 }
 function saveNick() { store.data.nick = $('#nick').value.trim().slice(0, 12); store.save(); }
-$('#startBtn').onclick = () => { saveNick(); const i = nextIndex(); if (unlocked(LEVELS[i])) startLevel(i); else showLock(LEVELS[i]); };
+$('#startBtn').onclick = () => { saveNick(); tryStart(nextIndex()); };
 
 // the tilted 度 in the title: the first thing the player straightens
 (() => {
@@ -1611,6 +1624,8 @@ window.__chayidu = {
   // Simulate the app build (free world 1 + first stages) or the web build (everything open).
   setFreeAll(on) { FREE_ALL = !!on; buildCards(); },
   unlocked: i => unlocked(LEVELS[i]),
+  available: i => available(i),
+  tryStart: i => tryStart(i),
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, stage: L.stage, chapterName: tr(chapterOf(L).name), title: tr(L.title), titles: L.title,
     place: L.place, intro: L.intro, time: L.time, practice: isPractice(L), animated: !!L.animated,
     objects: L.objects.map(o => ({ id: o.id, name: tr(o.name), names: { zh: o.name.zh, en: o.name.en }, trap: !!o.trap, keep: o.keep ?? null, near: !!o.near, mag: o.mag ?? null, target: o.target ?? 0,
@@ -1687,7 +1702,7 @@ window.__chayidu = {
       objs: S.objs.map(o => ({ id: o.id, angle: o.angle, target: o.target, err: errOf(o), keep: o.keep ?? null, trap: !!o.trap, call: o.call || null, live: o.live,
         aligned: !!o.wasAligned, perfect: !!o.wasPerfect, bonusGiven: !!o.bonusGiven })),
       fails: Object.assign({}, S.fails), session: Object.assign({}, S.session), lastResult: S.lastResult,
-      lang: LANG, zen: !!S.zen, stalled: stalled(), audio: { music: AU.musicOn, sound: AU.soundOn }, overlays: { lock: !$('#ovLock').hidden, intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden, chapter: !$('#ovChapter').hidden } };
+      lang: LANG, zen: !!S.zen, stalled: stalled(), toast: ($(gameEl.hidden ? '#homeToast' : '#toast').classList.contains('on') ? $(gameEl.hidden ? '#homeToast' : '#toast').textContent : ''), audio: { music: AU.musicOn, sound: AU.soundOn }, overlays: { lock: !$('#ovLock').hidden, intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden, chapter: !$('#ovChapter').hidden } };
   }
 };
 

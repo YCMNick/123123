@@ -24,18 +24,41 @@ describe('首頁', () => {
     await page.waitForTimeout(300)
     for (let i = 1; i <= 10; i++) expect(await canvasSpread(page, `.lv:nth-child(${i}) canvas`), `card ${i}`).toBeGreaterThan(10)
   })
-  it('點大關卡片會列出 10 個小關，每一關都能直接點來玩', async () => {
-    await page.click('.lv:nth-child(6)')
+  it('關卡照順序開：前一小關過了才能玩下一關，整個大關過完才開下一個大關', async () => {
+    await page.click('.lv:nth-child(1)')
     await expect.poll(() => page.locator('#ovChapter').isVisible()).toBe(true)
-    expect(await page.locator('#ovChapter h2').textContent()).toBe('極地冰原')
-    expect(await page.locator('#ovChapter .stages li.play').count()).toBe(10)
-    expect(await page.locator('#ovChapter .stages li.next b').textContent()).toBe('6-1')
+    expect(await page.locator('#ovChapter h2').textContent()).toBe('動物奇關')
+    expect(await page.locator('#ovChapter .stages li.off').count()).toBe(9)
     await page.click('#ovChapter .stages li:nth-child(4)')
-    await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe(LV[53].title)
+    expect((await state(page)).overlays.intro).toBe(false)
+    expect((await state(page)).overlays.chapter).toBe(true)
+    await page.click('#ovChapter .stages li:nth-child(1)')
+    await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe(LV[0].title)
     await page.click('#introHome')
-    await page.click('.lv:nth-child(6)')
-    await page.click('#sheetPlay')
-    await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe('極光夜')
+    const avail = await page.evaluate(() => {
+      const G = window.__chayidu; G.quiet(true)
+      const clear = (i) => { G.seed(1); G.start(i); for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() } G.done() }
+      clear(0); clear(1)
+      const a = [0, 1, 2, 3, 10].map((i) => G.available(i))
+      for (let i = 2; i < 10; i++) clear(i)
+      G.home()
+      return { a, after: [10, 11].map((i) => G.available(i)) }
+    })
+    expect(avail.a).toEqual([true, true, true, false, false])
+    expect(avail.after).toEqual([true, false])
+    expect(await page.locator('#levels .st[data-i="10"]').getAttribute('class')).not.toContain('off')
+    expect(await page.locator('#levels .st[data-i="11"]').getAttribute('class')).toContain('off')
+    await page.click('#levels .st[data-i="11"]')
+    expect((await state(page)).screen).toBe('home')
+    expect((await state(page)).toast).toContain('先破前一關')
+    await page.click('#levels .st[data-i="10"]')
+    await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe(LV[10].title)
+  })
+  it('地圖從上往下走：第 1 大關在最上面，終點在最下面', async () => {
+    const ys = await page.evaluate(() => [...document.querySelectorAll('#levels .lv')].map((el) => parseFloat(el.style.top)))
+    for (let i = 1; i < ys.length; i++) expect(ys[i]).toBeGreaterThan(ys[i - 1])
+    const stops = await page.evaluate(() => [0, 9, 10, 99].map((i) => parseFloat(document.querySelector(`#levels .st[data-i="${i}"]`).style.top)))
+    expect(stops[0]).toBeLessThan(stops[1]); expect(stops[1]).toBeLessThan(stops[2]); expect(stops[2]).toBeLessThan(stops[3])
   })
   it('過關後首頁顯示進度，「開始」變成「繼續」下一個沒過的小關', async () => {
     await page.evaluate(() => {
@@ -200,8 +223,7 @@ describe('完整流程', () => {
   it('100 關畫面都有正常繪製', async () => {
     for (let i = 0; i < LV.length; i++) {
       await page.evaluate((i) => window.__chayidu.start(i), i)
-      await page.waitForTimeout(60)
-      expect(await canvasSpread(page, '#cv'), `level ${i + 1}`).toBeGreaterThan(15)
+      await expect.poll(() => canvasSpread(page, '#cv'), { message: `level ${i + 1}`, timeout: 3000 }).toBeGreaterThan(15)
     }
   })
 })
