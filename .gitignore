@@ -30,6 +30,5 @@ dist-ssr
 # Test reports
 test-results
 
-# 差一度 private configs (copy the .example files)
-game/account.config.json
+# 差一度 store config (copy the .example file)
 game/store.config.json

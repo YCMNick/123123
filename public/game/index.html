@@ -94,9 +94,6 @@ button{font:inherit;color:inherit;cursor:pointer}
 #ovChapter{z-index:20}
 #ovFirst{z-index:21}
 #ovLock{z-index:22}
-#accountSect .row{flex-wrap:wrap}
-#accountSect input{flex:1 1 140px;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:inherit;font:inherit}
-.btn.danger{color:var(--danger)}
 .stages li.locked{opacity:.55}
 .stages li.locked b::after{content:" 🔒"}
 #ovFirst .diffs{margin:4px 0 2px}
@@ -257,24 +254,6 @@ button{font:inherit;color:inherit;cursor:pointer}
         <h2 data-i18n="worldsTitle"></h2>
         <div class="levels" id="levels"></div>
       </div>
-      <div class="sect" id="accountSect" hidden>
-        <h2 data-i18n="account"></h2>
-        <p class="foot" id="accLede" data-i18n="accLede"></p>
-        <div class="row" id="accOut">
-          <button class="btn ghost" id="accApple" data-i18n="accApple"></button>
-          <button class="btn ghost" id="accGoogle" data-i18n="accGoogle"></button>
-          <button class="btn ghost" id="accEmailBtn" data-i18n="accEmail"></button>
-        </div>
-        <form class="row" id="accEmailForm" hidden autocomplete="on">
-          <input id="accEmail" type="email" required autocomplete="email">
-          <input id="accPass" type="password" required minlength="6" autocomplete="current-password">
-          <button class="btn primary" id="accEmailGo" type="submit" data-i18n="accEmailGo"></button>
-        </form>
-        <div id="accIn" hidden>
-          <p class="foot" id="accWho"></p>
-          <div class="row"><button class="btn ghost" id="accSignOut" data-i18n="accOut"></button><button class="btn ghost danger" id="accDel" data-i18n="accDelete"></button></div>
-        </div>
-      </div>
       <div class="sect">
         <h2 data-i18n="rulesTitle"></h2>
         <ul class="rules" id="rules"></ul>
@@ -382,10 +361,7 @@ const UI = {
     firstTitle: '歪掉的東西，你有多在意？', firstLede: '選一個開始。之後隨時可以在首頁改。', firstPick: '就這個', firstRec: '建議新手',
     tryEasy: n => `改用「${n}」再試`, ldFine: '精細 ¼', fineHint: '慢慢移動＝精細模式；手指離物品越遠，轉得越細', stallHint: '還歪著的物品會亮起來', goZen: '開始・不計時',
     tZen: '禪模式不計時',
-    account: '帳號', accLede: '不登入也能玩。登入後進度會存到雲端，換手機也在。', accApple: '用 Apple 登入', accGoogle: '用 Google 登入', accEmail: '用 Email 登入',
-    accEmailPh: 'Email', accPassPh: '密碼（至少 6 位）', accEmailGo: '登入或註冊', accSignedIn: n => `已登入：${n}`, accOut: '登出', accDelete: '刪除帳號', accDeleteAsk: '確定刪除帳號？雲端進度會一起刪除，無法復原。',
-    accSynced: '進度已同步', accErr: m => `登入失敗：${m}`, accLoading: '帳號功能載入中…', accFailed: m => `帳號功能暫時無法使用（${m}）。不登入也能照常玩。`, accReauth: '為了安全，請先登出再登入一次，然後再刪除帳號。',
-    lockTitle: '完整版', lockLede: '第 1 大關和每個大關的第 1 小關免費。完整版一次買斷：100 關全開、沒有廣告、雲端存檔。', lockBuy: p => `解鎖完整版 ${p}`, lockAd: '看一段廣告，免費玩這個大關 24 小時', lockLater: '先不用',
+    lockTitle: '完整版', lockLede: '第 1 大關和每個大關的第 1 小關免費。完整版一次買斷：100 關全開、沒有廣告。', lockBuy: p => `解鎖完整版 ${p}`, lockAd: '看一段廣告，免費玩這個大關 24 小時', lockLater: '先不用',
     lockNote: '購買與廣告在 App 內完成。', locked: '完整版解鎖', unlockedAd: h => `這個大關已開放 ${h} 小時`,
     diffTitle: '難度：歪掉的東西，你有多在意？', worldsTitle: '地球宇宙・十大關卡，每個大關 10 個小關',
     rulesTitle: '規則',
@@ -425,10 +401,7 @@ const UI = {
     firstTitle: 'How much do crooked things bother you?', firstLede: 'Pick one to start. You can change it on the home screen any time.', firstPick: 'This one', firstRec: 'Suggested for new players',
     tryEasy: n => `Try again on ${n}`, ldFine: 'fine ¼', fineHint: 'Move slowly for fine control; the farther from the object, the finer it turns', stallHint: 'Objects still off will light up', goZen: 'Start · no clock',
     tZen: 'Zen mode: no clock',
-    account: 'Account', accLede: 'No account needed to play. Sign in to keep your progress in the cloud, on any phone.', accApple: 'Sign in with Apple', accGoogle: 'Sign in with Google', accEmail: 'Sign in with email',
-    accEmailPh: 'Email', accPassPh: 'Password (6+ characters)', accEmailGo: 'Sign in or sign up', accSignedIn: n => `Signed in: ${n}`, accOut: 'Sign out', accDelete: 'Delete account', accDeleteAsk: 'Delete your account? Cloud progress is deleted too. This cannot be undone.',
-    accSynced: 'Progress synced', accErr: m => `Sign-in failed: ${m}`, accLoading: 'Loading account features…', accFailed: m => `Account features are unavailable right now (${m}). You can still play without signing in.`, accReauth: 'For safety, sign out and back in, then delete the account.',
-    lockTitle: 'Full version', lockLede: 'World 1 and the first stage of every world are free. The full version is a one-time purchase: all 100 stages, no ads, cloud save.', lockBuy: p => `Unlock the full version ${p}`, lockAd: 'Watch an ad to play this world free for 24 hours', lockLater: 'Not now',
+    lockTitle: 'Full version', lockLede: 'World 1 and the first stage of every world are free. The full version is a one-time purchase: all 100 stages, no ads.', lockBuy: p => `Unlock the full version ${p}`, lockAd: 'Watch an ad to play this world free for 24 hours', lockLater: 'Not now',
     lockNote: 'Purchases and ads happen in the app.', locked: 'Full version', unlockedAd: h => `This world is open for ${h} more hours`,
     diffTitle: 'Difficulty: how much do crooked things bother you?', worldsTitle: 'Earth universe · 10 worlds, 10 stages each',
     rulesTitle: 'Rules',
@@ -466,7 +439,6 @@ function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0
 function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 
 /* ---------- storage (per-viewer convenience only) ---------- */
-let saveHook = () => {}; // the account module hooks in here to sync a save to the cloud
 const store = {
   data: { nick: '', best: {}, sound: true, music: true, lang: '' },
   load() {
@@ -483,7 +455,7 @@ const store = {
       this.save();
     } catch (e) {}
   },
-  save() { this.data.updatedAt = Date.now(); try { localStorage.setItem('chayidu.v3', JSON.stringify(this.data)); } catch (e) {} saveHook(); }
+  save() { this.data.updatedAt = Date.now(); try { localStorage.setItem('chayidu.v3', JSON.stringify(this.data)); } catch (e) {} }
 };
 
 /* ---------- Q sound library: every sound in the game uses this cute recipe ----------
@@ -751,8 +723,7 @@ function defineCreatureSound(key, fn) { QS.creature[key] = fn; }
 function defineThingSound(key, fn) { QS.thing[key] = fn; }
 // Time budgets calibrated by simulation (game/times.json, written by the calibrate tool).
 const CALIBRATED_TIMES = {"farm":31,"animal-savanna":27,"animal-rainforest":30,"animal-bamboo":29,"animal-outback":32,"animal-honey":32,"animal-night":37,"animal-birds":36,"animal-pets":40,"animal-carnival":42,"reef":33,"ocean-kelp":24,"ocean-wreck":29,"ocean-song":29,"ocean-jelly":27,"ocean-arctic":31,"ocean-glow":31,"ocean-nest":36,"ocean-harbor":39,"ocean-city":44,"jp":30,"oldtown-xian":23,"oldtown-istanbul":26,"oldtown-prague":29,"oldtown-seoul":32,"oldtown-chaouen":36,"oldtown-venice":35,"oldtown-tainan":35,"oldtown-lisbon":35,"oldtown-hanoi":40,"desk":30,"home-kitchen":23,"home-bath":26,"home-closet":28,"home-fridge":32,"home-gallery":32,"home-market":35,"home-office":35,"home-class":39,"home-moving":43,"fr":34,"comic-subway":22,"comic-shibuya":25,"comic-london":28,"comic-hongkong":31,"comic-rome":32,"comic-berlin":35,"comic-seoul":35,"comic-rio":38,"comic-bangkok":44,"polar":29,"polar-igloo":20,"polar-sled":24,"polar-iceberg":27,"polar-parade":32,"polar-cave":32,"polar-fishing":35,"polar-station":36,"polar-blizzard":36,"polar-midnight":42,"desert":31,"desert-caravan":22,"desert-market":25,"desert-dunes":27,"desert-cactus":31,"desert-petra":31,"desert-stars":31,"desert-mirage":34,"desert-storm":37,"desert-rum":43,"it":32,"wonder-wall":22,"wonder-liberty":25,"wonder-bigben":27,"wonder-sydney":27,"wonder-machu":31,"wonder-taj":35,"wonder-moai":36,"wonder-angkor":35,"wonder-fuji":43,"neon":39,"park-wheel":23,"park-carousel":27,"park-coaster":29,"park-haunted":30,"park-gallery":33,"park-balloons":32,"park-water":36,"park-parade":36,"park-finale":40,"space":40,"space-moon":22,"space-mars":26,"space-saturn":28,"space-repair":32,"space-meteor":32,"space-blackhole":35,"space-stars":35,"space-elevator":38,"space-home":45};
-// Account and store settings are pasted in by the build (game/account.config.json, game/store.config.json).
-const ACCOUNT = {"apiKey":"AIzaSyD5c0Jd01ikKKnJ3GRo-Fu2v_cJ4-f-FvU","authDomain":"app-moreangle.firebaseapp.com","projectId":"app-moreangle","storageBucket":"app-moreangle.firebasestorage.app","messagingSenderId":"287618677209","appId":"1:287618677209:web:120f4ce5d2e4345ee781c8","sdk":"10.14.1"};
+// Store settings are pasted in by the build (game/store.config.json).
 const STORE_CFG = {"freeAll":true,"price":"USD 4.99","freeWorlds":1,"adHours":24};
 /* ---------- game/chapters/01-animal.js ---------- */
 (() => {
@@ -12797,10 +12768,8 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = U(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', U(el.dataset.i18nAria)));
   document.querySelectorAll('.nudge').forEach((b, k) => b.setAttribute('aria-label', U('nudge')[k]));
-  $('#nick').placeholder = U('nickPh'); $('#accEmail').placeholder = U('accEmailPh'); $('#accPass').placeholder = U('accPassPh');
+  $('#nick').placeholder = U('nickPh');
   $('#rules').innerHTML = U('rules').map(([b, t]) => `<li><b>${b}</b><span>${t}</span></li>`).join('');
-  if (typeof ACC !== 'undefined' && ACC.status === 'loading') $('#accLede').textContent = U('accLoading');
-  else if (typeof ACC !== 'undefined' && ACC.status.startsWith('failed')) $('#accLede').textContent = U('accFailed', ACC.status.slice(8));
   const title = $('#title'); title.innerHTML = U('title'); title.setAttribute('aria-label', U('titleLabel')); title.classList.toggle('en', LANG === 'en');
   markSeg($('#langSeg'), LANG);
   select(S.selected);
@@ -12815,90 +12784,6 @@ function setLang(l) {
 let toastT;
 function toast(msg, ms = 1800) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms); }
 
-/* ---------- account: Firebase (Apple / Google / email) and cloud save. Loads only when ACCOUNT is configured. ---------- */
-const ACC = {
-  user: null, fb: null, pending: null, status: 'off',
-  // The compat bundles (one global `firebase`, one shared app) load as plain scripts, so the
-  // three parts always share the same core. Default host jsdelivr; ACCOUNT.sdkBase can point
-  // at https://www.gstatic.com/firebasejs/<version>/ which serves the same file names.
-  script(src) { return new Promise((ok, bad) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => bad(new Error('cannot load ' + src)); document.head.appendChild(t); }); },
-  async init() {
-    if (!ACCOUNT || !ACCOUNT.apiKey) return;
-    $('#accountSect').hidden = false; this.status = 'loading';
-    $('#accLede').textContent = U('accLoading'); $('#accOut').hidden = true;
-    const V = ACCOUNT.sdk || '10.14.1', base = ACCOUNT.sdkBase || `https://cdn.jsdelivr.net/npm/firebase@${V}/`;
-    try {
-      await this.script(base + 'firebase-app-compat.js');
-      await Promise.all([this.script(base + 'firebase-auth-compat.js'), this.script(base + 'firebase-firestore-compat.js')]);
-      const fb = window.firebase; if (!fb || !fb.auth) throw new Error('firebase global missing');
-      const app = fb.apps.length ? fb.app() : fb.initializeApp(ACCOUNT);
-      this.fb = { fb, app, a: fb.auth(app), db: fb.firestore(app) };
-      this.fb.a.onAuthStateChanged(u => { this.user = u; this.render(); if (u) this.pull(); });
-      this.fb.a.getRedirectResult().catch(e => this.fail(e));
-      this.status = 'ready'; $('#accLede').textContent = U('accLede'); this.render();
-    } catch (e) {
-      // Keep the section, say why: a blocked CDN or a bad config should be visible, not silent.
-      const why = (e && (e.code || e.message)) || String(e);
-      this.status = 'failed: ' + why; console.warn('account unavailable', e);
-      $('#accLede').textContent = U('accFailed', why); $('#accOut').hidden = true; $('#accIn').hidden = true;
-    }
-  },
-  fail(e) { toast(U('accErr', (e && e.code) || (e && e.message) || String(e)), 3500); },
-  async provider(kind) {
-    AU.init(); const { fb, a } = this.fb;
-    const p = kind === 'google' ? new fb.auth.GoogleAuthProvider() : new fb.auth.OAuthProvider('apple.com');
-    try { await a.signInWithPopup(p); }
-    catch (e) { if (/popup/.test(e.code || '')) await a.signInWithRedirect(p).catch(x => this.fail(x)); else this.fail(e); }
-  },
-  async email(mail, pass) {
-    const { a } = this.fb;
-    try { await a.signInWithEmailAndPassword(mail, pass); }
-    catch (e) {
-      if (['auth/user-not-found', 'auth/invalid-credential', 'auth/invalid-login-credentials'].includes(e.code)) {
-        try { await a.createUserWithEmailAndPassword(mail, pass); } catch (x) { this.fail(x); }
-      } else this.fail(e);
-    }
-  },
-  async signOut() { await this.fb.a.signOut(); },
-  async remove() {
-    if (!this.user || !confirm(U('accDeleteAsk'))) return;
-    try { await this.fb.db.collection('players').doc(this.user.uid).delete(); await this.user.delete(); }
-    catch (e) { if (e.code === 'auth/requires-recent-login') toast(U('accReauth'), 4000); else this.fail(e); }
-  },
-  doc() { return this.fb.db.collection('players').doc(this.user.uid); },
-  // Cloud save: best scores merge by the higher value; settings follow the newer side.
-  async pull() {
-    if (!this.user) return;
-    try {
-      const snap = await this.doc().get(), c = snap.exists ? snap.data() : null;
-      if (c) {
-        for (const [k, v] of Object.entries(c.best || {})) { const m = store.data.best[k] || { score: 0, stars: 0 }; store.data.best[k] = { score: Math.max(m.score, v.score || 0), stars: Math.max(m.stars, v.stars || 0) }; }
-        if ((c.updatedAt || 0) > (store.data.updatedAt || 0)) for (const k of ['nick', 'diff', 'lang', 'zen', 'music', 'sound', 'full', 'pass']) if (c[k] !== undefined) store.data[k] = c[k];
-        store.save(); buildCards(); buildDiffs(); syncSound();
-      }
-      await this.push(); toast(U('accSynced'));
-    } catch (e) { this.fail(e); }
-  },
-  async push() {
-    if (!this.user || !this.fb) return;
-    const d = store.data;
-    await this.doc().set({ best: d.best, nick: d.nick || '', diff: d.diff || 'normal', lang: d.lang || 'zh', zen: !!d.zen, music: d.music !== false, sound: d.sound !== false, full: !!d.full, pass: d.pass || {}, updatedAt: Date.now() }, { merge: true });
-  },
-  // Called by store.save(): a save a few seconds after the last change.
-  changed() { if (!this.user) return; clearTimeout(this.pending); this.pending = setTimeout(() => this.push().catch(e => console.warn(e)), 2500); },
-  render() {
-    if (this.status !== 'ready') return;
-    const u = this.user; $('#accOut').hidden = !!u; $('#accEmailForm').hidden = true; $('#accIn').hidden = !u;
-    if (u) $('#accWho').textContent = U('accSignedIn', u.displayName || u.email || u.uid.slice(0, 8));
-  },
-};
-saveHook = () => ACC.changed();
-$('#accApple').onclick = () => ACC.provider('apple');
-$('#accGoogle').onclick = () => ACC.provider('google');
-$('#accEmailBtn').onclick = () => { const f = $('#accEmailForm'); f.hidden = !f.hidden; if (!f.hidden) $('#accEmail').focus(); };
-$('#accEmailForm').onsubmit = e => { e.preventDefault(); ACC.email($('#accEmail').value.trim(), $('#accPass').value); };
-$('#accSignOut').onclick = () => ACC.signOut();
-$('#accDel').onclick = () => ACC.remove();
 
 /* ---------- home ---------- */
 const starsOf = i => (store.data.best[bestKey(i)] || {}).stars || 0;
@@ -13047,7 +12932,6 @@ buildCards();
 // Players from before the question had already chosen (or kept) a difficulty: don't ask them.
 if (!store.data.onboarded && (store.data.diff || Object.keys(store.data.best).length)) { store.data.onboarded = true; store.save(); }
 if (!store.data.onboarded) showFirstRun();
-ACC.init();
 new ResizeObserver(() => layout()).observe($('#stageWrap'));
 window.addEventListener('resize', () => { if (!gameEl.hidden) layout(); });
 const fontList = ['20px "DotGothic16"', '20px Bangers', '700 20px "Playfair Display"', 'italic 700 20px "Playfair Display"', '600 20px Caveat', '700 14px "Noto Sans TC"'];
@@ -13073,8 +12957,6 @@ window.__chayidu = {
   setZen(on) { setZen(on); },
   // Simulate the app build (free world 1 + first stages) or the web build (everything open).
   setFreeAll(on) { FREE_ALL = !!on; buildCards(); },
-  accountConfigured: !!(ACCOUNT && ACCOUNT.apiKey),
-  accountStatus: () => ACC.status,
   unlocked: i => unlocked(LEVELS[i]),
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, stage: L.stage, chapterName: tr(chapterOf(L).name), title: tr(L.title), titles: L.title,
     place: L.place, intro: L.intro, time: L.time, practice: isPractice(L), animated: !!L.animated,

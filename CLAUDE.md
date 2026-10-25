@@ -158,13 +158,11 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
 - Input: a slow finger turns at ¼ gain (`FINE_GAIN`, a precision mode, not a
   snap); holding a 0.1° button speeds up. `game/tools/probe-touch.mjs` has the
   numbers behind this; `probe-funnel.mjs` plays a first session with retries.
-- Account and store: `game/account.config.json` (Firebase web config, see the
-  `.example`) turns on the account section (Apple / Google / email sign-in,
-  cloud save in Firestore `players/{uid}`); without it the game is fully
-  offline. `game/store.config.json` sets the unlock rules (`freeAll` is true
-  for the web build; the app build locks everything beyond world 1 and each
-  world's first stage behind `window.Store.buy()` / `window.Ads.rewarded()`,
-  which the iOS shell provides). Both files are git-ignored.
+- Store: the game needs no account (progress stays on the device).
+  `game/store.config.json` (git-ignored, see the `.example`) sets the unlock
+  rules: `freeAll` is true for the web build; the app build locks everything
+  beyond world 1 and each world's first stage behind `window.Store.buy()` /
+  `window.Ads.rewarded()`, which the iOS shell provides. See `game/STORE.md`.
 - `DIFFS` defines three difficulties (看到會歪頭 Head Tilter / 忍不住伸手 Itchy
   Fingers / 不轉正睡不著 Sleepless Till Straight): tolerance, time multiplier,
   score multiplier and how much the loupe reveals.
