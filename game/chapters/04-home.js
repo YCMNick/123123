@@ -350,13 +350,14 @@ function bgWardrobe(c) {
   // middle shelf and drawers
   c.fillStyle = 'rgba(80,50,20,.07)'; c.fillRect(22, 292, 316, 8);
   skR(c, 22, 300, 316, 12, 1, 'rgba(190,140,85,.7)', 1.3, 0.9);
-  sk(c, p => { p.moveTo(232, 326); p.quadraticCurveTo(236, 306, 246, 314); p.lineTo(252, 318); p.quadraticCurveTo(246, 324, 244, 330); p.closePath(); }, 1, 0.8, 'rgba(255,214,90,.9)');
-  ln(c, p => { p.moveTo(238, 314); p.lineTo(244, 318); }, 1.6, 'rgba(214,72,60,.7)');
-  [[322, T('襪子', 'Socks')], [398, T('冬衣', 'Winter')]].forEach(([y, label]) => {
+    [[322, T('襪子', 'Socks')], [398, T('冬衣', 'Winter')]].forEach(([y, label]) => {
     skR(c, 32, y, 296, 70, 3, 'rgba(215,180,130,.6)', 1.3, 0.85); skR(c, 160, y + 31, 40, 8, 4, 'rgba(160,160,170,.85)', 1, 0.8); hatch(c, 34, y + 56, 292, 12, 4, 0.1);
     skR(c, 162, y + 10, 36, 14, 1, 'rgba(200,200,208,.9)', 0.9, 0.7); c.fillStyle = '#fffdf6'; c.fillRect(165, y + 12.5, 30, 9);
     fit(c, label, 180, y + 17.5, 28, hand(10), INK(0.8));
   });
+  // a sock left hanging out of the top drawer
+  sk(c, p => { p.moveTo(230, 321); p.lineTo(241, 321); p.lineTo(242, 338); p.quadraticCurveTo(252, 339, 251, 346); p.lineTo(237, 347); p.quadraticCurveTo(231, 345, 231, 337); p.closePath(); }, 1, 0.8, 'rgba(255,214,90,.95)');
+  c.fillStyle = 'rgba(214,72,60,.7)'; c.fillRect(231, 326, 10.5, 3);
   c.fillStyle = 'rgba(160,110,60,.45)'; c.fillRect(22, 470, 316, 10);
 }
 const SHIRT = p => { p.moveTo(-42, -52); p.lineTo(-14, -60); p.lineTo(0, -50); p.lineTo(14, -60); p.lineTo(42, -52); p.lineTo(36, 70); p.quadraticCurveTo(0, 80, -36, 70); p.closePath(); };

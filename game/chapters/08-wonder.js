@@ -1045,11 +1045,16 @@ function drawTukTuk(c) {
   c.fillStyle = lin(c, 0, 4, 0, 24, 0, '#3c63a0', 1, '#22385e'); rr(c, -62, 4, 84, 18, 3); c.fill();
   c.fillStyle = '#e8b84a'; c.fillRect(-62, 9, 84, 1.6);
   circ(c, -34, 34, 13, '#1b1b1b'); circ(c, -34, 34, 6.5, '#a7aab0'); circ(c, -34, 34, 2, '#444');
-  c.fillStyle = lin(c, 24, 0, 56, 0, 0, '#d63c34', 1, '#8a1e1e'); c.beginPath(); c.moveTo(24, 22); c.quadraticCurveTo(30, 8, 46, 8); c.lineTo(54, 22); c.closePath(); c.fill();
-  c.fillStyle = '#1e1e1e'; rr(c, 28, 4, 18, 5, 2.5); c.fill();
-  c.strokeStyle = '#3a3a3a'; c.lineWidth = 2; c.beginPath(); c.moveTo(50, 22); c.lineTo(56, -2); c.lineTo(50, -6); c.stroke();
-  circ(c, 57, 2, 3.4, '#fff2c0');
-  [[30, 38], [54, 38]].forEach(([x, y]) => { circ(c, x, y, 10, '#1b1b1b'); circ(c, x, y, 5, '#a7aab0'); circ(c, x, y, 1.6, '#444'); });
+  // the motorbike pulling the carriage
+  c.strokeStyle = '#3a3a3a'; c.lineWidth = 2.4; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(54, -4); c.lineTo(60, 38); c.stroke();
+  c.beginPath(); c.moveTo(48, -6); c.lineTo(58, -8); c.stroke();
+  circ(c, 28, 38, 10, '#1b1b1b'); circ(c, 28, 38, 4.6, '#a7aab0');
+  circ(c, 60, 38, 10, '#1b1b1b'); circ(c, 60, 38, 4.6, '#a7aab0');
+  c.fillStyle = lin(c, 24, 0, 58, 0, 0, '#e2483e', 1, '#9a2420'); c.beginPath(); c.moveTo(20, 30); c.lineTo(24, 18); c.quadraticCurveTo(36, 12, 44, 16); c.lineTo(54, 0); c.lineTo(58, 2); c.lineTo(52, 22); c.quadraticCurveTo(46, 32, 36, 32); c.closePath(); c.fill();
+  c.fillStyle = '#1e1e1e'; rr(c, 24, 11, 20, 6, 3); c.fill();
+  c.fillStyle = '#9aa0a8'; c.fillRect(14, 30, 18, 3);
+  circ(c, 58, -1, 3.2, '#fff2c0'); circ(c, 57.4, -1.6, 1, '#fff');
   c.fillStyle = 'rgba(255,200,140,.4)'; c.fillRect(-62, -48, 84, 1.6);
 }
 function drawMacaque(c) {
@@ -1222,7 +1227,7 @@ function drawEma(c, word) {
   circ(c, 0, -12, 1.6, '#5a3a1e');
   txt(c, LOCAL(word), -6, 6, '700 12px "Noto Serif TC", "Noto Sans TC", serif', '#2a1a10');
   c.strokeStyle = 'rgba(40,25,15,.65)'; c.lineWidth = 0.8;
-  for (let k = 0; k < 3; k++) { c.beginPath(); c.moveTo(13, -1 + k * 0.5); for (let j = 0; j < 5; j++) c.lineTo(13 + (j % 2) * 2.5 - k * 3.6, 1 + j * 3.4); c.stroke(); }
+  [17, 12].forEach((x, k) => { c.beginPath(); c.moveTo(x, -2 + k * 2); for (let j = 1; j < 9; j++) c.lineTo(x + Math.sin(j * 2.1 + k) * 1.3, -2 + k * 2 + j * 2); c.stroke(); });
 }
 function drawNoren(c, word) {
   c.fillStyle = '#1d2a54'; for (let x = -24; x <= 18; x += 14) rr(c, x, -40, 8, 7, 1.5), c.fill();
