@@ -64,7 +64,10 @@ describe('參考機器人（精確值）', () => {
         G.setDifficulty(d)
         out[d] = G.levels().map((lv, i) => {
           G.resetProgress(); G.seed(7); G.start(i)
-          for (const o of G.state().objs) if (!o.trap) { G.setAngle(o.id, o.target); G.release() }
+          // Turn the leading object of each linked pair first, so it doesn't knock its partner off again.
+          const leads = new Set(lv.objects.filter((o) => o.link).map((o) => o.id))
+          const objs = G.state().objs.filter((o) => !o.trap)
+          for (const o of [...objs.filter((o) => leads.has(o.id)), ...objs.filter((o) => !leads.has(o.id))]) { G.setAngle(o.id, o.target); G.release() }
           G.done()
           return G.state().lastResult
         })
