@@ -455,8 +455,13 @@ function bgJelly(c) {
   band(c, 78, H, [[0, '#ece6a8'], [0.25, '#a8c98e'], [0.6, '#5c9a7c'], [1, '#2a5a52']]);
   c.fillStyle = 'rgba(255,255,230,.5)'; c.fillRect(0, 78, W, 2);
   c.strokeStyle = 'rgba(80,64,40,.55)'; c.lineCap = 'round';
-  for (let k = 0; k < 6; k++) { c.lineWidth = 3 + k % 3; const x = 6 + k * 9; c.beginPath(); c.moveTo(x, 70); c.quadraticCurveTo(x + 18, 120 + k * 8, x - 4, 150 + k * 10); c.stroke(); }
-  for (let k = 0; k < 5; k++) { c.lineWidth = 3 + k % 3; const x = 354 - k * 10; c.beginPath(); c.moveTo(x, 70); c.quadraticCurveTo(x - 20, 110 + k * 9, x + 2, 140 + k * 12); c.stroke(); }
+  for (const [x0, s] of [[4, 1], [356, -1]]) for (let k = 0; k < 6; k++) {
+    const x = x0 + s * k * (7 + R() * 6), len = 50 + R() * 90, bend = s * (10 + R() * 16);
+    c.lineWidth = 1.5 + R() * 2.5; c.globalAlpha = 0.5 + R() * 0.35;
+    c.beginPath(); c.moveTo(x, 64); c.quadraticCurveTo(x + bend, 80 + len * 0.5, x + bend * 0.3, 80 + len); c.stroke();
+    if (k % 2) { c.lineWidth = 1; c.beginPath(); c.moveTo(x + bend * 0.6, 80 + len * 0.45); c.quadraticCurveTo(x + bend * 1.3, 90 + len * 0.6, x + bend * 1.1, 96 + len * 0.75); c.stroke(); }
+  }
+  c.globalAlpha = 1;
   c.lineCap = 'butt';
   rays(c, R, 7, 'rgba(255,240,170,.1)', 78, 440);
   blooms(c, R, 30, ['230,200,90', '90,150,100', '200,220,140'], 20, 70, 0.12, 0, 90, W, 380);
@@ -519,7 +524,7 @@ function drawLakeSign(c, a) {
   circ(c, -50, -28, 1.6, '#4a3520'); circ(c, 50, -28, 1.6, '#4a3520');
   wash(c, () => { c.beginPath(); c.ellipse(-38, -19, 9, 6, 0, 0, TAU); }, '#7fd0e6', 'rgba(30,70,90,.6)');
   c.strokeStyle = '#2b2b2b'; c.lineWidth = 2; c.beginPath(); c.moveTo(-30, -19); c.lineTo(-27, -19); c.lineTo(-27, -31); c.stroke();
-  fitTxt(c, T('只能浮潛', 'Snorkel only'), 11, -19, T('900 16px "Noto Sans TC", sans-serif', '600 20px Caveat, "Noto Sans TC", cursive'), '#3d2a17', 76);
+  fitTxt(c, T('只能浮潛', 'Snorkel only'), 14, -19, T('900 16px "Noto Sans TC", sans-serif', '600 20px Caveat, "Noto Sans TC", cursive'), '#3d2a17', 70);
   waterline(c, -60, 60, 24, a.t, 'rgba(240,240,200,.5)');
 }
 
@@ -626,7 +631,7 @@ function bgDeep(c) {
 function glowDot(c, x, y, r, col, a) { c.globalAlpha = 0.18 * a; circ(c, x, y, r * 2.6, col); c.globalAlpha = 0.35 * a; circ(c, x, y, r * 1.6, col); c.globalAlpha = 1; circ(c, x, y, r, col); }
 function drawSub(c, a) {
   const L = 0.3 + a.live;
-  poly(c, [54, -8, 80, -24, 80, 16, 54, 2], 'rgba(255,240,170,.13)'); poly(c, [54, -6, 80, -14, 80, 6, 54, 0], 'rgba(255,245,190,.2)');
+  poly(c, [54, -8, 80, -24, 80, 16, 54, 2], 'rgba(255,230,140,.2)'); poly(c, [54, -6, 80, -14, 80, 6, 54, 0], 'rgba(255,245,190,.32)');
   c.strokeStyle = '#6a6f78'; c.lineWidth = 3; c.lineCap = 'round';
   c.beginPath(); c.moveTo(18, 28); c.lineTo(34, 38); c.lineTo(48, 34); c.stroke();
   c.lineWidth = 2; c.beginPath(); c.moveTo(48, 34); c.lineTo(54, 30); c.moveTo(48, 34); c.lineTo(55, 38); c.stroke(); c.lineCap = 'butt';
@@ -695,12 +700,14 @@ function drawDumbo(c, a) {
 const COMB = ['#ff7aa8', '#ffd36b', '#7dff9b', '#6bd8ff', '#b88bff'];
 function drawCombJelly(c, a) {
   const L = 0.3 + a.live, sh = Math.floor(a.t * 10);
-  wash(c, () => { c.beginPath(); c.ellipse(0, 0, 22, 34, 0, 0, TAU); }, 'rgba(200,230,255,.28)', 'rgba(170,215,255,.7)');
-  ell(c, 0, 4, 5, 20, 'rgba(255,200,230,.35)');
-  for (let r = 0; r < 4; r++) { const k = -1.5 + r; for (let i = 0; i < 9; i++) { const t = -1 + i / 4, y = t * 30, x = k * 11 * Math.sqrt(1 - t * t * 0.8); circ(c, x, y, 1.6, COMB[(i + r + sh) % 5]); } }
-  c.strokeStyle = 'rgba(220,235,255,.5)'; c.lineWidth = 1;
-  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 6, 30); c.quadraticCurveTo(s * 14 + Math.sin(a.t * 2) * 4 * L, 36, s * 8, 41); c.stroke(); }
-  eye(c, -6, -14, 2.2); eye(c, 6, -14, 2.2); blush(c, -10, -9, 2.4); blush(c, 10, -9, 2.4);
+  const body = () => { c.beginPath(); c.moveTo(0, -36); c.bezierCurveTo(24, -30, 24, 26, 0, 34); c.bezierCurveTo(-24, 26, -24, -30, 0, -36); c.closePath(); };
+  wash(c, body, 'rgba(200,230,255,.26)', 'rgba(170,215,255,.75)');
+  for (const k of [-1, -0.36, 0.36, 1]) for (let i = 0; i < 8; i++) { const t = -0.85 + i * 0.24, y = t * 34, x = k * 17 * Math.sqrt(Math.max(0, 1 - t * t)); circ(c, x, y, 1.5, COMB[(i + Math.round(k * 3) + sh) % 5]); }
+  c.strokeStyle = 'rgba(220,235,255,.55)'; c.lineWidth = 1;
+  for (const s of [-1, 1]) { c.beginPath(); c.moveTo(s * 4, 33); c.quadraticCurveTo(s * 12 + Math.sin(a.t * 2) * 4 * L, 37, s * 7, 41); c.stroke(); }
+  ell(c, -7, -22, 4, 7, 'rgba(255,255,255,.35)', 0.3);
+  circ(c, -9, -10, 3.4, 'rgba(255,255,255,.75)'); circ(c, 9, -10, 3.4, 'rgba(255,255,255,.75)');
+  eye(c, -9, -10, 2.2); eye(c, 9, -10, 2.2); blush(c, -12, -4, 2.4); blush(c, 12, -4, 2.4);
 }
 
 /* ===== 2-8 Turtle homecoming, Wang-an (Penghu) ===== */
@@ -711,8 +718,8 @@ function bgNest(c) {
   for (let i = 0; i < 70; i++) { const x = R() * W, y = R() * 140; if (Math.hypot(x - 70, y - 60) < 40) continue; c.globalAlpha = 0.3 + R() * 0.6; const r = 0.6 + R() * 1.2; c.fillRect(x, y, r, r); }
   c.globalAlpha = 1;
   blooms(c, R, 1, ['253,243,207'], 70, 71, 0.28, 70, 60, 0, 0);
-  wc(c, R, [48, 62, 56, 44, 76, 40, 92, 56, 86, 78, 66, 84, 50, 76], '#fdf3cf', 6, 0.35, 4);
-  ell(c, 64, 56, 4, 3, 'rgba(220,200,150,.4)'); ell(c, 78, 68, 5, 3.5, 'rgba(220,200,150,.35)');
+  circ(c, 70, 61, 23, 'rgba(253,243,207,.35)'); circ(c, 70, 61, 21, '#fdf3cf');
+  ell(c, 62, 54, 5, 4, 'rgba(225,205,160,.45)'); ell(c, 78, 67, 6, 4.5, 'rgba(225,205,160,.4)'); ell(c, 66, 72, 3, 2.4, 'rgba(225,205,160,.4)'); ell(c, 64, 52, 9, 6, 'rgba(255,255,245,.35)');
   wc(c, R, [0, 152, 0, 141, 50, 137, 110, 143, 170, 152], '#1d2748', 5, 0.3, 4);
   band(c, 152, 230, [[0, '#33507f'], [1, '#22365f']]);
   for (let y = 156; y < 226; y += 5) { const w = 30 - (y - 156) * 0.2 + Math.sin(y) * 6; c.fillStyle = `rgba(253,243,207,${0.55 - (y - 156) * 0.006})`; c.fillRect(70 - w / 2 + Math.sin(y * 1.7) * 6, y, w, 1.6); }
@@ -761,7 +768,7 @@ function drawPostR(c, a) { drawPost(c, a, 1); }
 function drawMotherTurtle(c, a) {
   const L = 0.3 + a.live, p = Math.sin(a.t * 1.4) * 0.35 * L;
   const flip = (x, y, r, rx, ry, oy) => { c.save(); c.translate(x, y); c.rotate(r); wash(c, () => { c.beginPath(); c.ellipse(0, oy, rx, ry, 0, 0, TAU); }, '#8b9a6a', 'rgba(50,60,30,.55)'); c.restore(); };
-  flip(22, -26, -0.5 - p, 9, 24, -18); flip(22, 26, 0.5 + p, 9, 24, 18);
+  flip(20, -22, -0.5 - p, 8, 17, -12); flip(20, 22, 0.5 + p, 8, 17, 12);
   flip(-34, -20, 0.6 + p * 0.5, 7, 12, -8); flip(-34, 20, -0.6 - p * 0.5, 7, 12, 8);
   wash(c, () => { c.beginPath(); c.ellipse(58, 0, 15, 11, 0, 0, TAU); }, '#8b9a6a', 'rgba(50,60,30,.55)');
   eye(c, 63, -6, 2.4); eye(c, 63, 6, 2.4);
@@ -809,6 +816,7 @@ function bgHarbor(c) {
   c.fillStyle = '#9a958c'; c.fillRect(0, 150, W, 5);
   band(c, 155, 236, [[0, 'rgba(110,165,195,.75)'], [1, '#4f86a6']]);
   c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1; for (let y = 164; y < 232; y += 8) { c.beginPath(); for (let x = 0; x <= W; x += 10) c.lineTo(x, y + Math.sin(x / 10 + y) * 1.3); c.stroke(); }
+  wc(c, R, [0, 236, 0, 180, 22, 178, 26, 236], '#a59e92', 4, 0.5, 3); c.fillStyle = 'rgba(60,55,50,.3)'; c.fillRect(0, 186, 26, 3);
   c.fillStyle = '#a59e92'; c.fillRect(0, 236, W, 10); c.fillStyle = 'rgba(60,55,50,.35)'; c.fillRect(0, 245, W, 2);
   band(c, 247, H, [[0, '#d9d2c4'], [1, '#bdb3a2']]);
   wc(c, R, [40, 330, 140, 316, 200, 340, 120, 352], '#9fb0bd', 4, 0.12, 10);
@@ -850,8 +858,10 @@ function drawSlipway(c, a) {
   wash(c, () => rr(c, -62, -4, 124, 14, 3), '#b9b2a4', 'rgba(70,65,55,.6)');
   c.strokeStyle = 'rgba(90,80,70,.5)'; c.lineWidth = 1; for (let x = -54; x < 60; x += 10) { c.beginPath(); c.moveTo(x, -4); c.lineTo(x, 10); c.stroke(); }
   c.strokeStyle = '#6d6a66'; c.lineWidth = 2; for (const y of [-6, -2]) { c.beginPath(); c.moveTo(-60, y); c.lineTo(62, y); c.stroke(); }
+  wash(c, () => { c.beginPath(); c.moveTo(-36, -18); c.lineTo(8, -18); c.quadraticCurveTo(4, -6, -6, -7); c.lineTo(-30, -7); c.quadraticCurveTo(-36, -10, -36, -18); c.closePath(); }, '#f2c230', 'rgba(110,80,10,.6)');
+  c.fillStyle = '#2f6ea5'; c.fillRect(-35, -18, 42, 3);
   wash(c, () => rr(c, -62, -18, 16, 13, 3), '#c9483a', 'rgba(90,20,10,.6)');
-  circ(c, -54, -11, 4, '#7a7570'); c.strokeStyle = '#3b3b3b'; c.lineWidth = 1; c.beginPath(); c.moveTo(-50, -11); c.lineTo(-30, -6); c.stroke();
+  circ(c, -54, -11, 4, '#7a7570'); c.strokeStyle = '#3b3b3b'; c.lineWidth = 1; c.beginPath(); c.moveTo(-50, -11); c.lineTo(-36, -12); c.stroke();
   c.fillStyle = 'rgba(110,165,195,.55)'; c.beginPath(); c.moveTo(18, -8); for (let x = 18; x <= 64; x += 6) c.lineTo(x, -8 + Math.sin(x * 0.3 + a.t * 2) * 1.2); c.lineTo(64, 14); c.lineTo(18, 14); c.closePath(); c.fill();
 }
 function drawLantern(c, a) {
@@ -925,10 +935,17 @@ function bgCity(c) {
   wc(c, R, [0, H, 0, 300, 108, 300, 108, 384, 136, 384, 136, 456, 360, 456, 360, H], '#8a8274', 8, 0.16, 6);
   c.fillStyle = 'rgba(210,200,180,.5)'; c.fillRect(0, 298, 108, 4); c.fillRect(108, 382, 28, 3); c.fillRect(136, 454, 224, 3);
   c.strokeStyle = 'rgba(60,55,45,.3)'; c.lineWidth = 1.2; for (const [x0, y0, x1, y1] of [[0, 340, 108, 340], [36, 300, 36, 384], [0, 410, 136, 410], [72, 384, 72, 456], [180, 456, 180, 480], [260, 456, 260, 480]]) { c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
-  wc(c, R, [214, 456, 206, 400, 226, 348, 270, 330, 316, 346, 334, 396, 326, 456], '#f3c3b4', 8, 0.2, 6);
-  c.strokeStyle = 'rgba(170,90,80,.45)'; c.lineWidth = 2;
-  for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(270, 330 + k * 4, 14 + k * 9, Math.PI * 1.05, Math.PI * 1.95); c.stroke(); }
-  c.beginPath(); c.moveTo(232, 446); c.quadraticCurveTo(270, 430, 310, 446); c.stroke();
+  wc(c, R, [258, 368, 271, 328, 284, 368], '#e9a99a', 5, 0.3, 3);
+  c.strokeStyle = 'rgba(160,80,70,.45)'; c.lineWidth = 1.5; for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(261 + k * 2.4, 364 - k * 9); c.lineTo(282 - k * 2.6, 358 - k * 9); c.stroke(); }
+  const dome = () => { c.beginPath(); c.moveTo(208, 456); c.bezierCurveTo(204, 330, 336, 330, 332, 456); c.closePath(); };
+  dome(); c.fillStyle = '#f3c3b4'; c.fill();
+  c.save(); dome(); c.clip();
+  for (let k = 0; k < 9; k++) { const an = Math.PI * (1.08 + k * 0.105); c.strokeStyle = 'rgba(190,110,95,.35)'; c.lineWidth = 7; c.beginPath(); c.moveTo(270, 470); c.lineTo(270 + Math.cos(an) * 160, 470 + Math.sin(an) * 160); c.stroke(); }
+  blooms(c, R, 5, ['255,235,225'], 18, 34, 0.3, 214, 350, 110, 90);
+  c.restore();
+  dome(); c.strokeStyle = 'rgba(160,80,70,.55)'; c.lineWidth = 2; c.stroke();
+  wc(c, R, [236, 456, 236, 438, 304, 438, 304, 456], '#d99a8a', 4, 0.3, 3);
+  for (const x of [222, 318]) { circ(c, x, 448, 3, 'rgba(255,240,200,.85)'); }
   wc(c, R, [254, 418, 254, 374, 286, 374, 286, 418], '#ffe7a0', 4, 0.55, 2);
   c.strokeStyle = 'rgba(150,100,40,.6)'; c.lineWidth = 2; c.strokeRect(254, 374, 32, 44); c.beginPath(); c.moveTo(270, 374); c.lineTo(270, 418); c.moveTo(254, 396); c.lineTo(286, 396); c.stroke();
   for (const [x, top] of [[10, 300], [350, 330], [120, 380]]) kelp(c, R, x, 478, top, 'rgba(70,140,90,.6)', 'rgba(90,160,100,.55)', 3);
@@ -1087,7 +1104,7 @@ defineChapter({
       { id: 'lantern', name: { zh: '燈籠魚', en: 'Lanternfish' }, x: 245, y: 272, w: 90, h: 40, near: true, draw: drawLanternfish, habit: (t, l) => ({ dx: Math.sin(t * 1.3) * 7 * l, dy: Math.sin(t * 2.1) * 2 * l }), call: 'bubble' },
       { id: 'angler', name: { zh: '鮟鱇魚', en: 'Anglerfish' }, x: 95, y: 292, w: 120, h: 90, mag: 12, draw: drawAngler, habit: (t, l) => ({ dy: Math.sin(t * 1.1) * 4 * l }), call: 'ocean_angler' },
       { id: 'dumbo', name: { zh: '小飛象章魚', en: 'Dumbo octopus' }, x: 268, y: 378, w: 96, h: 96, mag: 8, draw: drawDumbo, habit: (t, l) => ({ dy: Math.sin(t * 1.4) * 6 * l }), call: 'squish' },
-      { id: 'comb', name: { zh: '櫛水母', en: 'Comb jelly' }, x: 110, y: 420, w: 64, h: 84, near: true, draw: drawCombJelly, habit: (t, l) => ({ dx: Math.sin(t * 0.7) * 4 * l, dy: Math.sin(t * 1.2) * 4 * l }), call: 'ocean_jelly' }
+      { id: 'comb', name: { zh: '櫛水母', en: 'Comb jelly' }, x: 110, y: 420, w: 52, h: 82, near: true, draw: drawCombJelly, habit: (t, l) => ({ dx: Math.sin(t * 0.7) * 4 * l, dy: Math.sin(t * 1.2) * 4 * l }), call: 'ocean_jelly' }
       ] },
     { key: 'ocean-nest', title: { zh: "海龜歸鄉", en: "Turtle Homecoming" }, place: { zh: "台灣 澎湖 望安島", en: "Wang-an Island, Penghu, Taiwan" },
       intro: { zh: "綠蠵龜媽媽回到出生的沙灘產卵，小海龜破殼後朝著月光爬向大海。", en: "Green turtle moms return to the beach where they hatched. Hatchlings follow the moonlight to the sea." },

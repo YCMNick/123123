@@ -61,13 +61,6 @@ function bgItaly(c) {
   g = c.createLinearGradient(0, 462, 0, 480); g.addColorStop(0, '#8d7a60'); g.addColorStop(1, '#6e5d46');
   c.fillStyle = g; c.fillRect(0, 462, ww, 18);
 }
-function ovItaly(c) {
-  c.globalAlpha = 0.07; c.drawImage(GRAIN, 0, 0, W, H); c.globalAlpha = 1;
-  const v = c.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.78);
-  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(30,15,0,.45)');
-  c.fillStyle = v; c.fillRect(0, 0, W, H);
-  c.fillStyle = 'rgba(255,170,80,.05)'; c.fillRect(0, 0, W, H);
-}
 function drawShutter(c, side) {
   const w = 40, h = 115, x = -20, y = -57.5;
   softShadow(c, true); c.fillStyle = '#2f5539'; c.fillRect(x, y, w, h); softShadow(c, false);
@@ -163,23 +156,32 @@ function drawPisa(c) {
 const SPRITES = new Map();
 // The margin is lopsided because softShadow falls down and to the right.
 function sprite(id, w, h, fn, lt = 8, rb = 16) {
-  return (c, a) => {
-    const k = KPX, key = id + '|' + LANG + '|' + k;
+  const get = k => {
+    const key = id + '|' + LANG + '|' + k;
     let s = SPRITES.get(key);
     if (!s) {
-      if (SPRITES.size > 260) SPRITES.clear();
+      if (SPRITES.size > 300) SPRITES.clear();
       s = document.createElement('canvas');
       s.width = Math.ceil((w + lt + rb) * k); s.height = Math.ceil((h + lt + rb) * k);
       const x = s.getContext('2d'); x.setTransform(k, 0, 0, k, (w / 2 + lt) * k, (h / 2 + lt) * k);
-      fn(x, a); SPRITES.set(key, s);
+      const kpx = KPX; KPX = k; fn(x, { t: 0, live: 1 }); KPX = kpx; SPRITES.set(key, s);
     }
-    c.drawImage(s, -w / 2 - lt, -h / 2 - lt, s.width / k, s.height / k);
+    return s;
   };
+  const draw = c => { const k = KPX, s = get(k); c.drawImage(s, -w / 2 - lt, -h / 2 - lt, s.width / k, s.height / k); };
+  draw.warm = get;
+  return draw;
+}
+// Paint a stage's sprites and overlay while its background is built, so the first frame is cheap.
+function warmed(st) {
+  const bg = st.bg;
+  st.bg = c => { bg(c); const k = c.getTransform().a; st.objects.forEach(o => o.draw.warm && o.draw.warm(k)); if (st.overlay && st.overlay.warm) st.overlay.warm(k); };
+  return st;
 }
 // Film grain, vignette and a warm wash, painted once and stamped every frame.
 function photoOverlay(id, tint, vig = 0.42) {
-  return c => {
-    const k = KPX, key = 'ov|' + id + '|' + k;
+  const get = k => {
+    const key = 'ov|' + id + '|' + k;
     let s = SPRITES.get(key);
     if (!s) {
       s = document.createElement('canvas'); s.width = Math.round(W * k); s.height = Math.round(H * k);
@@ -190,8 +192,11 @@ function photoOverlay(id, tint, vig = 0.42) {
       x.fillStyle = v; x.fillRect(0, 0, W, H); x.fillStyle = tint; x.fillRect(0, 0, W, H);
       SPRITES.set(key, s);
     }
-    c.drawImage(s, 0, 0, W, H);
+    return s;
   };
+  const draw = c => c.drawImage(get(KPX), 0, 0, W, H);
+  draw.warm = get;
+  return draw;
 }
 function lin(c, x0, y0, x1, y1, ...st) { const g = c.createLinearGradient(x0, y0, x1, y1); for (let i = 0; i < st.length; i += 2) g.addColorStop(st[i], st[i + 1]); return g; }
 function radl(c, x, y, r, ...st) { const g = c.createRadialGradient(x, y, 0, x, y, r); for (let i = 0; i < st.length; i += 2) g.addColorStop(st[i], st[i + 1]); return g; }
@@ -541,8 +546,8 @@ function drawStreetSign(c) {
   softShadow(c, true); c.fillStyle = '#f7f5ee'; c.fillRect(-63, -18, 126, 34); softShadow(c, false);
   c.fillStyle = lin(c, -63, -18, 63, 16, 0, '#ffffff', 1, '#e1ded4'); c.fillRect(-63, -18, 126, 34);
   c.strokeStyle = '#111'; c.lineWidth = 1.8; c.strokeRect(-59.5, -14.5, 119, 27);
-  txt(c, 'BRIDGE STREET', -9, -3, '700 11.5px "Noto Sans TC", Arial, sans-serif', '#111');
-  txt(c, 'SW1', 44, -3, '700 10px "Noto Sans TC", Arial, sans-serif', '#c8102e');
+  txt(c, 'BRIDGE STREET', -54, -3, '700 10.5px "Noto Sans TC", Arial, sans-serif', '#111', 'left');
+  txt(c, 'SW1', 55, -3, '700 9px "Noto Sans TC", Arial, sans-serif', '#c8102e', 'right');
   txt(c, 'CITY OF WESTMINSTER', 0, 8.2, '700 5px "Noto Sans TC", Arial, sans-serif', '#c8102e');
   gloss(c, 126, 34, 1, 0.18);
 }
@@ -664,26 +669,35 @@ function bgMachu(c) {
   ridge(c, wave(176, 0.031, 16, 0, 0.09, 5, 1, 0.011, 18, 2), 320, lin(c, 0, 140, 0, 260, 0, 'rgba(118,132,170,.75)', 1, 'rgba(170,170,180,.6)'));
   ridge(c, wave(214, 0.024, 16, 3, 0.07, 4, 2), 320, lin(c, 0, 180, 0, 300, 0, 'rgba(84,112,104,.85)', 1, 'rgba(120,140,120,.7)'));
   c.fillStyle = lin(c, 0, 220, 0, 270, 0, 'rgba(255,255,255,0)', 0.5, 'rgba(255,250,240,.6)', 1, 'rgba(255,255,255,0)'); c.fillRect(0, 220, W, 50);
-  // Huayna Picchu
-  const peak = () => { c.beginPath(); c.moveTo(160, 300); c.bezierCurveTo(192, 220, 214, 104, 240, 84); c.quadraticCurveTo(252, 74, 263, 88); c.bezierCurveTo(292, 124, 318, 220, 352, 300); c.closePath(); };
-  peak(); c.fillStyle = lin(c, 170, 0, 350, 0, 0, '#86ad62', 0.4, '#4f7d47', 1, '#24452f'); c.fill();
+  // Huayna Picchu and its little brother
+  const peak = () => { c.beginPath(); c.moveTo(186, 300); c.bezierCurveTo(212, 236, 232, 110, 252, 80); c.quadraticCurveTo(262, 66, 272, 80); c.bezierCurveTo(290, 112, 304, 236, 336, 300); c.closePath(); };
+  peak(); c.fillStyle = lin(c, 200, 0, 336, 0, 0, '#8db466', 0.45, '#4d7b45', 1, '#22432d'); c.fill();
   c.save(); peak(); c.clip();
-  for (let i = 0; i < 380; i++) { const x = 170 + R() * 180, y = 84 + R() * 220; circ(c, x, y, 1 + R() * 2.6, R() < 0.55 ? 'rgba(20,45,25,.35)' : 'rgba(170,200,120,.25)'); }
-  for (let i = 0; i < 9; i++) { const x = 225 + R() * 60, y = 110 + R() * 120; poly(c, [x, y, x + 6 + R() * 8, y + 4, x + 3, y + 16 + R() * 10], 'rgba(150,145,130,.45)'); }
+  for (let i = 0; i < 420; i++) { const x = 190 + R() * 150, y = 70 + R() * 232; circ(c, x, y, 1 + R() * 2.4, R() < 0.55 ? 'rgba(20,45,25,.35)' : 'rgba(170,200,120,.25)'); }
+  for (let i = 0; i < 12; i++) { const x = 236 + R() * 46, y = 92 + R() * 140; poly(c, [x, y, x + 5 + R() * 7, y + 3, x + 2, y + 14 + R() * 12], 'rgba(160,150,135,.5)'); }
+  c.fillStyle = 'rgba(255,235,190,.25)'; c.beginPath(); c.moveTo(252, 80); c.bezierCurveTo(240, 120, 226, 200, 214, 260); c.lineTo(206, 260); c.bezierCurveTo(220, 190, 236, 110, 252, 80); c.fill();
   c.restore();
-  c.beginPath(); c.moveTo(140, 304); c.quadraticCurveTo(196, 200, 248, 304); c.closePath(); c.fillStyle = lin(c, 150, 0, 248, 0, 0, '#9cbe72', 1, '#4f7a46'); c.fill();
-  c.fillStyle = lin(c, 0, 250, 0, 300, 0, 'rgba(255,255,255,0)', 0.6, 'rgba(255,252,245,.55)', 1, 'rgba(255,255,255,.2)'); c.fillRect(0, 250, W, 50);
-  // the citadel on its saddle
-  c.beginPath(); c.moveTo(0, 312); c.lineTo(20, 286); c.quadraticCurveTo(120, 262, 230, 272); c.lineTo(330, 288); c.lineTo(360, 300); c.lineTo(360, 340); c.lineTo(0, 340); c.closePath();
-  c.fillStyle = lin(c, 0, 262, 0, 340, 0, '#9cbc6a', 1, '#5f8a45'); c.fill();
-  for (let k = 0; k < 7; k++) { const y = 288 + k * 7; c.fillStyle = 'rgba(70,90,50,.45)'; c.fillRect(0, y, 70 - k * 4, 1.4); c.fillStyle = 'rgba(200,220,150,.35)'; c.fillRect(0, y + 1.4, 70 - k * 4, 1.2); }
-  c.fillStyle = '#b8c98a'; c.fillRect(120, 282, 70, 10);
-  for (let i = 0; i < 46; i++) {
-    const x = 34 + R() * 290, y = 272 + R() * 34 + Math.max(0, (x - 230) * 0.15), w = 5 + R() * 11, h = 3 + R() * 5;
-    if (x > 118 && x < 192 && y < 294) continue;
-    c.fillStyle = '#a49b8c'; c.fillRect(x, y - h, w, h); c.fillStyle = '#d6cdbb'; c.fillRect(x, y - h, w, 1.2); c.fillStyle = 'rgba(50,40,30,.55)'; if (w > 8) c.fillRect(x + w / 2 - 1, y - h + 2, 2, 2.4);
-    if (R() < 0.3) poly(c, [x, y - h, x + w / 2, y - h - 4, x + w, y - h], '#c2b8a6');
+  c.beginPath(); c.moveTo(168, 300); c.bezierCurveTo(186, 250, 208, 226, 222, 226); c.bezierCurveTo(240, 228, 252, 260, 262, 300); c.closePath(); c.fillStyle = lin(c, 170, 0, 262, 0, 0, '#a4c478', 1, '#567f48'); c.fill();
+  c.fillStyle = lin(c, 0, 240, 0, 290, 0, 'rgba(255,255,255,0)', 0.6, 'rgba(255,252,245,.6)', 1, 'rgba(255,255,255,.15)'); c.fillRect(0, 240, W, 50);
+  // the citadel on its saddle: terraces, a green plaza and roofless stone houses
+  c.beginPath(); c.moveTo(0, 300); c.quadraticCurveTo(24, 266, 60, 262); c.lineTo(300, 262); c.quadraticCurveTo(340, 266, 360, 286); c.lineTo(360, 340); c.lineTo(0, 340); c.closePath();
+  c.fillStyle = lin(c, 0, 258, 0, 340, 0, '#a7c472', 1, '#5f8a45'); c.fill();
+  for (let k = 0; k < 10; k++) {
+    const y = 268 + k * 6.5;
+    [[0, 64 - k * 3], [W - 46 + k * 2, W]].forEach(([x0, x1]) => { c.fillStyle = 'rgba(205,225,150,.55)'; c.fillRect(x0, y, x1 - x0, 2.6); c.fillStyle = 'rgba(120,112,98,.75)'; c.fillRect(x0, y + 2.6, x1 - x0, 1.6); });
   }
+  c.fillStyle = '#c4d892'; c.fillRect(146, 280, 54, 20); c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(146, 280, 54, 2);
+  const house = (x, y, w, h, roof) => {
+    c.fillStyle = '#8a8274'; c.fillRect(x, y - h, w, h);
+    c.fillStyle = lin(c, x, 0, x + w, 0, 0, '#ddd4c2', 1, '#a69d8c'); c.fillRect(x, y - h, w, h - 1.4);
+    c.fillStyle = 'rgba(60,50,40,.55)'; c.fillRect(x + 1.6, y - h + 1.4, w - 3.2, 2);
+    c.fillStyle = 'rgba(50,40,30,.6)'; c.fillRect(x + w / 2 - 1, y - h + 4, 2, h - 5);
+    poly(c, [x, y - h, x + 2.6, y - h - 5, x + 5.2, y - h], '#cfc6b3'); poly(c, [x + w - 5.2, y - h, x + w - 2.6, y - h - 5, x + w, y - h], '#b2a998');
+    if (roof) poly(c, [x - 1, y - h, x + w / 2, y - h - 7, x + w + 1, y - h], '#8a6a3e');
+  };
+  [[268, 52, 128], [278, 46, 138], [289, 40, 136]].forEach(([y, x0, x1], r) => { for (let x = x0; x < x1; x += 14) house(x, y, 12, 6.5, (x + r) % 3 === 0 && r === 0); });
+  [[272, 206, 292], [282, 210, 300], [293, 204, 304], [304, 210, 296]].forEach(([y, x0, x1], r) => { for (let x = x0; x < x1; x += 15) house(x, y, 13, 7, r === 1 && x < 230); });
+  c.strokeStyle = 'rgba(110,100,85,.7)'; c.lineWidth = 1; for (let k = 0; k < 6; k++) { c.beginPath(); c.moveTo(150 + k * 2, 300 + k * 4); c.lineTo(160 + k * 2, 300 + k * 4); c.stroke(); }
   // the terrace we stand on
   c.fillStyle = lin(c, 0, 330, 0, 348, 0, '#b3aa98', 1, '#7f7667'); c.fillRect(0, 330, W, 18);
   c.strokeStyle = 'rgba(50,42,32,.45)'; c.lineWidth = 0.9;
@@ -715,9 +729,9 @@ function drawLlama(c) {
   ell(c, -6, 14, 32, 18, wool);
   ell(c, -18, 10, 10, 8, 'rgba(150,100,60,.55)'); ell(c, 4, 20, 8, 5, 'rgba(150,100,60,.45)');
   ell(c, -38, 8, 5, 8, '#efe4cf');
-  c.fillStyle = wool; c.beginPath(); c.moveTo(10, 6); c.quadraticCurveTo(14, -16, 18, -36); c.lineTo(32, -38); c.quadraticCurveTo(28, -14, 28, 10); c.closePath(); c.fill();
+  c.fillStyle = wool; c.beginPath(); c.moveTo(6, 8); c.quadraticCurveTo(12, -16, 16, -38); c.lineTo(34, -38); c.quadraticCurveTo(30, -14, 30, 12); c.closePath(); c.fill();
   c.strokeStyle = 'rgba(150,120,90,.35)'; c.lineWidth = 0.8; for (let i = 0; i < 8; i++) { c.beginPath(); c.arc(-30 + i * 7, 6 + (i % 2) * 6, 3, Math.PI, 0); c.stroke(); }
-  ell(c, 27, -41, 9, 7, '#f5ecd9'); ell(c, 35, -38, 6.5, 5, '#d8c6a8');
+  ell(c, 27, -41, 10.5, 8, '#f5ecd9'); ell(c, 36, -38, 7, 5.5, '#d8c6a8');
   circ(c, 38.5, -39, 1, '#4a3a2c');
   [[21, -49, -0.25], [28, -50, 0.15]].forEach(([x, y, r]) => { ell(c, x, y, 2.6, 6.5, '#efe3cc', r); ell(c, x, y + 0.5, 1.2, 4.2, '#d9a6a0', r); });
   [[20, -54, '#e8457a'], [27, -55, '#f2a93b']].forEach(([x, y, col]) => { circ(c, x, y, 2.4, col); });
@@ -920,7 +934,7 @@ function bgMoai(c) {
   c.fillStyle = 'rgba(255,190,120,.12)'; c.fillRect(220, 180, 140, 140);
 }
 function drawPukao(c) {
-  c.translate(0, 2);
+  c.translate(0, 3);
   softShadow(c, true); c.fillStyle = '#9c4a35'; c.fillRect(-22, -9, 44, 21); softShadow(c, false);
   c.fillStyle = lin(c, -22, 0, 22, 0, 0, '#c26a4c', 0.6, '#9c4632', 1, '#6e2f22'); c.fillRect(-22, -9, 44, 21);
   ell(c, 0, 12, 22, 4, '#6e2f22');
@@ -1279,15 +1293,15 @@ defineChapter({
   stages: [
     { key: 'it', title: { zh: "比薩黃金時刻", en: "Pisa Golden Hour" }, place: { zh: "義大利 比薩", en: "Pisa, Italy" },
       intro: { zh: "左窗板會帶動右窗板一起轉。還有：有些東西，本來就是斜的。", en: "The left shutter turns the right one too. And some things are meant to lean." },
-      bg: bgItaly, overlay: ovItaly,
+      bg: bgItaly, overlay: photoOverlay('it', 'rgba(255,170,80,.05)', 0.45),
       objects: [
-      { id: 'banner', name: { zh: '歡迎布條', en: 'Welcome banner' }, x: 275, y: 62, w: 150, h: 40, mag: 7, draw: drawBanner, sfx: 'boing' },
-      { id: 'pisa', name: { zh: '比薩斜塔', en: 'Leaning Tower' }, x: 282, y: 250, w: 64, h: 224, trap: true, keep: 3.97, trapNote: { zh: '比薩斜塔本來就是斜的（約 3.97°）', en: 'The Leaning Tower is meant to lean (about 3.97°)' }, draw: drawPisa },
-      { id: 'shL', name: { zh: '左窗板', en: 'Left shutter' }, x: 38, y: 145, w: 40, h: 115, mag: 9, link: { to: 'shR', k: 0.6 }, draw: c => drawShutter(c, 'L'), sfx: 'wood' },
-      { id: 'shR', name: { zh: '右窗板', en: 'Right shutter' }, x: 142, y: 145, w: 40, h: 115, mag: 6, draw: c => drawShutter(c, 'R'), sfx: 'wood' },
-      { id: 'gelato', name: { zh: '冰淇淋招牌', en: 'Gelato sign' }, x: 95, y: 266, w: 130, h: 54, mag: 13, draw: drawGelato, sfx: 'bell' },
-      { id: 'plaque', name: { zh: '廣場路牌', en: 'Piazza plaque' }, x: 95, y: 330, w: 140, h: 46, near: true, draw: drawPlaque, sfx: 'bell' },
-      { id: 'board', name: { zh: '黑板菜單', en: 'Menu board' }, x: 90, y: 420, w: 90, h: 100, mag: 10, draw: drawBoard, sfx: 'wood' }
+      { id: 'banner', name: { zh: '歡迎布條', en: 'Welcome banner' }, x: 275, y: 62, w: 150, h: 40, mag: 7, draw: sprite('it-banner', 150, 40, drawBanner, 20, 20), sfx: 'boing' },
+      { id: 'pisa', name: { zh: '比薩斜塔', en: 'Leaning Tower' }, x: 282, y: 250, w: 64, h: 224, trap: true, keep: 3.97, trapNote: { zh: '比薩斜塔本來就是斜的（約 3.97°）', en: 'The Leaning Tower is meant to lean (about 3.97°)' }, draw: sprite('it-pisa', 64, 224, drawPisa) },
+      { id: 'shL', name: { zh: '左窗板', en: 'Left shutter' }, x: 38, y: 145, w: 40, h: 115, mag: 9, link: { to: 'shR', k: 0.6 }, draw: sprite('it-shL', 40, 115, c => drawShutter(c, 'L')), sfx: 'wood' },
+      { id: 'shR', name: { zh: '右窗板', en: 'Right shutter' }, x: 142, y: 145, w: 40, h: 115, mag: 6, draw: sprite('it-shR', 40, 115, c => drawShutter(c, 'R')), sfx: 'wood' },
+      { id: 'gelato', name: { zh: '冰淇淋招牌', en: 'Gelato sign' }, x: 95, y: 266, w: 130, h: 54, mag: 13, draw: sprite('it-gelato', 130, 54, drawGelato, 16), sfx: 'bell' },
+      { id: 'plaque', name: { zh: '廣場路牌', en: 'Piazza plaque' }, x: 95, y: 330, w: 140, h: 46, near: true, draw: sprite('it-plaque', 140, 46, drawPlaque), sfx: 'bell' },
+      { id: 'board', name: { zh: '黑板菜單', en: 'Menu board' }, x: 90, y: 420, w: 90, h: 100, mag: 10, draw: sprite('it-board', 90, 100, drawBoard), sfx: 'wood' }
       ] },
     { key: 'wonder-wall', title: { zh: '萬里長城', en: 'Great Wall' }, place: { zh: '中國 北京 慕田峪', en: 'Mutianyu, Beijing, China' },
       intro: { zh: '長城順著山脊蜿蜒起伏。山可以彎，招牌可不行。', en: 'The Wall rides the ridges up and down. Mountains may curve; signs may not.' },
@@ -1391,5 +1405,5 @@ defineChapter({
       { id: 'neko', name: { zh: '招財貓', en: 'Lucky cat' }, x: 175, y: 439, w: 48, h: 60, near: true, draw: sprite('fuji-neko', 48, 60, drawManeki), sfx: 'meow' },
       { id: 'shiba', name: { zh: '柴犬', en: 'Shiba' }, x: 295, y: 438, w: 90, h: 70, mag: 10, draw: sprite('fuji-shiba', 90, 70, drawShiba), habit: hop(3.4, 2.5), call: 'wonder_shiba' }
       ] },
-  ],
+  ].map(warmed),
 });

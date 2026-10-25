@@ -33,12 +33,14 @@ function spr(c, id, w, h, fn, pad = 18) {
   }
   const m = c.getTransform(), rk = [m.a, m.b, m.c, m.d].map(v => Math.round(v / k * 2e4)).join(',');
   let r = s.rot.find(x => x.key === rk);
+  if (r && r !== s.rot[0]) s.rot = [r, ...s.rot.filter(x => x !== r)];   // most recently used first
   if (!r) {
     const a = m.a / k, b = m.b / k, cc = m.c / k, d = m.d / k, mx = Math.max(s.cx, s.width - s.cx), my = Math.max(s.cy, s.height - s.cy);
-    const cv = document.createElement('canvas');
+    // reuse the older copy's canvas while an object is being turned (no new canvas per frame)
+    const cv = s.rot.length > 1 ? s.rot.pop().cv : document.createElement('canvas');
     cv.width = Math.ceil(2 * (Math.abs(a) * mx + Math.abs(cc) * my)) + 2; cv.height = Math.ceil(2 * (Math.abs(b) * mx + Math.abs(d) * my)) + 2;
     const g = cv.getContext('2d'); g.setTransform(a, b, cc, d, cv.width / 2, cv.height / 2); g.drawImage(s, -s.cx, -s.cy);
-    r = { key: rk, cv }; s.rot = [r, s.rot[0]].filter(Boolean);
+    r = { key: rk, cv }; s.rot.unshift(r);
   }
   c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(r.cv, Math.round(m.e - r.cv.width / 2), Math.round(m.f - r.cv.height / 2)); c.restore();
 }
@@ -552,11 +554,11 @@ function bgGallery(c) {
   nLine(c, [0, 70, W, 70], NC.pink, 2);
   for (let x = 0, k = 0; x < W; x += 30, k++) { c.beginPath(); c.arc(x + 15, 70, 15, 0, Math.PI); c.fillStyle = k % 2 ? '#2a0d36' : '#45123f'; c.fill(); neon(c, () => { c.beginPath(); c.arc(x + 15, 70, 15, 0, Math.PI); }, k % 2 ? NC.white : NC.pink, 1.6); bulb(c, x + 15, 86, 2, NC.gold); }
   // posts
-  for (const x of [12, 348]) { nLine(c, [x, 86, x, 388], NC.gold, 2.6); for (let y = 110; y < 380; y += 34) bulb(c, x, y, 2, NC.pink); }
+  for (const x of [12, 348]) { nLine(c, [x, 86, x, 406], NC.gold, 2.6); for (let y = 110; y < 400; y += 34) bulb(c, x, y, 2, NC.pink); }
   // prize shelf
-  nLine(c, [30, 268, 330, 268], NC.gold, 1.8);
+  nLine(c, [30, 286, 330, 286], NC.gold, 1.8);
   c.save(); c.globalAlpha = 0.55;
-  const prize = (x, k, y = 254) => {
+  const prize = (x, k, y = 272) => {
     if (k === 0) neon(c, () => { c.beginPath(); for (let i = 0; i < 10; i++) { const an = i / 10 * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 5 : 11; c.lineTo(x + Math.cos(an) * r, y + Math.sin(an) * r); } c.closePath(); }, NC.gold, 1.6);
     if (k === 1) { nCirc(c, x, y, 10, NC.cyan, 1.6); poly(c, [x - 8, y - 6, x - 4, y - 14, x - 1, y - 8], NC.cyan); poly(c, [x + 8, y - 6, x + 4, y - 14, x + 1, y - 8], NC.cyan); }
     if (k === 2) neon(c, () => { c.beginPath(); c.ellipse(x, y + 2, 12, 7, 0, 0, Math.PI * 2); c.moveTo(x - 12, y + 2); c.lineTo(x - 19, y - 4); c.lineTo(x - 19, y + 8); c.closePath(); }, NC.violet, 1.6);
@@ -565,28 +567,28 @@ function bgGallery(c) {
   [[44, 0], [86, 1], [130, 2], [232, 3], [276, 1], [318, 0]].forEach(([x, k]) => prize(x, k));
   c.restore();
   // duck pond
-  c.fillStyle = 'rgba(20,90,130,.28)'; c.fillRect(24, 318, 312, 56);
-  for (const [y, a] of [[336, 0.9], [350, 0.6], [363, 0.4]]) { c.save(); c.globalAlpha = a; neon(c, () => { c.beginPath(); for (let x = 24; x <= 336; x += 4) { const yy = y + Math.sin(x / 9 + y) * 2; x === 24 ? c.moveTo(x, yy) : c.lineTo(x, yy); } }, NC.cyan, 1.4); c.restore(); }
-  nLine(c, [20, 374, 340, 374], NC.gold, 2);
+  c.fillStyle = 'rgba(20,90,130,.28)'; c.fillRect(24, 336, 312, 56);
+  for (const [y, a] of [[354, 0.9], [368, 0.6], [381, 0.4]]) { c.save(); c.globalAlpha = a; neon(c, () => { c.beginPath(); for (let x = 24; x <= 336; x += 4) { const yy = y + Math.sin(x / 9 + y) * 2; x === 24 ? c.moveTo(x, yy) : c.lineTo(x, yy); } }, NC.cyan, 1.4); c.restore(); }
+  nLine(c, [20, 392, 340, 392], NC.gold, 2);
   // counter: a ledge with two water squirters, then the front panel
-  c.fillStyle = '#2a1446'; c.fillRect(0, 388, W, 16);
-  let g = c.createLinearGradient(0, 404, 0, H); g.addColorStop(0, '#22103a'); g.addColorStop(1, '#0d0619');
-  c.fillStyle = g; c.fillRect(0, 404, W, 76);
-  nLine(c, [0, 388, W, 388], NC.gold, 2.4); nLine(c, [0, 404, W, 404], NC.pink, 1.4);
-  c.fillStyle = 'rgba(255,94,196,.06)'; for (let x = 0; x < W; x += 36) c.fillRect(x, 412, 18, 68);
-  for (let x = 12, k = 0; x < W; x += 24, k++) bulb(c, x, 424, 1.8, [NC.pink, NC.gold, NC.cyan][k % 3]);
+  c.fillStyle = '#2a1446'; c.fillRect(0, 406, W, 16);
+  let g = c.createLinearGradient(0, 422, 0, H); g.addColorStop(0, '#22103a'); g.addColorStop(1, '#0d0619');
+  c.fillStyle = g; c.fillRect(0, 422, W, 58);
+  nLine(c, [0, 406, W, 406], NC.gold, 2.4); nLine(c, [0, 422, W, 422], NC.pink, 1.4);
+  c.fillStyle = 'rgba(255,94,196,.06)'; for (let x = 0; x < W; x += 36) c.fillRect(x, 430, 18, 50);
+  for (let x = 12, k = 0; x < W; x += 24, k++) bulb(c, x, 440, 1.8, [NC.pink, NC.gold, NC.cyan][k % 3]);
   for (const [x, s, col] of [[44, -1, NC.cyan], [316, 1, NC.pink]]) {
-    c.save(); c.translate(x, 384); c.scale(s, 1);
-    nLine(c, [0, 4, 0, 12], NC.white, 2.4); nLine(c, [-8, 18, 8, 18], NC.white, 2);
+    c.save(); c.translate(x, 402); c.scale(s, 1);
+    nLine(c, [0, 4, 0, 12], NC.gold, 2.4); nLine(c, [-8, 12, 8, 12], NC.gold, 2);
     nShape(c, () => { c.beginPath(); c.ellipse(0, -4, 17, 9.5, 0, 0, Math.PI * 2); }, col, 'rgba(40,20,60,.9)', 2);
     nShape(c, () => { c.beginPath(); c.moveTo(15, -4); c.lineTo(27, -12); c.lineTo(27, 4); c.closePath(); }, col, 'rgba(40,20,60,.9)', 1.6);
     nLine(c, [-17, -6, -25, -11], NC.white, 2); circ(c, -7, -7, 1.8, '#fff'); circ(c, -7, -7, 0.9, '#2a1240');
     c.restore();
   }
   c.save(); c.setLineDash([2, 5]); c.globalAlpha = 0.85;
-  neon(c, () => { c.beginPath(); c.moveTo(70, 372); c.quadraticCurveTo(80, 330, 86, 342); c.moveTo(290, 372); c.quadraticCurveTo(280, 330, 274, 342); }, NC.cyan, 1.4);
+  neon(c, () => { c.beginPath(); c.moveTo(70, 390); c.quadraticCurveTo(80, 348, 86, 360); c.moveTo(290, 390); c.quadraticCurveTo(280, 348, 274, 360); }, NC.cyan, 1.4);
   c.restore();
-  for (let k = 0; k < 4; k++) { circ(c, 160 + k * 14, 446, 3, NC.gold); circ(c, 160 + k * 14, 446, 1.2, '#fff'); }
+  for (let k = 0; k < 4; k++) { circ(c, 159 + k * 14, 462, 3, NC.gold); circ(c, 159 + k * 14, 462, 1.2, '#fff'); }
 }
 
 /* ===== 9-7 Balloon festival ===== */
@@ -1035,12 +1037,12 @@ defineChapter({
       intro: { zh: "用水槍射小鴨，射中有獎！藍隊記分板會帶動粉紅隊的。", en: "Squirt the ducks with water to win a prize! The blue scoreboard turns the pink one." },
       bg: bgGallery, animated: true,
       objects: [
-      { id: 'sign', name: { zh: '攤位招牌', en: 'Stall sign' }, x: 180, y: 112, w: 196, h: 42, mag: 10, draw: drawGallerySign, sfx: 'twinkle' },
-      { id: 'duck1', name: { zh: '小鴨靶', en: 'Duck target' }, x: 92, y: 322, w: 58, h: 46, mag: 13, draw: drawDuckA, habit: (t, l) => ({ dx: Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' },
-      { id: 'scorea', name: { zh: '藍隊記分板', en: 'Blue scoreboard' }, x: 70, y: 192, w: 84, h: 48, mag: 8, link: { to: 'scoreb', k: 0.5 }, draw: drawScoreA, sfx: 'beep' },
-      { id: 'plush', name: { zh: '熊熊獎品', en: 'Prize bear' }, x: 180, y: 206, w: 62, h: 80, near: true, draw: drawPlush, sfx: 'boing' },
-      { id: 'scoreb', name: { zh: '粉紅記分板', en: 'Pink scoreboard' }, x: 290, y: 192, w: 84, h: 48, mag: 6, draw: drawScoreB, sfx: 'beep' },
-      { id: 'duck2', name: { zh: '小鴨靶２', en: 'Duck target 2' }, x: 268, y: 322, w: 58, h: 46, near: true, draw: drawDuckA, habit: (t, l) => ({ dx: -Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' }
+      { id: 'sign', name: { zh: '攤位招牌', en: 'Stall sign' }, x: 180, y: 120, w: 196, h: 42, mag: 10, draw: drawGallerySign, sfx: 'twinkle' },
+      { id: 'duck1', name: { zh: '小鴨靶', en: 'Duck target' }, x: 92, y: 340, w: 58, h: 46, mag: 13, draw: drawDuckA, habit: (t, l) => ({ dx: Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' },
+      { id: 'scorea', name: { zh: '藍隊記分板', en: 'Blue scoreboard' }, x: 70, y: 206, w: 84, h: 48, mag: 8, link: { to: 'scoreb', k: 0.5 }, draw: drawScoreA, sfx: 'beep' },
+      { id: 'plush', name: { zh: '熊熊獎品', en: 'Prize bear' }, x: 180, y: 218, w: 62, h: 80, near: true, draw: drawPlush, sfx: 'boing' },
+      { id: 'scoreb', name: { zh: '粉紅記分板', en: 'Pink scoreboard' }, x: 290, y: 206, w: 84, h: 48, mag: 6, draw: drawScoreB, sfx: 'beep' },
+      { id: 'duck2', name: { zh: '小鴨靶２', en: 'Duck target 2' }, x: 268, y: 340, w: 58, h: 46, near: true, draw: drawDuckA, habit: (t, l) => ({ dx: -Math.sin(t * 1.1) * 8 * l }), call: 'park_duck' }
       ] },
     { key: 'park-balloons', title: { zh: "熱氣球節", en: "Balloon Festival" }, place: { zh: "台灣 台東 鹿野高台", en: "Luye Highland, Taitung, Taiwan" },
       intro: { zh: "天黑後熱氣球點火發光。大招牌會帶動下面的日期牌。", en: "After dark the balloons light up and glow. The big sign turns the date tag below it." },
