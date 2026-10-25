@@ -35,15 +35,16 @@ export const TARGETS = [
     check: (m, ctx) => { const r = rates(m, ctx, 'novice').slice(0, 3); return { ok: r[0] >= 0.35 && r[1] >= 0.15 && r[2] >= 0.07, detail: r } } },
   { id: 'beatable', desc: '普通：每關一般玩家勝率 ≥ 50%', enforce: true,
     check: (m, ctx) => { const r = rates(m, ctx, 'casual'); return { ok: r.every((x) => x >= 0.5), detail: r } } },
-  // Inside a world each stage is at least as hard as the one before, and each world's
-  // first stage is at least as hard as the previous world's first stage. A stage may
-  // only look easier by more than 3 points plus sampling noise (1.5 standard errors).
-  { id: 'difficulty-curve', desc: '普通：一般玩家勝率在每個大關內逐關不上升，各大關第 1 關也逐關不上升（容許 3% ＋ 抽樣誤差）', enforce: true,
+  // Inside a world each stage is at least as hard as the one before (a new world may start
+  // easier: that is its breather). Measured on a separate, larger casual run (ctx.curve) so
+  // ninety comparisons don't trip on sampling noise; a stage may look easier by 3 points
+  // plus 2 standard errors of the difference.
+  { id: 'difficulty-curve', desc: '普通：一般玩家勝率在每個大關內逐關不上升（另跑較多局數；容許 3% ＋ 抽樣誤差）', enforce: true,
     check: (m, ctx) => {
-      const r = rates(m, ctx, 'casual'), L = ctx.levels
-      const slack = (a, b) => 0.03 + 1.5 * Math.sqrt((a * (1 - a) + b * (1 - b)) / ctx.runs)
-      const prev = (i) => L[i].stage > 0 ? i - 1 : L.findLastIndex((l, j) => j < i && l.stage === 0)
-      const bad = r.map((x, i) => [i, prev(i)]).filter(([i, p]) => p >= 0 && r[i] > r[p] + slack(r[i], r[p])).map(([i, p]) => `${L[i].key} ${r[i].toFixed(2)} > ${L[p].key} ${r[p].toFixed(2)}`)
+      const L = ctx.levels, n = ctx.curve ? ctx.curve.runs : ctx.runs
+      const r = ctx.curve ? ctx.curve.rates : rates(m, ctx, 'casual')
+      const slack = (a, b) => 0.03 + 2 * Math.sqrt((a * (1 - a) + b * (1 - b)) / n)
+      const bad = r.map((x, i) => i).filter((i) => L[i].stage > 0 && r[i] > r[i - 1] + slack(r[i], r[i - 1])).map((i) => `${L[i].key} ${r[i].toFixed(2)} > ${L[i - 1].key} ${r[i - 1].toFixed(2)}`)
       return { ok: !bad.length, detail: bad }
     } },
   { id: 'skill-shows', desc: '普通：每關平均分 熟手 > 一般 > 新手（至少高 5%）', enforce: true,

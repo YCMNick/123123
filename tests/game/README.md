@@ -48,4 +48,5 @@ npm run test:game
 
 - `GAME_SIM_RUNS=30 npm run test:game`：減少模擬局數，跑得比較快（預設 60）。
 - `GAME_SIM_PAGES=4 npm run test:game`：同時模擬幾個遊戲分頁（預設 CPU 核心數的一半，2～8）。
+- `GAME_SIM_CURVE_RUNS=200`：「每個大關內逐關變難」這個目標另外跑的一般玩家局數（預設 200，相鄰關卡比較需要較準的數字）。
 - `GAME_FUZZ_ACTIONS=1000 npm run test:game`：增加隨機操作的次數。

@@ -3,10 +3,11 @@
 import fs from 'node:fs'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { launch, openGames, maxScore, SIM_PAGES } from './helpers/browser.js'
-import { runAll } from './helpers/sim.js'
+import { runAll, simulate, summarize, pool } from './helpers/sim.js'
 import { evaluateTargets, compareBaseline, writeReport, BASELINE_FILE } from './helpers/report.js'
 
 const RUNS = Number(process.env.GAME_SIM_RUNS || 60)
+const CURVE_RUNS = Number(process.env.GAME_SIM_CURVE_RUNS || 200)
 let browser, page, pages, errors, sim, C, maxScores, targets, idle
 
 beforeAll(async () => {
@@ -22,7 +23,9 @@ beforeAll(async () => {
     G.setDifficulty('normal')
     return out
   })
-  targets = evaluateTargets(sim.metrics, { levels: sim.levels, consts: C, maxScores, idle, runs: RUNS })
+  // The difficulty curve compares neighbouring stages, so it gets its own, larger casual run.
+  const curveRates = await pool(pages, sim.levels.map((l, i) => i), async (p, i) => summarize(await simulate(p, { levelIdx: i, profileName: 'casual', runs: CURVE_RUNS, seed: 2 })).winRate)
+  targets = evaluateTargets(sim.metrics, { levels: sim.levels, consts: C, maxScores, idle, runs: RUNS, curve: { runs: CURVE_RUNS, rates: curveRates } })
   const baseline = fs.existsSync(BASELINE_FILE) ? JSON.parse(fs.readFileSync(BASELINE_FILE, 'utf8')) : null
   const baselineDiffs = baseline ? compareBaseline(sim.metrics, baseline) : null
   const file = writeReport({ runs: RUNS, metrics: sim.metrics, targets, baselineDiffs, maxScores, levels: sim.levels })
