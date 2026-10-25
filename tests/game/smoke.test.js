@@ -51,7 +51,7 @@ describe('首頁', () => {
   it('難度可以切換、會記住，時間跟著改', async () => {
     expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('忍不住伸手')
     await page.click('#diff-easy')
-    expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
+    await expect.poll(() => page.locator('#diffs .diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
     await page.click('.lv:nth-child(1)')
     expect(await page.locator('#ovChapter .stages li:nth-child(1) > span').textContent()).toContain(`${Math.round(LV[0].time * 1.35) * 2} 秒`)
     await page.click('#sheetClose')

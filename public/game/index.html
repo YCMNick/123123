@@ -70,17 +70,34 @@ button{font:inherit;color:inherit;cursor:pointer}
 .field input{background:var(--paper);border:3px solid var(--edge);border-radius:14px;color:var(--text);padding:11px 14px;font:inherit;min-width:0;box-shadow:inset 0 2px 4px rgba(60,40,10,.12)}
 #startBtn{flex:1 1 150px;padding:15px 20px;font-size:20px}
 .sect{position:relative;display:flex;flex-direction:column;gap:10px;background:var(--cream);border:4px solid var(--wood);border-radius:22px;padding:24px 14px 14px;box-shadow:0 6px 0 var(--wood-dark),0 12px 26px rgba(40,25,5,.22);margin-top:8px}
-.sect h2{position:absolute;top:-17px;left:12px;margin:0;background:linear-gradient(#a8703a,var(--wood));color:#fff;font-family:var(--f-display);font-weight:800;font-size:14px;letter-spacing:.04em;padding:4px 14px;border-radius:12px;box-shadow:0 3px 0 var(--wood-dark);transform:rotate(-1.5deg);max-width:calc(100% - 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
-.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
-.lv{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;align-items:center;text-align:left;background:var(--paper);border:3px solid var(--edge);border-radius:18px;padding:10px;box-shadow:0 4px 0 #c9a96a;transition:transform .08s}
-.lv:hover{border-color:var(--gold-dark)}
-.lv:active{transform:translateY(2px)}
-.lv canvas{width:84px;height:112px;border-radius:6px;display:block;background:var(--cream-2);border:4px solid #fff;box-shadow:0 3px 8px rgba(40,25,5,.3);box-sizing:content-box;margin:-2px}
-.lv:nth-child(odd) canvas{transform:rotate(-2.5deg)} .lv:nth-child(even) canvas{transform:rotate(2.5deg)}
-.lv .k{font-family:var(--f-display);font-weight:800;font-size:11px;letter-spacing:.06em;color:var(--green-dark)}
-.lv .n{font-family:var(--f-display);font-weight:800;font-size:21px;line-height:1.3;color:var(--wood-dark)}
-.lv .m{color:var(--muted);font-size:13px}
-.lv .prog{font-family:var(--f-num);font-weight:700;font-size:12px;margin-top:4px;color:var(--ink)}
+.sect h2{position:absolute;z-index:1;top:-17px;left:12px;margin:0;background:linear-gradient(#a8703a,var(--wood));color:#fff;font-family:var(--f-display);font-weight:800;font-size:14px;letter-spacing:.04em;padding:4px 14px;border-radius:12px;box-shadow:0 3px 0 var(--wood-dark);transform:rotate(-1.5deg);max-width:calc(100% - 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
+.map-sect{padding:24px 0 0}
+.map{position:relative;width:100%;border-radius:0 0 18px 18px;overflow:hidden}
+#mapBg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.map-nodes{position:absolute;inset:0}
+.lv{position:absolute;transform:translate(-50%,-50%);width:88px;height:88px;padding:0;background:none;border:0;text-align:center}
+.lv .medal{width:88px;height:88px;border-radius:50%;overflow:hidden;border:4px solid #fff;box-shadow:0 0 0 4px var(--wood),0 6px 0 4px var(--wood-dark),0 10px 20px rgba(40,25,5,.35);background:var(--cream-2);display:grid;place-items:center;transition:transform .1s}
+.lv:hover .medal{transform:scale(1.04)}
+.lv:active .medal{transform:translateY(3px)}
+.lv.cleared .medal{box-shadow:0 0 0 4px var(--gold),0 6px 0 4px var(--gold-dark),0 10px 20px rgba(40,25,5,.35)}
+.lv canvas{width:84px;height:112px;display:block}
+.lv .sign{position:absolute;top:50%;left:calc(100% + 10px);transform:translateY(-50%);width:max-content;max-width:150px;text-align:left;background:linear-gradient(#a8703a,var(--wood));color:#fff;border-radius:12px;padding:5px 10px 6px;box-shadow:0 3px 0 var(--wood-dark);display:grid;gap:0}
+.lv.flip .sign{left:auto;right:calc(100% + 10px);text-align:right}
+.lv .sign::before{content:"";position:absolute;top:50%;left:-9px;margin-top:-6px;border:6px solid transparent;border-right-color:var(--wood);border-left:0}
+.lv.flip .sign::before{left:auto;right:-9px;border-right:0;border-left:6px solid var(--wood)}
+.lv .k{font-family:var(--f-display);font-weight:800;font-size:10px;letter-spacing:.06em;color:#ffe9a8}
+.lv .n{font-family:var(--f-display);font-weight:800;font-size:17px;line-height:1.2;color:#fff;text-shadow:0 1px 0 var(--wood-dark)}
+.lv .prog{font-family:var(--f-num);font-weight:700;font-size:11px;color:#fff3cf;margin-top:2px}
+.st{position:absolute;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;border:3px solid #fff;background:linear-gradient(#fffaf0,var(--cream-2));box-shadow:0 0 0 2px var(--wood),0 3px 0 2px var(--wood-dark);padding:0;font-family:var(--f-num);font-weight:800;font-size:10px;color:var(--wood-dark);display:grid;place-items:center;line-height:1}
+.st.done{background:linear-gradient(#9ae66e,var(--green));color:#fff}
+.st.three{background:linear-gradient(#ffe066,var(--gold));color:var(--wood-dark)}
+.st.next{width:32px;height:32px;font-size:12px;background:linear-gradient(#fff,#ffe9a8);animation:pulse 1.4s ease-in-out infinite}
+.st.locked{opacity:.55;filter:grayscale(1)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px var(--wood),0 3px 0 2px var(--wood-dark),0 0 0 0 rgba(255,204,51,.6)}50%{box-shadow:0 0 0 2px var(--wood),0 3px 0 2px var(--wood-dark),0 0 0 10px rgba(255,204,51,0)}}
+.here{position:absolute;transform:translate(-50%,-100%);margin-top:-22px;background:var(--danger);color:#fff;font-family:var(--f-display);font-weight:800;font-size:11px;padding:3px 9px;border-radius:10px;white-space:nowrap;box-shadow:0 2px 0 #9c2a1a;pointer-events:none;animation:bob 1.2s ease-in-out infinite}
+.here::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--danger);border-bottom:0}
+.mapmark{position:absolute;transform:translate(-50%,-50%);background:linear-gradient(#fffaf0,var(--cream-2));color:var(--wood-dark);font-family:var(--f-display);font-weight:800;font-size:12px;padding:4px 12px;border-radius:12px;box-shadow:0 0 0 3px var(--wood),0 3px 0 3px var(--wood-dark);white-space:nowrap;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.st.next,.here{animation:none}}
 .s{color:#d9c99a} .s.on{color:var(--gold-dark)}
 .rules{display:grid;gap:8px;margin:0;padding:0;list-style:none;font-size:14px;color:var(--ink)}
 .rules li{display:grid;grid-template-columns:5.6em 1fr;gap:10px}
@@ -225,7 +242,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 @media (prefers-reduced-motion:reduce){
   #game.tense .tension{animation:none;opacity:.8}
-  .bignum.hit,.timer.bump,.hud.shake,.done.ready,#hen{animation:none}
+  .bignum.hit,.timer.bump,.hud.shake,.done.ready,#hen,.st.next,.here{animation:none}
   .loupe{transition:opacity .1s}
 }
 </style>
@@ -271,9 +288,12 @@ button{font:inherit;color:inherit;cursor:pointer}
         <h2 data-i18n="diffTitle"></h2>
         <div class="diffs" id="diffs" role="radiogroup" aria-label="難度"></div>
       </div>
-      <div class="sect">
+      <div class="sect map-sect">
         <h2 data-i18n="worldsTitle"></h2>
-        <div class="levels" id="levels"></div>
+        <div class="map" id="map">
+          <canvas id="mapBg" aria-hidden="true"></canvas>
+          <div class="map-nodes" id="levels"></div>
+        </div>
       </div>
       <div class="sect">
         <h2 data-i18n="rulesTitle"></h2>
@@ -406,7 +426,7 @@ const UI = {
     win: nick => `${nick ? nick + '，' : ''}過關`, lose: '時間到', total: '總分', best: s => `最佳紀錄 ${s}`, newRec: '新紀錄！', allTotal: s => `全部 100 關總分 <strong>${s}</strong>`,
     next: '下一關', again: '再玩一次', retry: '馬上重來', first: '從第 1 關開始',
     resEyebrow: (s, cn, t, d) => `${s} ${cn}・${t} · 難度「${d}」`, stars: n => `${n} 顆星`,
-    worldK: (c, st) => `第 ${c} 大關 · ${st}`, worldProg: (d, n, s, m) => `已過 ${d}/${n} 關　★ ${s}/${m}`,
+    worldK: (c, st) => `第 ${c} 大關 · ${st}`, mapWorld: c => `第 ${c} 大關`, mapHere: '你在這裡', mapFinish: '終點・地球軌道', mapStart: '起點', worldProg: (d, n, s, m) => `已過 ${d}/${n} 關　★ ${s}/${m}`,
     stageInfo: (n, t) => `${n} 件 · ${t} 秒`, stageBest: s => `最佳 ${s}`, play: s => `開始 ${s}`, back: '返回',
   },
   en: {
@@ -446,7 +466,7 @@ const UI = {
     win: nick => `${nick ? nick + ', ' : ''}Cleared!`, lose: "Time's up", total: 'Score', best: s => `Best ${s}`, newRec: 'New record!', allTotal: s => `All 100 stages: <strong>${s}</strong>`,
     next: 'Next stage', again: 'Play again', retry: 'Try again', first: 'Back to stage 1',
     resEyebrow: (s, cn, t, d) => `${s} ${cn} · ${t} · ${d}`, stars: n => `${n} stars`,
-    worldK: (c, st) => `World ${c} · ${st}`, worldProg: (d, n, s, m) => `Cleared ${d}/${n}  ★ ${s}/${m}`,
+    worldK: (c, st) => `World ${c} · ${st}`, mapWorld: c => `World ${c}`, mapHere: 'You are here', mapFinish: 'Finish · Earth orbit', mapStart: 'Start', worldProg: (d, n, s, m) => `Cleared ${d}/${n}  ★ ${s}/${m}`,
     stageInfo: (n, t) => `${n} objects · ${t}s`, stageBest: s => `Best ${s}`, play: s => `Play ${s}`, back: 'Back',
   },
 };
@@ -12663,7 +12683,7 @@ function goHome() {
   if (AU.ctx && AU.ctx.state === 'suspended') AU.ctx.resume();
   gameEl.hidden = true; $('#ovIntro').hidden = true; $('#ovPause').hidden = true; $('#ovResult').hidden = true;
   $('#home').hidden = false;
-  buildCards();
+  buildCards(); showHere();
 }
 
 /* ---------- layout ---------- */
@@ -12780,7 +12800,7 @@ function showFirstRun() {
     <div class="diffs" role="radiogroup">${DIFFS.map((d, k) => `<button type="button" class="diff" data-k="${k}" role="radio" aria-checked="${k === 0}"><i>${tr(d.level)}</i><b>${tr(d.name)}${k === 0 ? `<span class="rec">${U('firstRec')}</span>` : ''}</b><span>${tr(d.note)}</span></button>`).join('')}</div>
   </div>`;
   ov.hidden = false;
-  ov.querySelectorAll('.diff').forEach(b => { b.onclick = () => { store.data.onboarded = true; setDiff(+b.dataset.k); ov.hidden = true; }; });
+  ov.querySelectorAll('.diff').forEach(b => { b.onclick = () => { store.data.onboarded = true; setDiff(+b.dataset.k); ov.hidden = true; showHere(); }; });
   ov.querySelector('.diff').focus();
 }
 // Fill every static label for the current language.
@@ -12892,24 +12912,99 @@ function showLock(L) {
   $('#lockLater').focus();
 }
 function nextIndex(from = 0, to = LEVELS.length) { for (let i = from; i < to; i++) if (!clearedOf(i)) return i; return from; }
+/* ---------- the journey map: ten worlds up a winding path, from the farm at the bottom to orbit at the top ---------- */
+const MAP = { seg: 330, top: 110, bottom: 100, xs: [0.25, 0.76, 0.23, 0.75, 0.26, 0.77, 0.24, 0.75, 0.25, 0.76], t0: 0.2, t1: 0.84 };
+function mapLayout(w) {
+  const n = CHAPTERS.length, H = MAP.top + n * MAP.seg + MAP.bottom;
+  const node = c => ({ x: w * MAP.xs[c % MAP.xs.length], y: H - MAP.bottom - c * MAP.seg });
+  const nodes = CHAPTERS.map((ch, c) => node(c));
+  const finish = { x: w * 0.5, y: MAP.top * 0.55 };
+  // one cubic curve per world, from its sign to the next one (the last climbs to the finish)
+  const segs = nodes.map((p, c) => { const q = c + 1 < n ? nodes[c + 1] : finish; return [p, { x: p.x, y: p.y - MAP.seg * 0.5 }, { x: q.x, y: q.y + MAP.seg * 0.5 }, q]; });
+  const bez = ([p0, p1, p2, p3], t) => { const u = 1 - t; return { x: u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x, y: u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y }; };
+  const dots = LEVELS.map(L => bez(segs[L.chapter], MAP.t0 + (MAP.t1 - MAP.t0) * L.stage / 9));
+  return { w, H, nodes, segs, dots, finish, bez };
+}
+// Biome colours and little motifs for each world's stretch of the map.
+const MAP_BANDS = {
+  animal: ['#8fdd62', '#6cc84a'], ocean: ['#5fc0ee', '#3f9fd6'], oldtown: ['#f2b56f', '#d9834a'], home: ['#f6e9cc', '#e8d6ad'], comic: ['#ffe27a', '#ffc94a'],
+  polar: ['#eaf7ff', '#c6e6f7'], desert: ['#f6cf7b', '#e4a94c'], wonder: ['#d6e6a9', '#b7d184'], park: ['#5a3a7e', '#36215a'], space: ['#1b2250', '#0b0f2b'],
+};
+function drawMapBg(lay) {
+  const cv = $('#mapBg'), dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  cv.width = Math.round(lay.w * dpr); cv.height = Math.round(lay.H * dpr);
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const rng = mulberry(11), R = (a, b) => a + rng() * (b - a), w = lay.w;
+  // bands, bottom (world 1) to top (space), blended at the seams
+  CHAPTERS.forEach((ch, i) => {
+    const y1 = lay.nodes[i].y + (i === 0 ? MAP.bottom : MAP.seg / 2), y0 = i + 1 < CHAPTERS.length ? lay.nodes[i + 1].y + MAP.seg / 2 : 0;
+    const [a, b] = MAP_BANDS[ch.key] || ['#ccc', '#aaa'];
+    const g = c.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, a); g.addColorStop(1, b);
+    c.fillStyle = g; c.fillRect(0, y0 - 1, w, y1 - y0 + 2);
+    // seam: a soft fade into the band above
+    if (i + 1 < CHAPTERS.length) { const [na] = MAP_BANDS[CHAPTERS[i + 1].key]; const f = c.createLinearGradient(0, y0 - 40, 0, y0 + 40); f.addColorStop(0, na); f.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = f; c.fillRect(0, y0 - 40, w, 80); }
+    c.save(); c.beginPath(); c.rect(0, y0, w, y1 - y0); c.clip();
+    const mid = (y0 + y1) / 2;
+    switch (ch.key) {
+      case 'animal': for (let k = 0; k < 60; k++) circ(c, R(0, w), R(y0, y1), R(1.5, 3), ['#fff', '#ffd1dc', '#ffe66d'][k % 3]); for (let k = 0; k < 5; k++) ell(c, R(0, w), R(y0 + 20, y1 - 20), R(18, 34), R(10, 16), 'rgba(50,140,40,.25)'); break;
+      case 'ocean': c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 2; for (let k = 0; k < 14; k++) { const x = R(0, w), y = R(y0, y1); c.beginPath(); for (let j = 0; j <= 24; j += 2) c.lineTo(x + j, y + (j % 4 ? 2 : -2)); c.stroke(); } break;
+      case 'oldtown': c.fillStyle = 'rgba(90,40,60,.22)'; for (let k = 0; k < 9; k++) { const x = R(0, w), hh = R(26, 70), ww = R(16, 30); c.fillRect(x, y1 - hh, ww, hh); c.fillRect(x + 4, y1 - hh - 8, ww - 8, 8); } break;
+      case 'home': c.strokeStyle = 'rgba(120,90,40,.16)'; c.lineWidth = 1; for (let y = y0; y < y1; y += 22) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); } break;
+      case 'comic': c.fillStyle = 'rgba(200,60,40,.25)'; for (let y = y0 + 6; y < y1; y += 12) for (let x = (Math.round(y / 12) % 2) * 6; x < w; x += 12) circ(c, x, y, 2, 'rgba(200,60,40,.22)'); break;
+      case 'polar': for (let k = 0; k < 50; k++) circ(c, R(0, w), R(y0, y1), R(1, 2.5), '#fff'); for (let k = 0; k < 4; k++) poly(c, [R(0, w) - 40, y1, R(0, w), y1 - R(40, 90), R(0, w) + 40, y1], 'rgba(255,255,255,.55)'); break;
+      case 'desert': c.fillStyle = 'rgba(160,100,30,.18)'; for (let k = 0; k < 6; k++) { const x = R(-40, w), y = R(y0 + 30, y1); c.beginPath(); c.ellipse(x, y, R(60, 120), R(14, 26), 0, Math.PI, 0); c.fill(); } break;
+      case 'wonder': c.fillStyle = 'rgba(90,110,40,.2)'; for (let k = 0; k < 7; k++) { const x = R(0, w); c.fillRect(x, y1 - R(30, 60), 8, 60); } break;
+      case 'park': for (let k = 0; k < 70; k++) circ(c, R(0, w), R(y0, y1), R(1.5, 3.5), ['#ff5ec4', '#5ee7ff', '#ffd166', '#9ae66e'][k % 4]); break;
+      case 'space': for (let k = 0; k < 90; k++) circ(c, R(0, w), R(y0, y1), R(0.6, 1.8), 'rgba(255,255,255,' + R(0.4, 1).toFixed(2) + ')'); break;
+    }
+    c.restore();
+    // a soft label of the world number on the band
+    c.font = '800 12px "Baloo 2", "Huninn", sans-serif'; c.fillStyle = 'rgba(0,0,0,.18)'; c.textAlign = 'left'; c.fillText(String(i + 1).padStart(2, '0'), 10, mid + 4);
+  });
+  // Earth at the finish
+  const f = lay.finish; circ(c, f.x, f.y + 36, 22, '#2f7dd6'); ell(c, f.x - 6, f.y + 32, 7, 5, '#5aa56e'); ell(c, f.x + 7, f.y + 44, 6, 4, '#5aa56e'); circ(c, f.x, f.y + 36, 25, 'rgba(120,200,255,.25)');
+  // the path: brown outline, cream dashes
+  const path = () => { c.beginPath(); lay.segs.forEach(([p0, p1, p2, p3], i) => { if (i === 0) c.moveTo(p0.x, p0.y); c.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y); }); };
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  path(); c.strokeStyle = 'rgba(60,35,10,.35)'; c.lineWidth = 16; c.stroke();
+  path(); c.strokeStyle = '#fff6dc'; c.lineWidth = 10; c.stroke();
+  path(); c.strokeStyle = '#c9a96a'; c.lineWidth = 4; c.setLineDash([2, 12]); c.stroke(); c.setLineDash([]);
+}
 function buildCards() {
-  const box = $('#levels'); box.innerHTML = '';
+  const box = $('#levels'), map = $('#map'), w = map.clientWidth || 360, lay = mapLayout(w);
+  map.style.height = lay.H + 'px'; box.innerHTML = ''; drawMapBg(lay);
+  const n = nextIndex();
   CHAPTERS.forEach((ch, c) => {
-    const idx = LEVELS.map((L, i) => i).filter(i => LEVELS[i].chapter === c), first = LEVELS[idx[0]];
-    const done = idx.filter(clearedOf).length, stars = idx.reduce((a, i) => a + starsOf(i), 0);
-    const btn = document.createElement('button'); btn.className = 'lv'; btn.type = 'button';
-    btn.innerHTML = `<canvas width="84" height="112" aria-hidden="true"></canvas><div>
-      <div class="k">${U('worldK', c + 1, tr(ch.style))}</div>
-      <div class="n">${tr(ch.name)}</div>
-      <div class="m">${tr(ch.blurb)}</div>
-      <div class="prog">${U('worldProg', done, idx.length, stars, idx.length * 3)}</div></div>`;
+    const idx = LEVELS.map((L, i) => i).filter(i => LEVELS[i].chapter === c);
+    const done = idx.filter(clearedOf).length, stars = idx.reduce((a, i) => a + starsOf(i), 0), p = lay.nodes[c];
+    const btn = document.createElement('button'); btn.className = 'lv' + (done === idx.length ? ' cleared' : '') + (p.x > w / 2 ? ' flip' : ''); btn.type = 'button';
+    btn.style.left = p.x + 'px'; btn.style.top = p.y + 'px';
+    btn.setAttribute('aria-label', `${U('worldK', c + 1, tr(ch.style))} ${tr(ch.name)}`);
+    btn.innerHTML = `<span class="medal"><canvas width="84" height="112" aria-hidden="true"></canvas></span><span class="sign">
+      <span class="k">${U('mapWorld', c + 1)} · ${tr(ch.style)}</span>
+      <span class="n">${tr(ch.name)}</span>
+      <span class="prog">${U('worldProg', done, idx.length, stars, idx.length * 3)}</span></span>`;
     btn.onclick = () => { saveNick(); openChapter(c); };
     box.appendChild(btn);
   });
-  const n = nextIndex();
+  // the small stops: one per stage, along the path
+  LEVELS.forEach((L, i) => {
+    const d = lay.dots[i], st = document.createElement('button'); st.type = 'button';
+    st.className = 'st' + (clearedOf(i) ? (starsOf(i) === 3 ? ' three' : ' done') : '') + (i === n ? ' next' : '') + (unlocked(L) ? '' : ' locked');
+    st.style.left = d.x + 'px'; st.style.top = d.y + 'px'; st.textContent = L.stage + 1; st.dataset.i = i;
+    st.setAttribute('aria-label', `${stageLabel(L)} ${tr(L.title)}`); st.title = `${stageLabel(L)} ${tr(L.title)}`;
+    st.onclick = () => { saveNick(); if (unlocked(L)) startLevel(i); else showLock(L); };
+    box.appendChild(st);
+    if (i === n) { const h = document.createElement('span'); h.className = 'here'; h.textContent = U('mapHere'); h.style.left = d.x + 'px'; h.style.top = d.y + 'px'; box.appendChild(h); }
+  });
+  for (const [cls, pt, txt] of [['mapmark', { x: lay.nodes[0].x, y: lay.nodes[0].y + 70 }, U('mapStart')], ['mapmark', { x: lay.finish.x, y: lay.finish.y - 4 }, U('mapFinish')]]) {
+    const m = document.createElement('span'); m.className = cls; m.style.left = pt.x + 'px'; m.style.top = pt.y + 'px'; m.textContent = txt; box.appendChild(m);
+  }
   $('#startBtn').textContent = clearedOf(0) ? U('cont', stageLabel(LEVELS[n])) : U('start');
   drawThumbs();
 }
+// Bring the player's next stop into view (the map runs bottom-up, so the start is far down).
+function showHere() { const h = $('#levels .here'); if (h && h.scrollIntoView) h.scrollIntoView({ block: 'center' }); }
 function buildDiffs() {
   const box = $('#diffs'); box.innerHTML = '';
   DIFFS.forEach((d, k) => {
@@ -13010,6 +13105,7 @@ if (!store.data.onboarded) showFirstRun();
 new ResizeObserver(() => layout()).observe($('#stageWrap'));
 drawHen();
 new ResizeObserver(() => drawHomeBg()).observe($('#home'));
+let mapW = 0; new ResizeObserver(() => { const w = $('#map').clientWidth; if (w && w !== mapW) { mapW = w; buildCards(); } }).observe($('#map'));
 drawHomeBg();
 window.addEventListener('resize', () => { if (!gameEl.hidden) layout(); });
 const fontList = ['20px "DotGothic16"', '20px Bangers', '700 20px "Playfair Display"', 'italic 700 20px "Playfair Display"', '600 20px Caveat', '700 14px "Noto Sans TC"'];

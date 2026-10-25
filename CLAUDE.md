@@ -151,6 +151,11 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
   (`U(key)`), canvas text uses `T('中文', 'English')` (or `LOCAL()` for real local
   signs). The language, music, sound-effect and zen (no clock) switches are
   stored per device.
+- Home: a sunny cartoon look (painted sky canvas `#homeBg`, wooden boards,
+  chunky buttons, the hen host). Worlds are picked on a journey map
+  (`mapLayout`/`drawMapBg`/`buildCards`): ten world signs up a winding path
+  from the farm to orbit, with a stop (`.st`) per stage; `showHere()` scrolls
+  to the next stop. World signs keep the `.lv` class and a `.prog` label.
 - New-player protection: a first-launch difficulty question (easy suggested),
   stages 1-1 to 1-3 are practice (`PRACTICE_STAGES`, double time; the calibrator
   keeps their base time), two losses on a stage offer easy on the result screen,
