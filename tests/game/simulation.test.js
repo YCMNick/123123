@@ -1,4 +1,4 @@
-// 數值模擬：每個「關卡 × 玩家類型」自動玩 1,000 局（GAME_SIM_RUNS 可調），
+// 數值模擬：10 關 × 3 種玩家，每組自動玩 500 局，共 15,000 局（GAME_SIM_RUNS 可調），
 // 檢查每局結果合法、參考機器人的分數精確、設計目標、以及與基準線的漂移。
 import fs from 'node:fs'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
@@ -6,7 +6,7 @@ import { launch, openGame, maxScore } from './helpers/browser.js'
 import { runAll } from './helpers/sim.js'
 import { evaluateTargets, compareBaseline, writeReport, BASELINE_FILE } from './helpers/report.js'
 
-const RUNS = Number(process.env.GAME_SIM_RUNS || 1000)
+const RUNS = Number(process.env.GAME_SIM_RUNS || 500)
 let browser, page, errors, sim, C, maxScores, targets, idle
 
 beforeAll(async () => {
@@ -53,13 +53,13 @@ describe('每一局的結果都合法（數值沒有崩潰）', () => {
 })
 
 describe('參考機器人（精確值）', () => {
-  it('完美機器人：瞬間全部 0°、不碰斜塔，拿到理論分數與三星', async () => {
+  it('完美機器人：瞬間全部轉到正確角度、不碰斜塔，拿到理論分數與三星', async () => {
     const results = await page.evaluate(() => {
       const G = window.__chayidu
       G.quiet(true); G.manualClock(true)
       return G.levels().map((lv, i) => {
         G.resetProgress(); G.seed(7); G.start(i)
-        for (const o of G.state().objs) if (!o.trap) { G.setAngle(o.id, 0); G.release() }
+        for (const o of G.state().objs) if (!o.trap) { G.setAngle(o.id, o.target); G.release() }
         G.done()
         return G.state().lastResult
       })
@@ -72,17 +72,14 @@ describe('參考機器人（精確值）', () => {
     })
   })
 
-  it('不動機器人：時間到、0 星；分數只可能來自「沒碰斜塔」的 200 分（已知問題）', () => {
-    for (const r of idle) {
-      expect(r).toMatchObject({ win: false, stars: 0, timeBonus: 0, aligned: 0, prec: 0 })
-      expect(r.total).toBe(Math.max(0, r.trapPts))
-    }
+  it('不動機器人：每關都是時間到、0 分、0 星（斜塔陷阱只有過關才計分）', () => {
+    for (const r of idle) expect(r).toMatchObject({ win: false, total: 0, stars: 0, timeBonus: 0, trapPts: 0 })
   })
 
   it('扶正斜塔的機器人：其他全完美也扣 150 分、最多兩星', async () => {
     const r = await page.evaluate(() => {
       const G = window.__chayidu
-      G.resetProgress(); G.seed(7); G.start(2)
+      G.resetProgress(); G.seed(7); G.start(G.levels().findIndex((l) => l.key === 'it'))
       for (const o of G.state().objs) { G.setAngle(o.id, 0); G.release() }
       G.done()
       return G.state().lastResult
@@ -96,7 +93,7 @@ describe('參考機器人（精確值）', () => {
       const G = window.__chayidu
       G.resetProgress(); G.seed(7); G.start(0)
       const t0 = G.state().timeLeft
-      for (let k = 0; k < 50; k++) { G.setAngle('torii', 0); G.release(); G.setAngle('torii', 3); G.release() }
+      for (let k = 0; k < 50; k++) { G.setAngle('cow', 0); G.release(); G.setAngle('cow', 3); G.release() }
       const t = G.state().timeLeft
       G.home()
       return t - t0

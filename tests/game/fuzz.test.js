@@ -45,7 +45,8 @@ describe('亂數操作風暴', () => {
         const s = await state(page)
         const visible = async (sel) => page.locator(sel).first().isVisible().catch(() => false)
         let action
-        if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt'])
+        if (s.overlays.chapter) action = pick(['sheetPlay', 'sheetPlay', 'sheetClose'])
+        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt'])
         else if (s.overlays.result) action = pick(['result', 'result', 'key'])
         else if (s.overlays.pause) action = pick(['pauseMenu', 'pauseMenu', 'key'])
         else if (s.overlays.intro) action = pick(['go', 'go', 'introHome'])
@@ -53,7 +54,9 @@ describe('亂數操作風暴', () => {
         log.push(action)
         const vw = page.viewportSize()
         switch (action) {
-          case 'card': await page.click(`.lv:nth-child(${1 + Math.floor(rand() * 3)})`); break
+          case 'card': await page.click(`.lv:nth-child(${1 + Math.floor(rand() * 10)})`); break
+          case 'sheetPlay': await page.click('#sheetPlay'); break
+          case 'sheetClose': await page.click('#sheetClose'); break
           case 'start': await page.click('#startBtn'); break
           case 'tilt': { const b = await page.locator('#tilt').boundingBox(); await page.mouse.move(b.x + rand() * b.width, b.y + rand() * b.height); await page.mouse.down(); await page.mouse.move(b.x + rand() * 200, b.y + rand() * 200, { steps: 3 }); await page.mouse.up(); break }
           case 'go': await page.click('#goBtn'); if (rand() < 0.5) await page.waitForTimeout(2500); break
@@ -87,7 +90,7 @@ describe('極端數值與連打', () => {
   it('超大、超小角度與上萬次微調後，角度仍是合法數字', async () => {
     await page.evaluate(() => {
       const G = window.__chayidu
-      G.quiet(true); G.seed(9); G.start(2)
+      G.quiet(true); G.seed(9); G.start(G.levels().findIndex((l) => l.key === 'it'))
       for (const o of G.state().objs) { G.rotate(o.id, 1e9); G.rotate(o.id, -1e9); G.rotate(o.id, 123456.789) }
       for (let k = 0; k < 10000; k++) G.rotate('shL', 1e-7)
       G.select('gelato')
@@ -98,7 +101,7 @@ describe('極端數值與連打', () => {
   })
 
   it('一次拖曳中 600 次滑鼠移動，第二根手指同時按下會被忽略', async () => {
-    await page.evaluate(() => { const G = window.__chayidu; G.quiet(true); G.seed(1); G.start(0) })
+    await page.evaluate(() => { const G = window.__chayidu; G.quiet(true); G.seed(1); G.start(G.levels().findIndex((l) => l.key === 'jp')) })
     const b = await page.locator('#cv').boundingBox(), s = b.width / 360
     await page.mouse.move(b.x + 230 * s, b.y + 268 * s)
     await page.mouse.down()
@@ -117,7 +120,7 @@ describe('極端數值與連打', () => {
   it('倒數中途回首頁或切換關卡 50 次，不會有殘留的倒數把遊戲偷偷開始', async () => {
     await page.evaluate(() => {
       const G = window.__chayidu
-      for (let k = 0; k < 50; k++) { G.start(k % 3, { instant: false }); if (k % 2) G.home() }
+      for (let k = 0; k < 50; k++) { G.start(k % 10, { instant: false }); if (k % 2) G.home() }
       G.start(1, { instant: false }); G.start(2, { instant: true }); G.home()
     })
     await page.waitForTimeout(3000)
@@ -131,7 +134,7 @@ describe('極端數值與連打', () => {
     await page.evaluate(() => {
       const G = window.__chayidu
       G.quiet(true); G.seed(1); G.start(0)
-      for (const o of G.state().objs) { G.setAngle(o.id, 0); G.release() }
+      for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() }
     })
     for (let k = 0; k < 20; k++) await page.click('#doneBtn', { force: true })
     const s = await state(page)

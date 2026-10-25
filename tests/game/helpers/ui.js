@@ -21,4 +21,9 @@ export function canvasSpread(page, selector) {
   }, selector)
 }
 
+// Raw canvas pixels (DOM overlays such as toasts are not included).
+export function canvasPixels(page, selector = '#cv') {
+  return page.evaluate((sel) => { const c = document.querySelector(sel); return Array.from(c.getContext('2d').getImageData(0, 0, c.width, c.height).data).join(',') }, selector)
+}
+
 export const fmtDeg = (e) => { const a = Math.abs(e); return (a < 1 ? a.toFixed(2) : a.toFixed(1)) + '°' }

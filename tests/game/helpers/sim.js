@@ -41,10 +41,11 @@ function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile }) {
         if (!alive()) return
         resid = Math.abs(gauss()) * 0.04
       }
-      G.setAngle(id, sign() * resid)
+      G.setAngle(id, target[id] + sign() * resid)
       G.release()
       moves++
     }
+    const target = Object.fromEntries(st0.objs.map((o) => [o.id, o.target]))
     const order = st0.objs.filter((o) => !o.trap).map((o) => o.id)
     for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1));

@@ -68,7 +68,7 @@ that persists to `localStorage` so it runs without any backend.
 
 - **Game tests:** `npm run test:game` (all of `tests/game`, ~2 min; needs a
   Playwright Chromium: `npx playwright install chromium` on a fresh machine).
-  `GAME_SIM_RUNS=200 npm run test:game` runs a shorter simulation.
+  `GAME_SIM_RUNS=100 npm run test:game` runs a shorter simulation (default 500 per level × profile).
 - **Game balance baseline:** `npm run test:game:baseline` rewrites
   `tests/game/baseline.json`. Run it only after deciding a balance change is
   intended. The readable report lands in `test-results/game-sim/report.md`.
@@ -130,6 +130,11 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
 
 - Self-contained HTML game, unrelated to the repair app. This file is the
   source of truth; the claude.ai artifact is published from it.
+- Structure: `CHAPTERS` (10 big levels, 10 planned stages each) and `LEVELS`
+  (currently the first stage of each chapter). An object may have `habit`
+  (idle motion), `call` (creature sound when aligned), `link`, `trap`, or a
+  non-zero `target` angle. Level `time` budgets were calibrated with the
+  simulation; recalibrate rather than guess when changing a level.
 - `window.__chayidu` is the test hook (seeded RNG, manual clock, pure
   `computeScore`, state snapshot). `tests/game` depends on it: keep its API
   stable, or update the tests in the same change.

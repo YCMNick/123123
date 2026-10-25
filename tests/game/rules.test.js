@@ -2,29 +2,42 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { launch, openGame } from './helpers/browser.js'
 
-let browser, page, errors, C, LV
+let browser, page, errors, C, LV, CH
 const run = (fn, arg) => page.evaluate(fn, arg)
+const idx = (key) => LV.findIndex((l) => l.key === key)
 
 beforeAll(async () => {
   browser = await launch()
   ;({ page, errors } = await openGame(browser))
-  ;[C, LV] = await run(() => { const G = window.__chayidu; G.quiet(true); G.manualClock(true); return [G.consts, G.levels()] })
+  ;[C, LV, CH] = await run(() => { const G = window.__chayidu; G.quiet(true); G.manualClock(true); return [G.consts, G.levels(), G.chapters()] })
 })
 afterAll(async () => { await browser?.close() })
 
-describe('關卡資料', () => {
-  it('三關、時間逐關增加、物品 id 不重複', () => {
-    expect(LV.map((l) => l.time)).toEqual([30, 35, 40])
+describe('地球宇宙：十大關卡', () => {
+  it('10 個大關、各 10 個規劃小關；目前每個大關開放第 1 小關', () => {
+    expect(CH).toHaveLength(10)
+    for (const ch of CH) expect(ch.stages).toHaveLength(10)
+    expect(LV).toHaveLength(10)
+    expect(LV.map((l) => l.chapter)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    LV.forEach((l) => expect(l.title).toBe(CH[l.chapter].stages[0]))
+  })
+  it('每關物品 id 不重複、都有一件「只歪一點點」的物品', () => {
     for (const l of LV) {
       const ids = l.objects.map((o) => o.id)
       expect(new Set(ids).size).toBe(ids.length)
-      expect(l.objects.some((o) => o.near), `${l.key} 要有一件「只歪一點點」的物品`).toBe(true)
+      expect(l.objects.some((o) => o.near), l.key).toBe(true)
     }
   })
-  it('第 3 關有斜塔陷阱（3.97°）與左右窗板連動（0.6 倍）', () => {
-    const it3 = LV[2].objects
-    expect(it3.filter((o) => o.trap)).toEqual([expect.objectContaining({ id: 'pisa', keep: 3.97 })])
-    expect(it3.find((o) => o.id === 'shL').link).toEqual({ to: 'shR', k: 0.6 })
+  it('特殊機制都在：斜塔陷阱、三組連動、要倒過來才對的海市蜃樓', () => {
+    const all = LV.flatMap((l) => l.objects.map((o) => ({ ...o, level: l.key })))
+    expect(all.filter((o) => o.trap)).toEqual([expect.objectContaining({ id: 'pisa', keep: 3.97, level: 'it' })])
+    expect(all.filter((o) => o.link).map((o) => `${o.id}->${o.link.to}@${o.link.k}`)).toEqual(['shL->shR@0.6', 'tickets->price@0.5', 'panelL->panelR@0.6'])
+    expect(all.filter((o) => o.target !== 0)).toEqual([expect.objectContaining({ id: 'mirage', target: 180 })])
+  })
+  it('動物奇關的每一隻動物都會動、都有自己的叫聲', () => {
+    const farm = LV[idx('farm')]
+    expect(farm.objects.every((o) => o.call)).toBe(true)
+    expect(new Set(farm.objects.map((o) => o.call)).size).toBe(farm.objects.length)
   })
 })
 
@@ -35,17 +48,17 @@ describe('開局', () => {
     expect(a).toEqual(b)
     expect(a).not.toEqual(c)
   })
-  it('300 個種子 × 3 關：開局沒有任何物品已經對齊，歪斜幅度合理', async () => {
+  it('200 個種子 × 10 關：開局沒有任何物品已經對齊，歪斜幅度合理', async () => {
     const bad = await run(({ TOL }) => {
       const G = window.__chayidu, bad = []
       G.levels().forEach((lv, i) => {
-        for (let s = 1; s <= 300; s++) {
+        for (let s = 1; s <= 200; s++) {
           G.seed(s); G.start(i)
           const st = G.state()
           if (st.timeLeft !== lv.time || !st.running) bad.push(`${lv.key}/${s}: bad start state`)
           for (const o of st.objs) {
             const meta = lv.objects.find((m) => m.id === o.id), e = Math.abs(o.err)
-            if (o.trap) { if (o.angle !== meta.keep) bad.push(`${lv.key}/${s}: trap moved`) ; continue }
+            if (o.trap) { if (o.angle !== meta.keep) bad.push(`${lv.key}/${s}: trap moved`); continue }
             if (e <= TOL) bad.push(`${lv.key}/${s}/${o.id}: already aligned (${e})`)
             if (e > 20) bad.push(`${lv.key}/${s}/${o.id}: too wild (${e})`)
             if (meta.near && e > 1.4) bad.push(`${lv.key}/${s}/${o.id}: near object off by ${e}`)
@@ -60,55 +73,92 @@ describe('開局', () => {
 
 describe('對齊判定', () => {
   it('0.5° 內算對齊、0.1° 內算完美（不吸附，角度保持玩家放的值）', async () => {
-    const r = await run(() => {
+    const r = await run((jp) => {
       const G = window.__chayidu
-      G.seed(1); G.start(0)
+      G.seed(1); G.start(jp)
       const at = (a) => { G.setAngle('torii', a); G.release(); const o = G.state().objs.find((x) => x.id === 'torii'); return [o.aligned, o.perfect, o.angle] }
       return { ok: at(0.4999), no: at(0.5001), pf: at(-0.0999), notPf: at(0.1001) }
-    })
+    }, idx('jp'))
     expect(r.ok.slice(0, 2)).toEqual([true, false])
     expect(r.no.slice(0, 2)).toEqual([false, false])
     expect(r.pf.slice(0, 2)).toEqual([true, true])
     expect(r.notPf.slice(0, 2)).toEqual([true, false])
-    expect(r.ok[2]).toBeCloseTo(0.4999, 9) // no snapping
+    expect(r.ok[2]).toBeCloseTo(0.4999, 9)
+  })
+  it('海市蜃樓要倒著（180°）才算對齊，扶正反而是錯的', async () => {
+    const r = await run((d) => {
+      const G = window.__chayidu
+      G.seed(1); G.start(d)
+      const at = (a) => { G.setAngle('mirage', a); G.release(); return G.state().objs.find((x) => x.id === 'mirage').aligned }
+      return { flipped: at(180.2), upright: at(0), almost: at(-179.7) }
+    }, idx('desert'))
+    expect(r).toEqual({ flipped: true, upright: false, almost: true })
   })
   it('「完成」要等所有非陷阱物品都對齊才能按', async () => {
-    const r = await run(() => {
+    const r = await run((it) => {
       const G = window.__chayidu
-      G.seed(3); G.start(2)
+      G.seed(3); G.start(it)
       const ids = G.state().objs.filter((o) => !o.trap).map((o) => o.id)
       const steps = []
       for (const id of ids) { G.setAngle(id, 0); G.release(); steps.push(G.state().doneEnabled) }
       return { steps, required: G.state().required, trapAligned: G.state().objs.find((o) => o.trap).aligned }
-    })
+    }, idx('it'))
     expect(r.required).toBe(6)
     expect(r.steps).toEqual([false, false, false, false, false, true])
     expect(r.trapAligned).toBe(false)
   })
-  it('左窗板帶動右窗板 0.6 倍，右窗板不會帶動左窗板', async () => {
-    const r = await run(() => {
-      const G = window.__chayidu
-      G.seed(5); G.start(2)
-      const ang = (id) => G.state().objs.find((o) => o.id === id).angle
-      const r0 = ang('shR'); G.rotate('shL', 5); const r1 = ang('shR')
-      const l0 = ang('shL'); G.rotate('shR', 5); const l1 = ang('shL')
-      return { dR: r1 - r0, dL: l1 - l0 }
-    })
-    expect(r.dR).toBeCloseTo(3, 9)
-    expect(r.dL).toBe(0)
+  it('連動：帶頭的物品轉 d 度，被帶的跟著轉 k×d；反過來不會', async () => {
+    const r = await run((lvs) => {
+      const G = window.__chayidu, out = []
+      for (const [i, a, b] of lvs) {
+        G.seed(5); G.start(i)
+        const ang = (id) => G.state().objs.find((o) => o.id === id).angle
+        const b0 = ang(b); G.rotate(a, 5); const b1 = ang(b)
+        const a0 = ang(a); G.rotate(b, 5); const a1 = ang(a)
+        out.push([b1 - b0, a1 - a0])
+      }
+      return out
+    }, [[idx('it'), 'shL', 'shR'], [idx('neon'), 'tickets', 'price'], [idx('space'), 'panelL', 'panelR']])
+    expect(r[0][0]).toBeCloseTo(3, 9); expect(r[1][0]).toBeCloseTo(2.5, 9); expect(r[2][0]).toBeCloseTo(3, 9)
+    for (const x of r) expect(x[1]).toBe(0)
   })
   it('轉 360° 回到原角度；極端角度仍落在 -180～180', async () => {
-    const r = await run(() => {
+    const r = await run((jp) => {
       const G = window.__chayidu
-      G.seed(2); G.start(0)
+      G.seed(2); G.start(jp)
       const ang = () => G.state().objs.find((o) => o.id === 'cat').angle
       const a0 = ang(); G.rotate('cat', 360); const a1 = ang()
       G.rotate('cat', 1e6); const a2 = ang()
       return { a0, a1, a2 }
-    })
+    }, idx('jp'))
     expect(r.a1).toBeCloseTo(r.a0, 9)
     expect(r.a2).toBeGreaterThan(-180)
     expect(r.a2).toBeLessThanOrEqual(180)
+  })
+})
+
+describe('會動的生物', () => {
+  it('轉正時發出牠自己的叫聲；不是生物的物品不會叫', async () => {
+    const r = await run(([farm, jp]) => {
+      const G = window.__chayidu
+      G.seed(4); G.start(farm)
+      const before = G.sfxLog().length
+      G.setAngle('cow', 0.2); G.release()
+      const afterCow = G.sfxLog().slice(before)
+      G.start(jp)
+      const mark = G.sfxLog().length
+      G.setAngle('torii', 0); G.release()
+      return { afterCow, jpCalls: G.sfxLog().slice(mark) }
+    }, [idx('farm'), idx('jp')])
+    expect(r.afterCow).toEqual(['moo'])
+    expect(r.jpCalls).toEqual([])
+  })
+  it('轉正後安靜下來，沒轉正的繼續動', async () => {
+    await run((farm) => { const G = window.__chayidu; G.seed(4); G.start(farm); G.setAngle('cow', 0); G.release() }, idx('farm'))
+    await page.waitForTimeout(800) // let the render loop ease `live`
+    const live = Object.fromEntries((await run(() => window.__chayidu.state().objs)).map((o) => [o.id, o.live]))
+    expect(live.cow).toBeLessThan(0.1)
+    expect(live.pig).toBeGreaterThan(0.9)
   })
 })
 
@@ -117,25 +167,25 @@ describe('時間與緊張模式', () => {
     const r = await run(() => {
       const G = window.__chayidu
       G.resetProgress(); G.seed(4); G.start(0)
-      const t0 = G.state().timeLeft
-      for (const o of G.state().objs) { G.setAngle(o.id, 0); G.release(); G.setAngle(o.id, 2); G.release(); G.setAngle(o.id, 0); G.release() }
-      return G.state().timeLeft - t0
+      const objs = G.state().objs, t0 = G.state().timeLeft
+      for (const o of objs) { G.setAngle(o.id, o.target); G.release(); G.setAngle(o.id, o.target + 2); G.release(); G.setAngle(o.id, o.target); G.release() }
+      return { gained: G.state().timeLeft - t0, n: objs.length }
     })
-    expect(r).toBeCloseTo(5 * C.PERFECT_BONUS, 9)
+    expect(r.gained).toBeCloseTo(r.n * C.PERFECT_BONUS, 9)
   })
-  it(`剩 ${8} 秒進入緊張、剩 3 秒進入高潮；加時超過門檻就退出緊張`, async () => {
-    const r = await run(() => {
+  it('剩 8 秒進入緊張、剩 3 秒進入高潮；加時超過門檻就退出緊張', async () => {
+    const r = await run(([jp, time]) => {
       const G = window.__chayidu
-      G.resetProgress(); G.seed(4); G.start(0)
+      G.resetProgress(); G.seed(4); G.start(jp)
       const snap = () => { const s = G.state(); return { tense: s.tense, peak: s.peak, t: +s.timeLeft.toFixed(2) } }
       const out = {}
-      G.advance(21.9); out.calm = snap()
+      G.advance(time - 8.1); out.calm = snap()
       G.advance(0.2); out.tense = snap()
       G.advance(5); out.peak = snap()
       G.setAngle('torii', 0); G.release(); out.afterBonus = snap()
       G.setAngle('cat', 0); G.release(); G.setAngle('vend', 0); G.release(); out.lifted = snap()
       return out
-    })
+    }, [idx('jp'), LV[idx('jp')].time])
     expect(r.calm).toMatchObject({ tense: false, peak: false })
     expect(r.tense).toMatchObject({ tense: true, peak: false })
     expect(r.peak).toMatchObject({ tense: true, peak: true })
@@ -144,17 +194,17 @@ describe('時間與緊張模式', () => {
     expect(r.lifted.t).toBeGreaterThan(C.TENSE_AT)
   })
   it('時間到判輸；連輸 2 次後下一局多 5 秒，過關後恢復', async () => {
-    const r = await run(() => {
+    const totals = await run(() => {
       const G = window.__chayidu, totals = []
       G.resetProgress()
       for (let k = 0; k < 3; k++) { G.seed(10 + k); G.start(0); totals.push(G.state().timeTotal); if (k < 2) G.advance(10_000) }
-      const loss = G.state().lastResult
-      for (const o of G.state().objs) { G.setAngle(o.id, 0); G.release() }
+      for (const o of G.state().objs) { G.setAngle(o.id, o.target); G.release() }
       G.done()
       G.seed(20); G.start(0); totals.push(G.state().timeTotal)
-      return { totals, loss }
+      return totals
     })
-    expect(r.totals).toEqual([30, 30, 35, 30])
+    const t = LV[0].time
+    expect(totals).toEqual([t, t, t + C.MERCY_SECS, t])
   })
 })
 
@@ -176,13 +226,17 @@ describe('計分公式（純函式）', () => {
   it('失敗不計時間分、0 星', async () => {
     expect(await score(objs([0, 3]), 20, false)).toMatchObject({ timeBonus: 0, stars: 0, total: 150 })
   })
-  it('斜塔：不動 +200、扶正 −150、動了沒扶正 0', async () => {
+  it('斜塔（過關時）：不動 +200、扶正 −150、動了沒扶正 0', async () => {
     expect((await score(objs([0], 3.97), 0, true)).trapPts).toBe(200)
     expect((await score(objs([0], 0.5), 0, true)).trapPts).toBe(-150)
     expect((await score(objs([0], 10), 0, true)).trapPts).toBe(0)
   })
+  it('斜塔（沒過關時）：不加也不扣，掛機拿不到分', async () => {
+    expect((await score(objs([9], 3.97), 0, false))).toMatchObject({ trapPts: 0, total: 0 })
+    expect((await score(objs([0], 0.5), 0, false))).toMatchObject({ trapPts: 0, total: 150 })
+  })
   it('最差情況也不會變負分', async () => {
-    expect((await score(objs([9, 9], 0), 0, false)).total).toBe(0)
+    expect((await score(objs([9, 9], 0), 0, true)).total).toBeGreaterThanOrEqual(0)
   })
   it('單調性：越準分數不會越低、剩越多秒分數不會越低', async () => {
     const r = await run(() => {
@@ -196,8 +250,7 @@ describe('計分公式（純函式）', () => {
   })
   it('極端輸入：負時間算 0 秒、超大時間仍是有限整數', async () => {
     expect((await score(objs([0]), -5, true)).secsLeft).toBe(0)
-    const big = await score(objs([0]), 1e9, true)
-    expect(Number.isSafeInteger(big.total)).toBe(true)
+    expect(Number.isSafeInteger((await score(objs([0]), 1e9, true)).total)).toBe(true)
   })
 })
 

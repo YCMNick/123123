@@ -6,7 +6,7 @@ import { launch, openGame } from './helpers/browser.js'
 import { runAll } from './helpers/sim.js'
 import { BASELINE_FILE, roundMetrics } from './helpers/report.js'
 
-const runs = Number(process.env.GAME_SIM_RUNS || 1000)
+const runs = Number(process.env.GAME_SIM_RUNS || 500)
 const browser = await launch()
 const { page, errors } = await openGame(browser)
 const { metrics } = await runAll(page, { runs })
