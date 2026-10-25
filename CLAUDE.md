@@ -28,6 +28,8 @@ that persists to `localStorage` so it runs without any backend.
 ```
 .
 ├── index.html                  # Vite entry HTML
+├── public/
+│   └── game/index.html         # standalone mini-game「差一度」(self-contained HTML, served at /123123/game/; unrelated to the repair app)
 ├── vite.config.js              # Vite config (React plugin)
 ├── package.json                # scripts + dependencies
 ├── README.md                   # user-facing setup guide (中文)
