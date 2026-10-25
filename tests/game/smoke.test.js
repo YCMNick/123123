@@ -33,6 +33,18 @@ describe('首頁', () => {
     await page.click('#sheetPlay')
     await expect.poll(() => page.locator('#ovIntro h2').textContent()).toBe('極光夜')
   })
+  it('難度可以切換、會記住，時間跟著改', async () => {
+    expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('忍不住伸手')
+    await page.click('#diff-easy')
+    expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
+    expect(await page.locator('.lv:nth-child(1) .m').textContent()).toContain(`${Math.round(LV[0].time * 1.35)} 秒`)
+    await page.reload()
+    await page.waitForFunction(() => window.__chayidu)
+    expect(await page.locator('.diff[aria-checked="true"] b').textContent()).toBe('看到會歪頭')
+    await page.click('#startBtn')
+    expect(await page.locator('#ovIntro .place').textContent()).toContain('看到會歪頭')
+  })
+
   it('標題的「度」可以拖曳轉正', async () => {
     const box = await page.locator('#tilt').boundingBox()
     const cx = box.x + box.width / 2, cy = box.y + box.height * 0.55
@@ -72,6 +84,19 @@ describe('完整流程', () => {
     expect(await page.locator('#ldeg').textContent()).toBe(fmtDeg(torii.err))
     await page.mouse.up()
     expect(Math.abs(torii.angle - before - 23.75)).toBeLessThan(2) // atan2(22, 50) ≈ 23.75°
+  })
+
+  it('放大鏡：簡單會指方向、普通只給度數、困難不給度數', async () => {
+    const read = async (d) => {
+      await page.evaluate(([d, i]) => { const G = window.__chayidu; G.setDifficulty(d); G.seed(1); G.start(i); G.select('torii') }, [d, idx('jp')])
+      await page.click('.nudge[data-d="0.1"]')
+      await page.waitForTimeout(120)
+      return { deg: await page.locator('#ldeg').isVisible(), dir: (await page.locator('#ldir').textContent()).trim() }
+    }
+    const easy = await read('easy'), normal = await read('normal'), hard = await read('hard')
+    expect(easy.deg).toBe(true); expect(easy.dir).toMatch(/往(逆|順)時針/)
+    expect(normal.deg).toBe(true); expect(normal.dir).toBe('')
+    expect(hard.deg).toBe(false); expect(hard.dir).toBe('')
   })
 
   it('微調按鈕和鍵盤：±0.1° 與 Shift ±1°，沒有自動吸附', async () => {

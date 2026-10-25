@@ -137,6 +137,53 @@ describe('對齊判定', () => {
   })
 })
 
+describe('三種難度', () => {
+  const D = () => Object.fromEntries(C.DIFFS.map((d) => [d.key, d]))
+  it('名稱、誤差門檻、時間倍率、分數倍率', () => {
+    expect(C.DIFFS.map((d) => d.name)).toEqual(['看到會歪頭', '忍不住伸手', '不轉正睡不著'])
+    expect(C.DIFFS.map((d) => d.tol)).toEqual([1.5, 0.5, 0.2])
+    expect(C.DIFFS.map((d) => d.mult)).toEqual([0.6, 1, 1.5])
+    expect(D().easy.timeMul).toBeGreaterThan(1)
+    expect(D().hard.timeMul).toBeLessThan(1)
+  })
+  it('對齊門檻跟著難度走：1.4° 只有簡單算對齊，0.3° 困難不算', async () => {
+    const r = await run((jp) => {
+      const G = window.__chayidu, out = {}
+      for (const d of ['easy', 'normal', 'hard']) {
+        G.setDifficulty(d); G.seed(1); G.start(jp)
+        const at = (a) => { G.setAngle('torii', a); G.release(); return G.state().objs.find((x) => x.id === 'torii').aligned }
+        out[d] = [at(1.4), at(0.3), at(0.15)]
+      }
+      G.setDifficulty('normal')
+      return out
+    }, idx('jp'))
+    expect(r).toEqual({ easy: [true, true, true], normal: [false, true, true], hard: [false, false, true] })
+  })
+  it('時間依倍率調整；每種難度的開局都沒有物品已經對齊', async () => {
+    const r = await run(({ jp, diffs }) => {
+      const G = window.__chayidu, out = {}
+      for (const d of diffs) {
+        G.setDifficulty(d.key); let pre = 0, total = null
+        for (let s = 1; s <= 100; s++) {
+          G.seed(s)
+          G.levels().forEach((lv, i) => { G.start(i); if (i === jp) total = G.state().timeTotal; for (const o of G.state().objs) if (!o.trap && Math.abs(o.err) <= d.tol) pre++ })
+        }
+        out[d.key] = { pre, total }
+      }
+      G.setDifficulty('normal')
+      return out
+    }, { jp: idx('jp'), diffs: C.DIFFS })
+    for (const d of C.DIFFS) {
+      expect(r[d.key].pre, d.key).toBe(0)
+      expect(r[d.key].total, d.key).toBe(Math.round(LV[idx('jp')].time * d.timeMul))
+    }
+  })
+  it('分數倍率：同樣的表現，簡單 ×0.6、困難 ×1.5', async () => {
+    const r = await run(() => ['easy', 'normal', 'hard'].map((d) => window.__chayidu.computeScore([{ name: 'a', angle: 0 }, { name: 'b', angle: 0 }], 10, true, d).total))
+    expect(r).toEqual([Math.round(r[1] * 0.6), r[1], Math.round(r[1] * 1.5)])
+  })
+})
+
 describe('會動的生物', () => {
   it('轉正時發出牠自己的叫聲；不是生物的物品不會叫', async () => {
     const r = await run(([farm, jp]) => {

@@ -68,7 +68,7 @@ that persists to `localStorage` so it runs without any backend.
 
 - **Game tests:** `npm run test:game` (all of `tests/game`, ~2 min; needs a
   Playwright Chromium: `npx playwright install chromium` on a fresh machine).
-  `GAME_SIM_RUNS=100 npm run test:game` runs a shorter simulation (default 500 per level × profile).
+  `GAME_SIM_RUNS=100 npm run test:game` runs a shorter simulation (default 200 per difficulty × level × profile).
 - **Game balance baseline:** `npm run test:game:baseline` rewrites
   `tests/game/baseline.json`. Run it only after deciding a balance change is
   intended. The readable report lands in `test-results/game-sim/report.md`.
@@ -135,6 +135,9 @@ The repair app itself has no tests yet; add them with Vitest under `tests/`.
   (idle motion), `call` (creature sound when aligned), `link`, `trap`, or a
   non-zero `target` angle. Level `time` budgets were calibrated with the
   simulation; recalibrate rather than guess when changing a level.
+- `DIFFS` defines three difficulties (看到會歪頭 / 忍不住伸手 / 不轉正睡不著):
+  alignment tolerance, time multiplier, score multiplier and how much the
+  loupe reveals. Best scores are stored per difficulty.
 - `window.__chayidu` is the test hook (seeded RNG, manual clock, pure
   `computeScore`, state snapshot). `tests/game` depends on it: keep its API
   stable, or update the tests in the same change.

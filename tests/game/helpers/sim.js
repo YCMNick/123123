@@ -4,8 +4,12 @@
 import { PROFILES } from '../balance.config.js'
 
 // Runs inside the page. Must stay self-contained: Playwright serialises it.
-function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile }) {
+function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile, diff }) {
   const G = window.__chayidu
+  G.setDifficulty(diff)
+  // Aim depends on what the loupe shows: a turn hint helps a little, no degree readout hurts a lot.
+  const loupe = G.consts.DIFFS.find((d) => d.key === diff).loupe
+  profile = Object.assign({}, profile, { sigma: profile.sigma * ({ guide: 0.9, degrees: 1, zoom: 1.6 }[loupe]) })
   let s = playerSeed >>> 0
   const rand = () => {
     s = (s + 0x6D2B79F5) | 0
@@ -81,7 +85,9 @@ function simulateInPage({ levelIdx, runs, gameSeed, playerSeed, profile }) {
   return out
 }
 
-export async function simulate(page, { levelIdx, profileName, runs, seed = 1 }) {
+export const DIFF_KEYS = ['easy', 'normal', 'hard']
+
+export async function simulate(page, { levelIdx, profileName, runs, seed = 1, diff = 'normal' }) {
   const profileIdx = Object.keys(PROFILES).indexOf(profileName)
   const profile = PROFILES[profileName]
   const results = []
@@ -89,7 +95,7 @@ export async function simulate(page, { levelIdx, profileName, runs, seed = 1 }) 
   for (let start = 0; start < runs; start += CHUNK) {
     const n = Math.min(CHUNK, runs - start)
     const chunk = await page.evaluate(simulateInPage, {
-      levelIdx, runs: n, profile,
+      levelIdx, runs: n, profile, diff,
       gameSeed: seed * 1_000_003 + levelIdx * 100_003 + profileIdx * 10_007 + start,
       playerSeed: seed * 7919 + levelIdx * 104_729 + profileIdx * 1_299_709 + start,
     })
@@ -117,16 +123,21 @@ export function summarize(runs) {
   }
 }
 
-export async function runAll(page, { runs, seed = 1 }) {
+// metrics[diff]['farm:casual'] = summary; raw has the same shape with per-round results.
+export async function runAll(page, { runs, seed = 1, diffs = DIFF_KEYS }) {
   const levels = await page.evaluate(() => window.__chayidu.levels())
   const metrics = {}
   const raw = {}
-  for (let i = 0; i < levels.length; i++) {
-    for (const name of Object.keys(PROFILES)) {
-      const key = `${levels[i].key}:${name}`
-      raw[key] = await simulate(page, { levelIdx: i, profileName: name, runs, seed })
-      metrics[key] = summarize(raw[key])
+  for (const diff of diffs) {
+    metrics[diff] = {}; raw[diff] = {}
+    for (let i = 0; i < levels.length; i++) {
+      for (const name of Object.keys(PROFILES)) {
+        const key = `${levels[i].key}:${name}`
+        raw[diff][key] = await simulate(page, { levelIdx: i, profileName: name, runs, seed, diff })
+        metrics[diff][key] = summarize(raw[diff][key])
+      }
     }
   }
+  await page.evaluate(() => window.__chayidu.setDifficulty('normal'))
   return { levels, metrics, raw }
 }

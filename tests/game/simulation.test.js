@@ -1,4 +1,4 @@
-// 數值模擬：10 關 × 3 種玩家，每組自動玩 500 局，共 15,000 局（GAME_SIM_RUNS 可調），
+// 數值模擬：3 種難度 × 10 關 × 3 種玩家，每組自動玩 200 局，共 18,000 局（GAME_SIM_RUNS 可調），
 // 檢查每局結果合法、參考機器人的分數精確、設計目標、以及與基準線的漂移。
 import fs from 'node:fs'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
@@ -6,7 +6,7 @@ import { launch, openGame, maxScore } from './helpers/browser.js'
 import { runAll } from './helpers/sim.js'
 import { evaluateTargets, compareBaseline, writeReport, BASELINE_FILE } from './helpers/report.js'
 
-const RUNS = Number(process.env.GAME_SIM_RUNS || 500)
+const RUNS = Number(process.env.GAME_SIM_RUNS || 200)
 let browser, page, errors, sim, C, maxScores, targets, idle
 
 beforeAll(async () => {
@@ -14,12 +14,14 @@ beforeAll(async () => {
   ;({ page, errors } = await openGame(browser))
   C = await page.evaluate(() => window.__chayidu.consts)
   sim = await runAll(page, { runs: RUNS })
-  maxScores = sim.levels.map((l) => maxScore(l, C))
+  maxScores = Object.fromEntries(Object.keys(sim.metrics).map((d) => [d, sim.levels.map((l) => maxScore(l, C, d))]))
   idle = await page.evaluate(() => {
-    const G = window.__chayidu
-    return G.levels().map((lv, i) => { G.resetProgress(); G.seed(7); G.start(i); G.advance(10_000); return G.state().lastResult })
+    const G = window.__chayidu, out = []
+    for (const d of ['easy', 'normal', 'hard']) { G.setDifficulty(d); G.levels().forEach((lv, i) => { G.resetProgress(); G.seed(7); G.start(i); G.advance(10_000); out.push(G.state().lastResult) }) }
+    G.setDifficulty('normal')
+    return out
   })
-  targets = evaluateTargets(sim.metrics, { levels: sim.levels, consts: C, maxScores, idle })
+  targets = evaluateTargets(sim.metrics, { levels: sim.levels, consts: C, maxScores, idle, runs: RUNS })
   const baseline = fs.existsSync(BASELINE_FILE) ? JSON.parse(fs.readFileSync(BASELINE_FILE, 'utf8')) : null
   const baselineDiffs = baseline ? compareBaseline(sim.metrics, baseline) : null
   const file = writeReport({ runs: RUNS, metrics: sim.metrics, targets, baselineDiffs, maxScores, levels: sim.levels })
@@ -29,20 +31,20 @@ beforeAll(async () => {
 afterAll(async () => { await browser?.close() })
 
 describe('每一局的結果都合法（數值沒有崩潰）', () => {
-  it('分數是有限整數、介於 0 和理論最高分之間，星數與勝負一致', () => {
+  it('三種難度：分數是有限整數、介於 0 和理論最高分之間，星數與勝負一致', () => {
     const bad = []
-    sim.levels.forEach((lv, i) => {
-      for (const key of Object.keys(sim.raw).filter((k) => k.startsWith(lv.key + ':'))) {
-        sim.raw[key].forEach((r, n) => {
+    for (const [diff, rawByKey] of Object.entries(sim.raw)) sim.levels.forEach((lv, i) => {
+      for (const key of Object.keys(rawByKey).filter((k) => k.startsWith(lv.key + ':'))) {
+        rawByKey[key].forEach((r, n) => {
           const problems = []
           if (!Number.isInteger(r.total)) problems.push('total not integer')
-          if (r.total < 0 || r.total > maxScores[i]) problems.push(`total ${r.total} outside [0, ${maxScores[i]}]`)
+          if (r.total < 0 || r.total > maxScores[diff][i]) problems.push(`total ${r.total} outside [0, ${maxScores[diff][i]}]`)
           if (![0, 1, 2, 3].includes(r.stars)) problems.push('stars')
           if ((r.stars > 0) !== r.win) problems.push('stars vs win')
           if (!r.win && r.timeBonus !== 0) problems.push('time bonus on a loss')
           if (r.aligned > r.count || r.prec < 0 || r.prec > 50 * r.count) problems.push('aligned/prec range')
           if (r.secsLeft < 0 || r.secsLeft > r.timeTotal + C.PERFECT_BONUS * r.count) problems.push('secsLeft range')
-          if (problems.length) bad.push(`${key}#${n}: ${problems.join(', ')}`)
+          if (problems.length) bad.push(`${diff}/${key}#${n}: ${problems.join(', ')}`)
         })
       }
     })
@@ -53,26 +55,31 @@ describe('每一局的結果都合法（數值沒有崩潰）', () => {
 })
 
 describe('參考機器人（精確值）', () => {
-  it('完美機器人：瞬間全部轉到正確角度、不碰斜塔，拿到理論分數與三星', async () => {
+  it('完美機器人：三種難度都瞬間轉到正確角度、不碰斜塔，拿到理論分數與三星', async () => {
     const results = await page.evaluate(() => {
-      const G = window.__chayidu
+      const G = window.__chayidu, out = {}
       G.quiet(true); G.manualClock(true)
-      return G.levels().map((lv, i) => {
-        G.resetProgress(); G.seed(7); G.start(i)
-        for (const o of G.state().objs) if (!o.trap) { G.setAngle(o.id, o.target); G.release() }
-        G.done()
-        return G.state().lastResult
-      })
+      for (const d of ['easy', 'normal', 'hard']) {
+        G.setDifficulty(d)
+        out[d] = G.levels().map((lv, i) => {
+          G.resetProgress(); G.seed(7); G.start(i)
+          for (const o of G.state().objs) if (!o.trap) { G.setAngle(o.id, o.target); G.release() }
+          G.done()
+          return G.state().lastResult
+        })
+      }
+      G.setDifficulty('normal')
+      return out
     })
-    sim.levels.forEach((lv, i) => {
+    for (const d of C.DIFFS) sim.levels.forEach((lv, i) => {
       const n = lv.objects.filter((o) => !o.trap).length
       const trap = lv.objects.some((o) => o.trap) ? 200 : 0
-      const expected = n * 150 + (lv.time + n * C.PERFECT_BONUS) * C.TIME_PTS + trap
-      expect(results[i]).toMatchObject({ win: true, stars: 3, aligned: n, prec: 50 * n, total: expected })
+      const expected = Math.round((n * 150 + (Math.round(lv.time * d.timeMul) + n * C.PERFECT_BONUS) * C.TIME_PTS + trap) * d.mult)
+      expect(results[d.key][i], `${d.key}/${lv.key}`).toMatchObject({ win: true, stars: 3, aligned: n, prec: 50 * n, total: expected })
     })
   })
 
-  it('不動機器人：每關都是時間到、0 分、0 星（斜塔陷阱只有過關才計分）', () => {
+  it('不動機器人：三種難度每關都是時間到、0 分、0 星（斜塔陷阱只有過關才計分）', () => {
     for (const r of idle) expect(r).toMatchObject({ win: false, total: 0, stars: 0, timeBonus: 0, trapPts: 0 })
   })
 

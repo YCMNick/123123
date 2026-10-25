@@ -119,6 +119,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 .loupe[data-s="near"]{--lc:var(--near)}
 .loupe[data-s="ok"]{--lc:var(--ok)}
 .loupe[data-s="perfect"]{--lc:var(--gold)}
+.loupe[data-s="zoom"]{--lc:var(--brass)}
+.diffs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.diffs{grid-template-columns:1fr}}
+.diff{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.diff:hover{border-color:var(--muted)}
+.diff[aria-checked="true"]{border-color:var(--brass);box-shadow:inset 0 0 0 1px var(--brass)}
+.diff i{font-style:normal;font-family:var(--f-num);font-size:11px;letter-spacing:.08em;color:var(--brass)}
+.diff b{font-family:var(--f-display);font-weight:900;font-size:18px;line-height:1.3}
+.diff span{font-size:12px;color:var(--muted);line-height:1.5}
 .loupe[data-s="perfect"] canvas{box-shadow:0 0 0 3px var(--lc),0 0 26px 6px rgba(255,209,102,.55),0 10px 30px rgba(0,0,0,.55)}
 
 .toast{position:absolute;left:50%;top:10px;transform:translate(-50%,-8px);background:rgba(12,14,22,.94);border:1px solid var(--line);padding:6px 14px;border-radius:99px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap;z-index:6;max-width:92%;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
@@ -203,6 +212,10 @@ button{font:inherit;color:inherit;cursor:pointer}
         <button class="btn primary" id="startBtn">開始遊戲</button>
       </div>
       <div class="sect">
+        <h2>難度：歪掉的東西，你有多在意？</h2>
+        <div class="diffs" id="diffs" role="radiogroup" aria-label="難度"></div>
+      </div>
+      <div class="sect">
         <h2>地球宇宙・十大關卡（每個大關先開放第 1 小關）</h2>
         <div class="levels" id="levels"></div>
       </div>
@@ -278,6 +291,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 const W = 360, H = 480;
 const TOL = 0.5, PERFECT = 0.1, TENSE_AT = 8, PEAK_AT = 3;
 const PERFECT_BONUS = 2, TIME_PTS = 20, MERCY_AFTER = 2, MERCY_SECS = 5;
+// Three difficulties, named after how much a crooked thing bothers you.
+// loupe: 'guide' = degrees + which way to turn, 'degrees' = degrees only, 'zoom' = magnified view only.
+const DIFFS = [
+  { key: 'easy', level: '簡單', name: '看到會歪頭', tol: 1.5, perfect: 0.3, timeMul: 1.35, mult: 0.6, loupe: 'guide', note: '差 1.5° 內就算 · 時間多 35% · 放大鏡告訴你往哪轉' },
+  { key: 'normal', level: '普通', name: '忍不住伸手', tol: 0.5, perfect: 0.1, timeMul: 1, mult: 1, loupe: 'degrees', note: '差 0.5° 內才算 · 標準時間 · 放大鏡顯示度數' },
+  { key: 'hard', level: '困難', name: '不轉正睡不著', tol: 0.2, perfect: 0.1, timeMul: 0.85, mult: 1.5, loupe: 'zoom', note: '差 0.2° 內才算 · 時間少 15% · 放大鏡不給度數' },
+];
 const $ = s => document.querySelector(s);
 const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
 const norm = a => ((a + 180) % 360 + 360) % 360 - 180;
@@ -1451,7 +1471,7 @@ const LEVELS = [
       { id: 'snowman', name: '雪人', x: 285, y: 370, w: 70, h: 110, mag: 10, draw: drawSnowman },
       { id: 'sled', name: '雪橇', x: 245, y: 456, w: 120, h: 40, mag: 9, draw: drawSled }
     ] },
-  { key: 'desert', chapter: 6, title: '金字塔', style: '復古海報', place: '埃及 吉薩', song: 'desert', time: 29, bg: bgDesert, animated: true,
+  { key: 'desert', chapter: 6, title: '金字塔', style: '復古海報', place: '埃及 吉薩', song: 'desert', time: 28, bg: bgDesert, animated: true,
     intro: '駱駝會一直嚼東西。還有：倒影本來就是倒著的。',
     objects: [
       { id: 'cairo', name: '路牌', x: 85, y: 175, w: 110, h: 70, mag: 9, draw: drawCairo },
@@ -1498,13 +1518,16 @@ const LEVELS = [
 ];
 
 /* ---------- state ---------- */
-const S = { L: null, levelIdx: 0, objs: [], timeLeft: 30, timeTotal: 30, fails: {}, cd: [], sfxLog: [], rng: Math.random, manualClock: false, lastResult: null, running: false, paused: false, ended: false,
+const S = { L: null, levelIdx: 0, diff: 1, objs: [], timeLeft: 30, timeTotal: 30, fails: {}, cd: [], sfxLog: [], rng: Math.random, manualClock: false, lastResult: null, running: false, paused: false, ended: false,
   drag: null, selected: null, loupeObj: null, dirty: false, scale: 1, cssW: 360, cssH: 480, bg: null,
   tense: false, lastSec: null, lastTxt: '', allWas: false, session: {}, pointerX: null };
 let K = 1, DPR = 1;
 const cv = $('#cv'), ctx = cv.getContext('2d'), lcv = $('#lcv'), lctx = lcv.getContext('2d');
 const loupe = $('#loupe'), doneBtn = $('#doneBtn'), timerEl = $('#timer'), gameEl = $('#game');
 const errOf = o => norm(o.angle - o.target);
+const DF = () => DIFFS[S.diff];
+const bestKey = i => `${DF().key}:${i}`;
+const levelTime = L => Math.round(L.time * DF().timeMul);
 const chapterOf = L => CHAPTERS[L.chapter];
 const stageLabel = L => `${L.chapter + 1}-1`;
 
@@ -1580,8 +1603,9 @@ function renderLoupe() {
   lctx.fillStyle = '#0b0d14'; lctx.fillRect(0, 0, L, L);
   lctx.drawImage(cv, (ax - r) * K, (ay - r) * K, 2 * r * K, 2 * r * K, 0, 0, L, L);
   lctx.fillStyle = 'rgba(8,10,16,.25)'; lctx.fillRect(0, 0, L, L);
-  const state = ae <= PERFECT ? 'perfect' : ae <= TOL ? 'ok' : ae <= 1.5 ? 'near' : ae <= 5 ? 'mid' : 'far';
-  const col = { perfect: '#ffd166', ok: '#43d08f', near: '#ffe066', mid: '#ffb03a', far: '#ff4a5c' }[state];
+  const D = DF(), mode = D.loupe;
+  const state = ae <= D.perfect ? 'perfect' : ae <= D.tol ? 'ok' : ae <= Math.max(1.5, D.tol * 2) ? 'near' : ae <= 5 ? 'mid' : 'far';
+  const col = mode === 'zoom' ? '#e3b04b' : { perfect: '#ffd166', ok: '#43d08f', near: '#ffe066', mid: '#ffb03a', far: '#ff4a5c' }[state];
   lctx.strokeStyle = 'rgba(255,255,255,.55)'; lctx.lineWidth = 1 * d;
   for (let t = 0; t < 360; t += 10) { const a = rad(t), long = t % 90 === 0, r1 = m - (long ? 12 : 6) * d; lctx.beginPath(); lctx.moveTo(m + Math.cos(a) * r1, m + Math.sin(a) * r1); lctx.lineTo(m + Math.cos(a) * (m - 1), m + Math.sin(a) * (m - 1)); lctx.stroke(); }
   lctx.setLineDash([6 * d, 5 * d]); lctx.strokeStyle = 'rgba(227,176,75,.95)'; lctx.lineWidth = 2 * d;
@@ -1590,10 +1614,11 @@ function renderLoupe() {
   lctx.strokeStyle = col; lctx.lineWidth = 2.5 * d; lctx.beginPath(); lctx.moveTo(-L, 0); lctx.lineTo(L, 0); lctx.stroke(); lctx.restore();
   if (ae > 0.05) { lctx.strokeStyle = col; lctx.lineWidth = 3 * d; lctx.beginPath(); lctx.arc(m, m, L * 0.34, 0, rad(e), e < 0); lctx.stroke(); }
   lctx.fillStyle = col; lctx.beginPath(); lctx.arc(m, m, 3.5 * d, 0, Math.PI * 2); lctx.fill();
-  loupe.dataset.s = state;
+  loupe.dataset.s = mode === 'zoom' ? 'zoom' : state;
   $('#lname').textContent = o.name;
-  $('#ldeg').textContent = fmt(e) + '°';
-  $('#ldir').textContent = state === 'perfect' ? '完美' : state === 'ok' ? '已對齊' : (e > 0 ? '↺ 往逆時針' : '↻ 往順時針');
+  $('#ldeg').hidden = mode === 'zoom';
+  $('#ldeg').textContent = mode === 'zoom' ? '' : fmt(e) + '°';
+  $('#ldir').textContent = mode === 'zoom' ? '' : state === 'perfect' ? '完美' : state === 'ok' ? '已對齊' : mode === 'guide' ? (e > 0 ? '↺ 往逆時針' : '↻ 往順時針') : '';
   const sx = ax * S.scale, sy = ay * S.scale;
   const side = S.drag && S.pointerX != null ? (S.pointerX > sx ? -1 : 1) : (sx > S.cssW / 2 ? -1 : 1);
   const half = Math.max(66, loupe.offsetWidth / 2) + 4;
@@ -1619,7 +1644,7 @@ function counts() { const list = S.objs.filter(o => !o.trap); return [list.filte
 function evaluate(silent) {
   for (const o of S.objs) {
     if (o.trap) continue;
-    const e = Math.abs(errOf(o)), al = e <= TOL, pf = e <= PERFECT;
+    const e = Math.abs(errOf(o)), al = e <= DF().tol, pf = e <= DF().perfect;
     if (!silent) {
       if (al && !o.wasAligned) cheer(o);
       if (pf && !o.wasPerfect) {
@@ -1656,20 +1681,20 @@ function startLevel(i, skipIntro, instant) {
   const L = LEVELS[i];
   S.L = L; S.levelIdx = i; S.ended = false; S.running = false; S.paused = false; S.drag = null; S.allWas = false; S.linkToasted = false;
   // quiet mercy: after repeated fails on this level, the next attempt gets a few extra seconds
-  S.timeTotal = L.time + ((S.fails[i] || 0) >= MERCY_AFTER ? MERCY_SECS : 0);
+  S.timeTotal = levelTime(L) + ((S.fails[i] || 0) >= MERCY_AFTER ? MERCY_SECS : 0);
   S.timeLeft = S.timeTotal; S.lastSec = null; S.lastTxt = ''; S.lastResult = null; setTense(false);
   S.objs = L.objects.map(d => {
     const o = Object.assign({}, d);
     o.target = d.target ?? 0;
     if (d.trap) o.angle = d.keep;
-    else { const mag = d.near ? rnd(0.65, 1.4) : d.mag * rnd(0.8, 1.2); o.angle = norm(o.target + (S.rng() < 0.5 ? -1 : 1) * mag); }
+    else { const tol = DF().tol, mag = d.near ? rnd(Math.max(0.65, tol * 1.4), Math.max(1.4, tol * 2.2)) : d.mag * rnd(0.8, 1.2); o.angle = norm(o.target + (S.rng() < 0.5 ? -1 : 1) * mag); }
     o.wasAligned = false; o.wasPerfect = false; o.bucket = null; o.live = 1; o.phase = S.rng() * 10; o.cheerAt = 0;
     return o;
   });
   select(null); loupe.classList.remove('on'); S.loupeObj = null;
   $('#home').hidden = true; $('#ovChapter').hidden = true; gameEl.hidden = false;
   $('#ovResult').hidden = true; $('#ovPause').hidden = true;
-  $('#lvK').textContent = `${stageLabel(L)} · ${chapterOf(L).name}`;
+  $('#lvK').textContent = `${stageLabel(L)} · ${DF().name}`;
   $('#lvN').textContent = L.title;
   timerEl.textContent = String(S.timeTotal); $('#tbar').style.transform = 'scaleX(1)'; $('#count').textContent = '';
   layout();
@@ -1682,12 +1707,12 @@ function showIntro() {
   ov.innerHTML = `<div class="card">
     <p class="eyebrow">第 ${L.chapter + 1} 大關 ${chapterOf(L).name} · 小關 ${stageLabel(L)} · ${L.style}</p>
     <h2>${L.title}</h2>
-    <p class="place">${L.place} · ${n} 件要轉正</p>
+    <p class="place">${L.place} · ${n} 件要轉正 · 難度「${DF().name}」</p>
     <p class="hintbox">${L.intro}</p>
     <ul class="tips">
       <li>按住物品拖著轉；手指離物品中心越遠，轉得越細。</li>
       <li>下方按鈕可微調 0.1°，按住不放會連續轉。</li>
-      <li>差 0.5° 以內才算對齊，0.1° 以內是「完美」，每件完美多給 2 秒。</li>
+      <li>差 ${DF().tol}° 以內才算對齊，${DF().perfect}° 以內是「完美」，每件完美多給 2 秒。</li>
     </ul>
     <div class="row"><button class="btn primary" id="goBtn">開始・${S.timeTotal} 秒</button><button class="btn ghost" id="introHome">回首頁</button></div>
   </div>`;
@@ -1741,7 +1766,8 @@ function updateTimer() {
   }
 }
 // Pure scoring: depends only on its inputs, so tests and the balance simulation call it directly.
-function computeScore(objs, timeLeft, win) {
+function computeScore(objs, timeLeft, win, diff = DF()) {
+  const TOL = diff.tol, PERFECT = diff.perfect;
   const list = objs.filter(o => !o.trap);
   let aligned = 0, prec = 0, perfectAll = true, sumErr = 0;
   const rows = list.map(o => {
@@ -1760,15 +1786,16 @@ function computeScore(objs, timeLeft, win) {
   const t = objs.find(o => o.trap);
   if (t && !win) trapMsg = '沒有過關，斜塔陷阱不計分。';
   else if (t) {
-    const moved = Math.abs(norm(t.angle - t.keep)), straight = Math.abs(norm(t.angle)) <= 1;
+    const moved = Math.abs(norm(t.angle - t.keep)), straight = Math.abs(norm(t.angle)) <= Math.max(1, TOL);
     if (moved <= TOL) { trapPts = 200; trapMsg = '比薩斜塔本來就是斜的（約 3.97°）。你忍住了，+200。'; }
     else if (straight) { trapPts = -150; trapMsg = '你把比薩斜塔扶正了。它本來就是斜的，−150。'; }
     else trapMsg = '你動了比薩斜塔，還好沒有扶正。它本來就是斜的。';
   }
-  const total = Math.max(0, aligned * 100 + prec + timeBonus + trapPts);
+  const raw = Math.max(0, aligned * 100 + prec + timeBonus + trapPts);
+  const total = Math.round(raw * diff.mult);
   let stars = 0;
   if (win) { stars = 1; if (sumErr / list.length <= 0.25) stars = 2; if (perfectAll && (!t || trapPts > 0)) stars = 3; }
-  return { win, rows, aligned, count: list.length, prec, timeBonus, secsLeft, trapPts, trapMsg, total, stars };
+  return { win, rows, aligned, count: list.length, prec, timeBonus, secsLeft, trapPts, trapMsg, raw, mult: diff.mult, diff: diff.key, total, stars };
 }
 function finish(win) {
   if (S.ended) return;
@@ -1778,11 +1805,11 @@ function finish(win) {
   evaluate(true);
   const r = computeScore(S.objs, S.timeLeft, win);
   S.fails[S.levelIdx] = win ? 0 : (S.fails[S.levelIdx] || 0) + 1;
-  const best = store.data.best[S.levelIdx] || { score: 0, stars: 0 };
+  const key = bestKey(S.levelIdx), best = store.data.best[key] || { score: 0, stars: 0 };
   r.isNew = r.total > best.score;
-  store.data.best[S.levelIdx] = { score: Math.max(best.score, r.total), stars: Math.max(best.stars, r.stars) };
+  store.data.best[key] = { score: Math.max(best.score, r.total), stars: Math.max(best.stars, r.stars) };
   store.save();
-  r.best = store.data.best[S.levelIdx].score;
+  r.best = store.data.best[key].score;
   S.session[S.levelIdx] = r.total;
   S.lastResult = r;
   if (win) AU.win(); else AU.fail();
@@ -1800,7 +1827,8 @@ function showResult(r) {
     ['剩餘時間', r.win ? `${r.secsLeft} 秒 × ${TIME_PTS}` : '未過關不計', r.timeBonus]
   ];
   if (r.trapMsg) tally.push(['斜塔陷阱', '', r.trapPts]);
-  const tallyHtml = tally.map(([a, b, v]) => `<span>${a}</span><em>${b}</em><b>${v >= 0 ? '+' : '−'}${Math.abs(v)}</b>`).join('');
+  tally.push(['難度倍率', DF().name, `× ${r.mult}`]);
+  const tallyHtml = tally.map(([a, b, v]) => `<span>${a}</span><em>${b}</em><b>${typeof v === 'string' ? v : (v >= 0 ? '+' : '−') + Math.abs(v)}</b>`).join('');
   const stars = [0, 1, 2].map(j => `<span class="s ${j < r.stars ? 'on' : ''}">★</span>`).join('');
   const played = Object.keys(S.session).length, sessionTotal = Object.values(S.session).reduce((a, b) => a + b, 0);
   const totalLine = last && played === LEVELS.length ? `<p class="hintbox">十大關總分 <strong>${sessionTotal}</strong></p>` : '';
@@ -1810,7 +1838,7 @@ function showResult(r) {
   else btns = `<button class="btn primary" id="rRetry">馬上重來</button><button class="btn ghost" id="rHome">回首頁</button>`;
   const ov = $('#ovResult');
   ov.innerHTML = `<div class="card">
-    <p class="eyebrow">${stageLabel(L)} ${chapterOf(L).name}・${L.title} · ${L.style} · ${L.place}</p>
+    <p class="eyebrow">${stageLabel(L)} ${chapterOf(L).name}・${L.title} · 難度「${DF().name}」</p>
     <h2>${r.win ? nick + '過關' : '時間到'}</h2>
     <div class="bigstars" aria-label="${r.stars} 顆星">${stars}</div>
     ${r.trapMsg ? `<p class="hintbox">${r.trapMsg}</p>` : ''}
@@ -1933,24 +1961,38 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 function buildCards() {
   const box = $('#levels'); box.innerHTML = '';
   LEVELS.forEach((L, i) => {
-    const ch = chapterOf(L), b = store.data.best[i], n = L.objects.filter(o => !o.trap).length;
+    const ch = chapterOf(L), b = store.data.best[bestKey(i)], n = L.objects.filter(o => !o.trap).length;
     const stars = [0, 1, 2].map(j => `<span class="s ${b && j < b.stars ? 'on' : ''}">★</span>`).join('');
     const btn = document.createElement('button'); btn.className = 'lv'; btn.type = 'button';
     btn.innerHTML = `<canvas width="84" height="112" aria-hidden="true"></canvas><div>
       <div class="k">第 ${L.chapter + 1} 大關 · ${L.style}</div>
       <div class="n">${ch.name}</div>
-      <div class="m">${stageLabel(L)} ${L.title} · ${n} 件 · ${L.time} 秒</div>
+      <div class="m">${stageLabel(L)} ${L.title} · ${n} 件 · ${levelTime(L)} 秒</div>
       <div class="best">${b ? `最佳 ${b.score}　${stars}` : `開放 1/${ch.stages.length} 小關　${stars}`}</div></div>`;
     btn.onclick = () => { saveNick(); openChapter(i); };
     box.appendChild(btn);
   });
   drawThumbs();
 }
+function buildDiffs() {
+  const box = $('#diffs'); box.innerHTML = '';
+  DIFFS.forEach((d, k) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'diff'; b.id = `diff-${d.key}`;
+    b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === S.diff));
+    b.innerHTML = `<i>${d.level}</i><b>${d.name}</b><span>${d.note}</span>`;
+    b.onclick = () => setDiff(k);
+    box.appendChild(b);
+  });
+}
+function setDiff(k) {
+  S.diff = k; store.data.diff = DIFFS[k].key; store.save();
+  buildDiffs(); buildCards();
+}
 function openChapter(i) {
-  const L = LEVELS[i], ch = chapterOf(L), b = store.data.best[i], n = L.objects.filter(o => !o.trap).length;
+  const L = LEVELS[i], ch = chapterOf(L), b = store.data.best[bestKey(i)], n = L.objects.filter(o => !o.trap).length;
   const ov = $('#ovChapter');
   const rows = ch.stages.map((name, k) => k === 0
-    ? `<li class="open"><b>${L.chapter + 1}-1</b><strong>${name}</strong><span>${n} 件 · ${L.time} 秒${b ? ` · 最佳 ${b.score}` : ''}</span></li>`
+    ? `<li class="open"><b>${L.chapter + 1}-1</b><strong>${name}</strong><span>${n} 件 · ${levelTime(L)} 秒${b ? ` · 最佳 ${b.score}` : ''}</span></li>`
     : `<li class="locked"><b>${L.chapter + 1}-${k + 1}</b><span style="text-align:left">${name}</span><span>即將推出</span></li>`).join('');
   ov.innerHTML = `<div class="card">
     <p class="eyebrow">第 ${L.chapter + 1} 大關 · ${L.style}</p>
@@ -2008,6 +2050,8 @@ AU.on = store.data.sound !== false;
 $('#nick').value = store.data.nick || '';
 syncSound();
 makeGrain();
+S.diff = Math.max(0, DIFFS.findIndex(d => d.key === (store.data.diff || 'normal')));
+buildDiffs();
 buildCards();
 new ResizeObserver(() => layout()).observe($('#stageWrap'));
 window.addEventListener('resize', () => { if (!gameEl.hidden) layout(); });
@@ -2025,7 +2069,10 @@ function tickTime(dt) {
 /* ---------- test hook: driven by tests/game (automated tests + balance simulation) ---------- */
 window.__chayidu = {
   api: 1,
-  consts: { TOL, PERFECT, TENSE_AT, PEAK_AT, PERFECT_BONUS, TIME_PTS, MERCY_AFTER, MERCY_SECS, W, H },
+  consts: { TOL, PERFECT, TENSE_AT, PEAK_AT, PERFECT_BONUS, TIME_PTS, MERCY_AFTER, MERCY_SECS, W, H, DIFFS: DIFFS.map(d => Object.assign({}, d)) },
+  // calibration only: adjust a difficulty's parameters
+  tuneDifficulty(key, patch) { Object.assign(DIFFS.find(d => d.key === key), patch); },
+  setDifficulty(key) { const k = DIFFS.findIndex(d => d.key === key); if (k < 0) throw new Error('unknown difficulty ' + key); S.diff = k; },
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, chapterName: chapterOf(L).name, title: L.title, time: L.time, animated: !!L.animated,
     objects: L.objects.map(o => ({ id: o.id, name: o.name, trap: !!o.trap, keep: o.keep ?? null, near: !!o.near, mag: o.mag ?? null, target: o.target ?? 0,
       call: o.call || null, habit: !!o.habit, link: o.link ? Object.assign({}, o.link) : null, x: o.x, y: o.y, w: o.w, h: o.h })) })),
@@ -2049,10 +2096,10 @@ window.__chayidu = {
   resume: () => resume(),
   home: () => goHome(),
   resetProgress() { store.data.best = {}; store.save(); S.session = {}; S.fails = {}; },
-  computeScore: (objs, timeLeft, win) => computeScore(objs.map(o => Object.assign({ target: 0 }, o)), timeLeft, win),
+  computeScore: (objs, timeLeft, win, diffKey) => computeScore(objs.map(o => Object.assign({ target: 0 }, o)), timeLeft, win, diffKey ? DIFFS.find(d => d.key === diffKey) : DF()),
   state() {
     const [n, m] = counts();
-    return { screen: gameEl.hidden ? 'home' : 'game', level: S.levelIdx, key: S.L && S.L.key,
+    return { screen: gameEl.hidden ? 'home' : 'game', level: S.levelIdx, key: S.L && S.L.key, diff: DF().key, tol: DF().tol,
       running: S.running, paused: S.paused, ended: S.ended, timeLeft: S.timeLeft, timeTotal: S.timeTotal,
       tense: S.tense, peak: gameEl.classList.contains('peak'), aligned: n, required: m,
       doneEnabled: !doneBtn.disabled, timerText: timerEl.textContent,

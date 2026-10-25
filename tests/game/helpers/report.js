@@ -13,8 +13,10 @@ export function evaluateTargets(metrics, ctx) {
 
 export function compareBaseline(metrics, baseline) {
   const diffs = []
-  for (const [key, b] of Object.entries(baseline.metrics)) {
-    const m = metrics[key]
+  const flat = (mm) => Object.fromEntries(Object.entries(mm).flatMap(([d, byKey]) => Object.entries(byKey).map(([k, v]) => [`${d}/${k}`, v])))
+  const now = flat(metrics)
+  for (const [key, b] of Object.entries(flat(baseline.metrics))) {
+    const m = now[key]
     if (!m) { diffs.push({ key, problem: 'missing in this run' }); continue }
     const dWin = m.winRate - b.winRate
     const ratio = b.meanScore ? m.meanScore / b.meanScore : 1
@@ -28,12 +30,16 @@ const f2 = (x) => (typeof x === 'number' ? (Math.abs(x) < 10 ? x.toFixed(2) : Ma
 
 export function writeReport({ runs, metrics, targets, baselineDiffs, maxScores, levels }) {
   fs.mkdirSync(REPORT_DIR, { recursive: true })
-  const lines = [`# 差一度 數值模擬報告`, '', `每個「關卡 × 玩家類型」模擬 ${runs} 局。`, '']
-  lines.push('| 關卡:玩家 | 勝率 | 平均分 | P10 / P50 / P90 | 過關時平均剩秒 | 星數分布 0/1/2/3 | 扶正斜塔 |', '|---|---|---|---|---|---|---|')
-  for (const [k, m] of Object.entries(metrics)) {
-    lines.push(`| ${k} | ${(m.winRate * 100).toFixed(1)}% | ${Math.round(m.meanScore)} | ${m.p10} / ${m.p50} / ${m.p90} | ${m.meanSecsLeftOnWin.toFixed(1)} | ${m.stars.map((x) => (x * 100).toFixed(0) + '%').join(' / ')} | ${(m.trapStraightened * 100).toFixed(0)}% |`)
+  const NAMES = { easy: '簡單「看到會歪頭」', normal: '普通「忍不住伸手」', hard: '困難「不轉正睡不著」' }
+  const lines = [`# 差一度 數值模擬報告`, '', `每個「難度 × 關卡 × 玩家類型」模擬 ${runs} 局。`, '']
+  for (const [diff, byKey] of Object.entries(metrics)) {
+    lines.push(`## ${NAMES[diff] || diff}`, '', '| 關卡:玩家 | 勝率 | 平均分 | P10 / P50 / P90 | 過關時平均剩秒 | 星數分布 0/1/2/3 | 扶正斜塔 |', '|---|---|---|---|---|---|---|')
+    for (const [k, m] of Object.entries(byKey)) {
+      lines.push(`| ${k} | ${(m.winRate * 100).toFixed(1)}% | ${Math.round(m.meanScore)} | ${m.p10} / ${m.p50} / ${m.p90} | ${m.meanSecsLeftOnWin.toFixed(1)} | ${m.stars.map((x) => (x * 100).toFixed(0) + '%').join(' / ')} | ${(m.trapStraightened * 100).toFixed(0)}% |`)
+    }
+    lines.push('', '理論最高分：' + levels.map((l, i) => `${l.key} ${maxScores[diff][i]}`).join('、'), '')
   }
-  lines.push('', '理論最高分：' + levels.map((l, i) => `${l.key} ${maxScores[i]}`).join('、'), '', '## 設計目標', '')
+  lines.push('## 設計目標', '')
   for (const t of targets) lines.push(`- ${t.ok ? '✅' : t.enforce ? '❌' : '⚠️'} ${t.desc}${t.enforce ? '' : '（未強制）'}：${f2(t.detail)}`)
   if (baselineDiffs) {
     lines.push('', '## 與基準線比較', '')
@@ -46,5 +52,6 @@ export function writeReport({ runs, metrics, targets, baselineDiffs, maxScores, 
 
 export function roundMetrics(metrics) {
   const r = (x) => (Array.isArray(x) ? x.map(r) : typeof x === 'number' ? Math.round(x * 10000) / 10000 : x)
-  return Object.fromEntries(Object.entries(metrics).map(([k, m]) => [k, Object.fromEntries(Object.entries(m).map(([a, v]) => [a, r(v)]))]))
+  const one = (byKey) => Object.fromEntries(Object.entries(byKey).map(([k, m]) => [k, Object.fromEntries(Object.entries(m).map(([a, v]) => [a, r(v)]))]))
+  return Object.fromEntries(Object.entries(metrics).map(([d, byKey]) => [d, one(byKey)]))
 }

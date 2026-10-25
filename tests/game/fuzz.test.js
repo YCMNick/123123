@@ -46,7 +46,7 @@ describe('亂數操作風暴', () => {
         const visible = async (sel) => page.locator(sel).first().isVisible().catch(() => false)
         let action
         if (s.overlays.chapter) action = pick(['sheetPlay', 'sheetPlay', 'sheetClose'])
-        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt'])
+        else if (s.screen === 'home') action = pick(['card', 'card', 'start', 'tilt', 'diff'])
         else if (s.overlays.result) action = pick(['result', 'result', 'key'])
         else if (s.overlays.pause) action = pick(['pauseMenu', 'pauseMenu', 'key'])
         else if (s.overlays.intro) action = pick(['go', 'go', 'introHome'])
@@ -56,6 +56,7 @@ describe('亂數操作風暴', () => {
         switch (action) {
           case 'card': await page.click(`.lv:nth-child(${1 + Math.floor(rand() * 10)})`); break
           case 'sheetPlay': await page.click('#sheetPlay'); break
+          case 'diff': await page.click(`#diff-${pick(['easy', 'normal', 'hard'])}`); break
           case 'sheetClose': await page.click('#sheetClose'); break
           case 'start': await page.click('#startBtn'); break
           case 'tilt': { const b = await page.locator('#tilt').boundingBox(); await page.mouse.move(b.x + rand() * b.width, b.y + rand() * b.height); await page.mouse.down(); await page.mouse.move(b.x + rand() * 200, b.y + rand() * 200, { steps: 3 }); await page.mouse.up(); break }

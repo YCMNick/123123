@@ -26,8 +26,10 @@ export async function openGame(browser, { width = 400, height = 820 } = {}) {
 
 // Theoretical ceiling: every object perfect, the done button pressed at the
 // first instant, every +2 s bonus collected, the mercy bonus active, trap kept.
-export function maxScore(level, c) {
+export function maxScore(level, c, diffKey = 'normal') {
+  const d = c.DIFFS.find((x) => x.key === diffKey)
   const n = level.objects.filter((o) => !o.trap).length
   const trap = level.objects.some((o) => o.trap) ? 200 : 0
-  return n * 150 + (level.time + c.MERCY_SECS + n * c.PERFECT_BONUS) * c.TIME_PTS + trap
+  const time = Math.round(level.time * d.timeMul)
+  return Math.round((n * 150 + (time + c.MERCY_SECS + n * c.PERFECT_BONUS) * c.TIME_PTS + trap) * d.mult)
 }
