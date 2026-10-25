@@ -26,6 +26,15 @@
 6. 在本專案建立 `game/account.config.json`（照 `game/account.config.example.json` 的格式，貼上 apiKey、authDomain、projectId、appId）。這個檔案已被 git 忽略；Firebase 的網頁 config 不是秘密，但還是分開放。
 7. `npm run build:game`。首頁會出現「帳號」區塊。
 
+### 已驗證（2026-10-25）
+- 專案 `app-moreangle`，Email/Password 與 Google 已開，Firestore 規則已發布。
+- 用 REST 實測：註冊 → 寫自己的 `players/{uid}` 200 → 讀回正確 → 讀寫別人的文件 403 → 未登入 403 → 刪文件與帳號 200。
+- 設定檔在 `game/account.config.json`（git 忽略），但 build 出來的 `public/game/index.html` 會內嵌這份設定，這是正常的：Firebase 網頁 config 本來就是公開的，安全靠 Firestore 規則。
+
+### Authorized domains
+- Google 登入只在 Authentication → Settings → Authorized domains 列出的網域能用；Email 登入沒有這個限制。
+- 遊戲放哪裡就加哪個網域（GitHub Pages：`ycmnick.github.io`）。在 claude.ai 的試玩頁裡，Email 登入可以測，Google 登入可能因為網域或彈出視窗被擋而失敗，錯誤會顯示在畫面下方的提示。
+
 ## 2. 雲端存檔的規則
 
 - 存在 Firestore `players/{uid}`：最佳成績、暱稱、難度、語言、禪模式、音樂、音效、完整版狀態、廣告通行證、更新時間。

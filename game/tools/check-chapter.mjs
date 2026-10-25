@@ -32,7 +32,7 @@ for (const key of keys) {
   const pageErrors = [];
   page.on('pageerror', e => pageErrors.push(e.message));
   page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) pageErrors.push(m.text()); });
-  await page.route(/^https?:/, r => r.fulfill({ status: 200, body: '' }));
+  await page.route(/^https?:/, r => { const js = /\.m?js(\?|$)|\+esm/.test(r.request().url()); r.fulfill({ status: 200, contentType: js ? 'application/javascript' : 'text/css', body: '' }); });
   // Record every string drawn on a canvas, to catch untranslated text.
   await page.addInitScript(() => {
     window.__drawn = new Set();

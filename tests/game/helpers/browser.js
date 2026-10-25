@@ -24,7 +24,8 @@ export async function openGame(browser, { width = 400, height = 820, firstRun = 
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })
   // Answer every external request with an empty body instead of failing it,
   // so blocked fonts don't show up as console errors.
-  await page.route(/^https?:/, (route) => route.fulfill({ status: 200, contentType: 'text/css', body: '' }))
+  // Module scripts (the Firebase SDK) get an empty JS module, so the import resolves and the game's own fallback runs.
+  await page.route(/^https?:/, (route) => { const js = /\.m?js(\?|$)|\+esm/.test(route.request().url()); route.fulfill({ status: 200, contentType: js ? 'application/javascript' : 'text/css', body: '' }) })
   await page.goto(pathToFileURL(GAME_FILE).href)
   await page.waitForFunction(() => window.__chayidu && window.__chayidu.api === 1)
   return { page, context, errors }

@@ -1288,9 +1288,11 @@ const ACC = {
   async init() {
     if (!ACCOUNT || !ACCOUNT.apiKey) return;
     $('#accountSect').hidden = false;
-    const V = ACCOUNT.sdk || '10.14.1', base = `https://www.gstatic.com/firebasejs/${V}/`;
+    // The SDK comes from jsdelivr by default (a CDN the artifact page may load from); ACCOUNT.sdkBase can point at gstatic instead.
+    const V = ACCOUNT.sdk || '10.14.1', base = ACCOUNT.sdkBase || `https://cdn.jsdelivr.net/npm/firebase@${V}/`;
+    const mod = name => base.includes('gstatic') ? `${base}firebase-${name}.js` : `${base}${name}/+esm`;
     try {
-      const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+      const [app, auth, fs] = await Promise.all([import(mod('app')), import(mod('auth')), import(mod('firestore'))]);
       this.fb = { app: app.initializeApp(ACCOUNT), auth, fs };
       this.fb.a = auth.getAuth(this.fb.app); this.fb.db = fs.getFirestore(this.fb.app);
       auth.onAuthStateChanged(this.fb.a, u => { this.user = u; this.render(); if (u) this.pull(); });
@@ -1528,6 +1530,7 @@ window.__chayidu = {
   setZen(on) { setZen(on); },
   // Simulate the app build (free world 1 + first stages) or the web build (everything open).
   setFreeAll(on) { FREE_ALL = !!on; buildCards(); },
+  accountConfigured: !!(ACCOUNT && ACCOUNT.apiKey),
   unlocked: i => unlocked(LEVELS[i]),
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, stage: L.stage, chapterName: tr(chapterOf(L).name), title: tr(L.title), titles: L.title,
     place: L.place, intro: L.intro, time: L.time, practice: isPractice(L), animated: !!L.animated,

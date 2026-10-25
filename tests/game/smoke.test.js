@@ -220,7 +220,9 @@ describe('第一次玩', () => {
 })
 
 describe('帳號與解鎖', () => {
-  it('沒有設定 Firebase 時，帳號區塊不顯示；網頁版全部關卡都開放', async () => {
+  it('沒有設定 Firebase 時帳號區塊不顯示（有設定時顯示，但離線載入不到 SDK 會收起來，不報錯）；網頁版全部關卡都開放', async () => {
+    const configured = await page.evaluate(() => window.__chayidu.accountConfigured)
+    if (configured) await page.waitForTimeout(1500) // the SDK import fails offline; the section hides itself again
     expect(await page.locator('#accountSect').isVisible()).toBe(false)
     expect(await page.evaluate(() => window.__chayidu.levels().every((l, i) => window.__chayidu.unlocked(i)))).toBe(true)
   })

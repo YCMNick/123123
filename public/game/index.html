@@ -752,7 +752,7 @@ function defineThingSound(key, fn) { QS.thing[key] = fn; }
 // Time budgets calibrated by simulation (game/times.json, written by the calibrate tool).
 const CALIBRATED_TIMES = {"farm":31,"animal-savanna":27,"animal-rainforest":30,"animal-bamboo":29,"animal-outback":32,"animal-honey":32,"animal-night":37,"animal-birds":36,"animal-pets":40,"animal-carnival":42,"reef":33,"ocean-kelp":24,"ocean-wreck":29,"ocean-song":29,"ocean-jelly":27,"ocean-arctic":31,"ocean-glow":31,"ocean-nest":36,"ocean-harbor":39,"ocean-city":44,"jp":30,"oldtown-xian":23,"oldtown-istanbul":26,"oldtown-prague":29,"oldtown-seoul":32,"oldtown-chaouen":36,"oldtown-venice":35,"oldtown-tainan":35,"oldtown-lisbon":35,"oldtown-hanoi":40,"desk":30,"home-kitchen":23,"home-bath":26,"home-closet":28,"home-fridge":32,"home-gallery":32,"home-market":35,"home-office":35,"home-class":39,"home-moving":43,"fr":34,"comic-subway":22,"comic-shibuya":25,"comic-london":28,"comic-hongkong":31,"comic-rome":32,"comic-berlin":35,"comic-seoul":35,"comic-rio":38,"comic-bangkok":44,"polar":29,"polar-igloo":20,"polar-sled":24,"polar-iceberg":27,"polar-parade":32,"polar-cave":32,"polar-fishing":35,"polar-station":36,"polar-blizzard":36,"polar-midnight":42,"desert":31,"desert-caravan":22,"desert-market":25,"desert-dunes":27,"desert-cactus":31,"desert-petra":31,"desert-stars":31,"desert-mirage":34,"desert-storm":37,"desert-rum":43,"it":32,"wonder-wall":22,"wonder-liberty":25,"wonder-bigben":27,"wonder-sydney":27,"wonder-machu":31,"wonder-taj":35,"wonder-moai":36,"wonder-angkor":35,"wonder-fuji":43,"neon":39,"park-wheel":23,"park-carousel":27,"park-coaster":29,"park-haunted":30,"park-gallery":33,"park-balloons":32,"park-water":36,"park-parade":36,"park-finale":40,"space":40,"space-moon":22,"space-mars":26,"space-saturn":28,"space-repair":32,"space-meteor":32,"space-blackhole":35,"space-stars":35,"space-elevator":38,"space-home":45};
 // Account and store settings are pasted in by the build (game/account.config.json, game/store.config.json).
-const ACCOUNT = null;
+const ACCOUNT = {"apiKey":"AIzaSyD5c0Jd01ikKKnJ3GRo-Fu2v_cJ4-f-FvU","authDomain":"app-moreangle.firebaseapp.com","projectId":"app-moreangle","storageBucket":"app-moreangle.firebasestorage.app","messagingSenderId":"287618677209","appId":"1:287618677209:web:120f4ce5d2e4345ee781c8","sdk":"10.14.1"};
 const STORE_CFG = {"freeAll":true,"price":"USD 4.99","freeWorlds":1,"adHours":24};
 /* ---------- game/chapters/01-animal.js ---------- */
 (() => {
@@ -12819,9 +12819,11 @@ const ACC = {
   async init() {
     if (!ACCOUNT || !ACCOUNT.apiKey) return;
     $('#accountSect').hidden = false;
-    const V = ACCOUNT.sdk || '10.14.1', base = `https://www.gstatic.com/firebasejs/${V}/`;
+    // The SDK comes from jsdelivr by default (a CDN the artifact page may load from); ACCOUNT.sdkBase can point at gstatic instead.
+    const V = ACCOUNT.sdk || '10.14.1', base = ACCOUNT.sdkBase || `https://cdn.jsdelivr.net/npm/firebase@${V}/`;
+    const mod = name => base.includes('gstatic') ? `${base}firebase-${name}.js` : `${base}${name}/+esm`;
     try {
-      const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+      const [app, auth, fs] = await Promise.all([import(mod('app')), import(mod('auth')), import(mod('firestore'))]);
       this.fb = { app: app.initializeApp(ACCOUNT), auth, fs };
       this.fb.a = auth.getAuth(this.fb.app); this.fb.db = fs.getFirestore(this.fb.app);
       auth.onAuthStateChanged(this.fb.a, u => { this.user = u; this.render(); if (u) this.pull(); });
@@ -13059,6 +13061,7 @@ window.__chayidu = {
   setZen(on) { setZen(on); },
   // Simulate the app build (free world 1 + first stages) or the web build (everything open).
   setFreeAll(on) { FREE_ALL = !!on; buildCards(); },
+  accountConfigured: !!(ACCOUNT && ACCOUNT.apiKey),
   unlocked: i => unlocked(LEVELS[i]),
   levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, stage: L.stage, chapterName: tr(chapterOf(L).name), title: tr(L.title), titles: L.title,
     place: L.place, intro: L.intro, time: L.time, practice: isPractice(L), animated: !!L.animated,
