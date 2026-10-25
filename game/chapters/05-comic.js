@@ -203,7 +203,8 @@ function drawStation(c) {
   comicShape(c, () => rr(c, -104, -19, 208, 42, 3), '#151515', 2.5);
   c.fillStyle = '#fff'; c.fillRect(-97, -13, 194, 1.6);
   sayF(c, 'Times Sq–42 St', -94, 4, 'bold 17px "Helvetica Neue", Helvetica, Arial, sans-serif', '#fff', 124, 'left');
-  [[46, '#ee352e', '1', '#fff'], [67, '#fccc0a', 'N', INK], [88, '#b933ad', '7', '#fff']].forEach(([x, f, s, tc]) => { circ(c, x, 4, 9, f); sayF(c, s, x, 4.5, 'bold 11px Arial, sans-serif', tc); });
+  rr(c, 38, -8, 60, 24, 3); c.fillStyle = '#fff'; c.fill();
+  sayF(c, T('↑ 上城', '↑ Uptown'), 68, 4.5, 'bold 11px Arial, "Noto Sans TC", sans-serif', INK, 54);
 }
 function drawTrain(c) {
   [-98, 98].forEach(x => { rr(c, x - 36, 38, 72, 13, 4); fs(c, '#3a3d48', 2); });
@@ -220,8 +221,9 @@ function drawTrain(c) {
   lines(c, wins.flatMap(([x]) => [x + 4, -12, x + 14, -34]), 'rgba(255,255,255,.45)', 3);
   [-80, 80].forEach(x => { rr(c, x - 20, -46, 40, 86, 3); fs(c, '#b9bfca', 2.5); rectsInk(c, [[x - 16, -38, 13, 30], [x + 3, -38, 13, 30]], '#3d5378', 1.6); lines(c, [x, -46, x, 40], INK, 2); });
   rr(c, -142, -42, 34, 38, 4); fs(c, '#2c3346', 2);
-  circ(c, -125, -23, 11, '#fccc0a'); c.beginPath(); c.arc(-125, -23, 11, 0, Math.PI * 2); inkS(c, 1.5);
-  sayF(c, 'N', -125, -22.5, 'bold 14px Arial, sans-serif', INK);
+  c.fillStyle = '#151515'; c.fillRect(-139, -32, 28, 14);
+  sayF(c, 'UPTOWN', -125, -24.5, 'bold 8px "JetBrains Mono", monospace', '#ffb43a', 26);
+  c.fillStyle = '#fff3b0'; c.fillRect(-136, -12, 22, 4);
 }
 function drawDoorsBubble(c) {
   comicShape(c, () => bubblePath(c, 0, -6, 66, 26, 122, 100, -40, 33), '#fff');
@@ -1064,11 +1066,11 @@ defineChapter({
   narrator: { zh: "對話框", en: "Speech Bubble" },
   song: 'fr',
     comments: {
-      far: [{ zh: ["砰！大失敗！", "這一格漫畫畫歪了，作者要重畫了啦！"], en: ["KA-BOOM! Fail!", "This panel's crooked. The artist has to redraw it!"] }, { zh: ["咦咦咦？！", "艾菲爾鐵塔斜得比比薩還厲害。"], en: ["Wha-what?!", "The Eiffel Tower leans more than Pisa now."] }],
-      close: [{ zh: ["待續…", "就差一格！下一集一定會成功！"], en: ["To be continued…", "One panel short! Next episode, for sure!"] }, { zh: ["好可惜！", "對話框只來得及說出「Bonj…」"], en: ["So close!", "Speech Bubble only got as far as 'Bonj…'"] }],
+      far: [{ zh: ["砰！大失敗！", "這一格漫畫畫歪了，作者要重畫了啦！"], en: ["KA-BOOM! Fail!", "This panel's crooked. The artist has to redraw it!"] }, { zh: ["咦咦咦？！", "整條街的招牌歪成一團，像被颱風掃過。"], en: ["Wha-what?!", "Every sign on the street is crooked, like a storm hit."] }],
+      close: [{ zh: ["待續…", "就差一格！下一集一定會成功！"], en: ["To be continued…", "One panel short! Next episode, for sure!"] }, { zh: ["好可惜！", "對話框話才說一半：「就差一點點…」"], en: ["So close!", "Speech Bubble only got halfway: 'Just a little…'"] }],
       pass: [{ zh: ["過關！咻！", "勉強畫完這一頁，編輯說可以先交稿。"], en: ["Cleared! Whoosh!", "Page done. The editor says submit it for now."] }, { zh: ["及格啦！", "咖啡館招牌還有點斜，但咖啡很香。"], en: ["Passing grade!", "Café sign's a bit off, but the coffee smells great."] }],
-      good: [{ zh: ["漂亮的分鏡！", "每一格都整整齊齊，讀者大聲叫好！"], en: ["Nice paneling!", "Every panel lined up. Readers cheer out loud!"] }, { zh: ["巴黎好心情", "路燈亮起來，連蒙娜麗莎都笑得更開了。"], en: ["Happy Paris", "Streetlights glow. Even Mona Lisa smiles wider."] }],
-      perfect: [{ zh: ["完美跨頁♪", "一度都不差！這一頁要放進漫畫史冊！"], en: ["Perfect spread♪", "Not one degree off! This page goes into comic history!"] }, { zh: ["Bonjour 冠軍！", "對話框開心到自己變成金色了。"], en: ["Bonjour champ!", "Speech Bubble turned gold with joy."] }],
+      good: [{ zh: ["漂亮的分鏡！", "每一格都整整齊齊，讀者大聲叫好！"], en: ["Nice paneling!", "Every panel lined up. Readers cheer out loud!"] }, { zh: ["街角好心情", "路燈亮起來，整條街的路人都笑了。"], en: ["Happy corner", "Streetlights glow. Everyone on the street smiles."] }],
+      perfect: [{ zh: ["完美跨頁♪", "一度都不差！這一頁要放進漫畫史冊！"], en: ["Perfect spread♪", "Not one degree off! This page goes into comic history!"] }, { zh: ["環遊世界冠軍！", "對話框開心到自己變成金色了。"], en: ["World-tour champ!", "Speech Bubble turned gold with joy."] }],
     },
   stages: [
     { key: 'fr', title: { zh: "巴黎早安", en: "Bonjour Paris" }, place: { zh: "法國 巴黎", en: "Paris, France" },
@@ -1093,7 +1095,7 @@ defineChapter({
       { id: 'rat', name: { zh: '披薩鼠', en: 'Pizza rat' }, x: 262, y: 404, w: 92, h: 62, mag: 10, draw: drawRat, habit: (t, l) => ({ dx: Math.sin(t * 1.6) * 5 * l, dy: -Math.abs(Math.sin(t * 8)) * 1.5 * l }), call: 'comic_rat' }
       ] },
     { key: 'comic-shibuya', title: { zh: '東京澀谷', en: 'Shibuya Crossing' }, place: { zh: '日本 東京', en: 'Tokyo, Japan' },
-      intro: { zh: '綠燈一亮，整個路口一起走。行人號誌會發出小鳥叫聲。', en: 'When the light turns, everyone crosses at once. The walk signal chirps like a bird.' },
+      intro: { zh: '綠燈一亮，整個路口一起走。日本很多行人號誌會發出鳥叫聲。', en: 'When the light turns, everyone crosses at once. Many Japanese walk signals chirp like birds.' },
       bg: bgShibuya, animated: true,
       objects: [
       { id: 'screen', name: { zh: '大螢幕', en: 'Big screen' }, x: 104, y: 108, w: 152, h: 96, mag: 12, draw: drawScreen, sfx: 'twinkle' },
@@ -1131,7 +1133,7 @@ defineChapter({
       { id: 'shutR', name: { zh: '右百葉窗', en: 'Right shutter' }, x: 148, y: 120, w: 42, h: 98, mag: 11, draw: drawShutR, sfx: 'wood' },
       { id: 'plaque', name: { zh: '大理石路牌', en: 'Marble street sign' }, x: 298, y: 90, w: 96, h: 50, near: true, draw: drawPlaque, sfx: 'clunk' },
       { id: 'gelato', name: { zh: '冰淇淋招牌', en: 'Gelato sign' }, x: 296, y: 220, w: 92, h: 66, near: true, draw: drawGelato, sfx: 'pop' },
-      { id: 'vespa', name: { zh: '偉士牌機車', en: 'Scooter' }, x: 262, y: 392, w: 128, h: 86, mag: 9, draw: drawVespa, sfx: 'comic_horn' },
+      { id: 'vespa', name: { zh: '速克達', en: 'Scooter' }, x: 262, y: 392, w: 128, h: 86, mag: 9, draw: drawVespa, sfx: 'comic_horn' },
       { id: 'pigeon', name: { zh: '鴿子', en: 'Pigeon' }, x: 96, y: 430, w: 78, h: 58, mag: 13, draw: drawPigeon, habit: (t, l) => ({ dx: Math.sin(t * 0.8) * 6 * l }), call: 'comic_pigeon' }
       ] },
     { key: 'comic-berlin', title: { zh: '柏林塗鴉牆', en: 'Berlin Wall Art' }, place: { zh: '德國 柏林', en: 'Berlin, Germany' },
@@ -1171,7 +1173,7 @@ defineChapter({
       { id: 'mask', name: { zh: '嘉年華面具', en: 'Carnival mask' }, x: 96, y: 152, w: 104, h: 64, near: true, draw: drawMask, sfx: 'shimmer' },
       { id: 'surdo', name: { zh: '森巴大鼓', en: 'Surdo drum' }, x: 62, y: 296, w: 76, h: 92, mag: 5, draw: drawSurdo, sfx: 'comic_bongo' },
       { id: 'coco', name: { zh: '椰子水招牌', en: 'Coconut stand sign' }, x: 180, y: 258, w: 114, h: 52, near: true, draw: drawCocoSign, sfx: 'pop' },
-      { id: 'macaw', name: { zh: '金剛鸚鵡', en: 'Macaw' }, x: 304, y: 278, w: 60, h: 100, mag: 11, draw: drawMacaw, call: 'comic_parrot' },
+      { id: 'macaw', name: { zh: '金剛鸚鵡', en: 'Macaw' }, x: 304, y: 278, w: 60, h: 100, mag: 11, draw: drawMacaw, habit: (t, l) => ({ dy: Math.sin(t * 1.3) * 2 * l }), call: 'comic_parrot' },
       { id: 'toucan', name: { zh: '巨嘴鳥', en: 'Toucan' }, x: 90, y: 418, w: 76, h: 62, mag: 7, draw: drawToucan, habit: (t, l) => ({ dx: Math.sin(t * 1.1) * 4 * l }), call: 'comic_toucan' },
       { id: 'float', name: { zh: '花車', en: 'Parade float' }, x: 262, y: 416, w: 136, h: 82, mag: 8, draw: drawFloat, sfx: 'comic_horn' }
       ] },
