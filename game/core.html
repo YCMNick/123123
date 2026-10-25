@@ -1287,19 +1287,23 @@ function toast(msg, ms = 1800) { const t = $('#toast'); t.textContent = msg; t.c
 /* ---------- account: Firebase (Apple / Google / email) and cloud save. Loads only when ACCOUNT is configured. ---------- */
 const ACC = {
   user: null, fb: null, pending: null, status: 'off',
+  // The compat bundles (one global `firebase`, one shared app) load as plain scripts, so the
+  // three parts always share the same core. Default host jsdelivr; ACCOUNT.sdkBase can point
+  // at https://www.gstatic.com/firebasejs/<version>/ which serves the same file names.
+  script(src) { return new Promise((ok, bad) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = () => bad(new Error('cannot load ' + src)); document.head.appendChild(t); }); },
   async init() {
     if (!ACCOUNT || !ACCOUNT.apiKey) return;
     $('#accountSect').hidden = false; this.status = 'loading';
     $('#accLede').textContent = U('accLoading'); $('#accOut').hidden = true;
-    // The SDK comes from jsdelivr by default (a CDN the artifact page may load from); ACCOUNT.sdkBase can point at gstatic instead.
     const V = ACCOUNT.sdk || '10.14.1', base = ACCOUNT.sdkBase || `https://cdn.jsdelivr.net/npm/firebase@${V}/`;
-    const mod = name => base.includes('gstatic') ? `${base}firebase-${name}.js` : `${base}${name}/+esm`;
     try {
-      const [app, auth, fs] = await Promise.all([import(mod('app')), import(mod('auth')), import(mod('firestore'))]);
-      this.fb = { app: app.initializeApp(ACCOUNT), auth, fs };
-      this.fb.a = auth.getAuth(this.fb.app); this.fb.db = fs.getFirestore(this.fb.app);
-      auth.onAuthStateChanged(this.fb.a, u => { this.user = u; this.render(); if (u) this.pull(); });
-      auth.getRedirectResult(this.fb.a).catch(e => this.fail(e));
+      await this.script(base + 'firebase-app-compat.js');
+      await Promise.all([this.script(base + 'firebase-auth-compat.js'), this.script(base + 'firebase-firestore-compat.js')]);
+      const fb = window.firebase; if (!fb || !fb.auth) throw new Error('firebase global missing');
+      const app = fb.apps.length ? fb.app() : fb.initializeApp(ACCOUNT);
+      this.fb = { fb, app, a: fb.auth(app), db: fb.firestore(app) };
+      this.fb.a.onAuthStateChanged(u => { this.user = u; this.render(); if (u) this.pull(); });
+      this.fb.a.getRedirectResult().catch(e => this.fail(e));
       this.status = 'ready'; $('#accLede').textContent = U('accLede'); this.render();
     } catch (e) {
       // Keep the section, say why: a blocked CDN or a bad config should be visible, not silent.
@@ -1310,33 +1314,32 @@ const ACC = {
   },
   fail(e) { toast(U('accErr', (e && e.code) || (e && e.message) || String(e)), 3500); },
   async provider(kind) {
-    AU.init(); const { auth, a } = this.fb;
-    const p = kind === 'google' ? new auth.GoogleAuthProvider() : new auth.OAuthProvider('apple.com');
-    try { await auth.signInWithPopup(a, p); }
-    catch (e) { if (/popup/.test(e.code || '')) await auth.signInWithRedirect(a, p).catch(x => this.fail(x)); else this.fail(e); }
+    AU.init(); const { fb, a } = this.fb;
+    const p = kind === 'google' ? new fb.auth.GoogleAuthProvider() : new fb.auth.OAuthProvider('apple.com');
+    try { await a.signInWithPopup(p); }
+    catch (e) { if (/popup/.test(e.code || '')) await a.signInWithRedirect(p).catch(x => this.fail(x)); else this.fail(e); }
   },
   async email(mail, pass) {
-    const { auth, a } = this.fb;
-    try { await auth.signInWithEmailAndPassword(a, mail, pass); }
+    const { a } = this.fb;
+    try { await a.signInWithEmailAndPassword(mail, pass); }
     catch (e) {
       if (['auth/user-not-found', 'auth/invalid-credential', 'auth/invalid-login-credentials'].includes(e.code)) {
-        try { await auth.createUserWithEmailAndPassword(a, mail, pass); } catch (x) { this.fail(x); }
+        try { await a.createUserWithEmailAndPassword(mail, pass); } catch (x) { this.fail(x); }
       } else this.fail(e);
     }
   },
-  async signOut() { await this.fb.auth.signOut(this.fb.a); },
+  async signOut() { await this.fb.a.signOut(); },
   async remove() {
     if (!this.user || !confirm(U('accDeleteAsk'))) return;
-    const { fs, db, auth } = this.fb;
-    try { await fs.deleteDoc(fs.doc(db, 'players', this.user.uid)); await auth.deleteUser(this.user); }
+    try { await this.fb.db.collection('players').doc(this.user.uid).delete(); await this.user.delete(); }
     catch (e) { if (e.code === 'auth/requires-recent-login') toast(U('accReauth'), 4000); else this.fail(e); }
   },
+  doc() { return this.fb.db.collection('players').doc(this.user.uid); },
   // Cloud save: best scores merge by the higher value; settings follow the newer side.
   async pull() {
     if (!this.user) return;
-    const { fs, db } = this.fb;
     try {
-      const snap = await fs.getDoc(fs.doc(db, 'players', this.user.uid)), c = snap.exists() ? snap.data() : null;
+      const snap = await this.doc().get(), c = snap.exists ? snap.data() : null;
       if (c) {
         for (const [k, v] of Object.entries(c.best || {})) { const m = store.data.best[k] || { score: 0, stars: 0 }; store.data.best[k] = { score: Math.max(m.score, v.score || 0), stars: Math.max(m.stars, v.stars || 0) }; }
         if ((c.updatedAt || 0) > (store.data.updatedAt || 0)) for (const k of ['nick', 'diff', 'lang', 'zen', 'music', 'sound', 'full', 'pass']) if (c[k] !== undefined) store.data[k] = c[k];
@@ -1347,9 +1350,8 @@ const ACC = {
   },
   async push() {
     if (!this.user || !this.fb) return;
-    const { fs, db } = this.fb, d = store.data;
-    const doc = { best: d.best, nick: d.nick || '', diff: d.diff || 'normal', lang: d.lang || 'zh', zen: !!d.zen, music: d.music !== false, sound: d.sound !== false, full: !!d.full, pass: d.pass || {}, updatedAt: Date.now() };
-    await fs.setDoc(fs.doc(db, 'players', this.user.uid), doc, { merge: true });
+    const d = store.data;
+    await this.doc().set({ best: d.best, nick: d.nick || '', diff: d.diff || 'normal', lang: d.lang || 'zh', zen: !!d.zen, music: d.music !== false, sound: d.sound !== false, full: !!d.full, pass: d.pass || {}, updatedAt: Date.now() }, { merge: true });
   },
   // Called by store.save(): a save a few seconds after the last change.
   changed() { if (!this.user) return; clearTimeout(this.pending); this.pending = setTimeout(() => this.push().catch(e => console.warn(e)), 2500); },
