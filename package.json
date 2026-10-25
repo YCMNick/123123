@@ -9,8 +9,10 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:game": "vitest run tests/game",
-    "test:game:baseline": "node tests/game/update-baseline.mjs"
+    "test:game": "node game/build.mjs && vitest run tests/game",
+    "test:game:baseline": "node game/build.mjs && node tests/game/update-baseline.mjs",
+    "build:game": "node game/build.mjs",
+    "check:world": "node game/tools/check-chapter.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

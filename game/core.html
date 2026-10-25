@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>差一度</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Caveat:wght@600&family=DotGothic16&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap">
+<style>
+/* Layout: one-screen app. Home is a left-aligned instrument panel on graph paper; the game stacks HUD, a 3:4 stage and a tool rail to phone height. Deliberately single dark theme. */
+:root{
+  --ink:#10131c; --panel:#181c29; --panel-2:#21263a; --line:#2d3349; --grid:#161a26;
+  --text:#eceef4; --muted:#959cb1; --brass:#e3b04b; --brass-ink:#241904;
+  --ok:#43d08f; --gold:#ffd166; --warn:#ffb03a; --near:#ffe066; --danger:#ff4a5c;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-num:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--ink);color:var(--text);font-family:var(--f-body);font-size:15px;line-height:1.6;overflow:hidden;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+input{-webkit-user-select:text;user-select:text}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+#app{position:relative;height:100%}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column}
+
+/* ---------- home ---------- */
+#home{overflow-y:auto;background:
+  linear-gradient(var(--grid) 1px,transparent 1px) 0 0/24px 24px,
+  linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/24px 24px,var(--ink)}
+.home-in{width:100%;max-width:560px;margin:0 auto;padding-block:18px 36px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px;box-sizing:border-box}
+.ruler{position:relative;height:28px;border-bottom:1px solid var(--line);
+  background:repeating-linear-gradient(90deg,var(--muted) 0 1px,transparent 1px 50px) left bottom/100% 14px no-repeat,
+             repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 10px) left bottom/100% 7px no-repeat}
+.ruler b{position:absolute;left:50%;top:0;transform:translateX(-50%);font-family:var(--f-num);font-size:11px;color:var(--brass);font-weight:700}
+.ruler b::after{content:"";position:absolute;left:50%;top:16px;width:2px;height:12px;background:var(--brass);transform:translateX(-50%)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.eyebrow{font-family:var(--f-num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin:0}
+.badge{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 10px;white-space:nowrap}
+.title{font-family:var(--f-display);font-weight:900;font-size:clamp(72px,24vw,124px);line-height:1;margin:0;letter-spacing:.03em}
+#tilt{display:inline-block;color:var(--brass);transform-origin:50% 55%;cursor:grab;touch-action:none;transition:color .2s}
+#tilt:active{cursor:grabbing}
+#tilt.ok{color:var(--ok)}
+.tiltinfo{font-family:var(--f-num);font-size:13px;color:var(--muted);margin:-8px 0 0;min-height:1.6em}
+.tiltinfo strong{color:var(--text)}
+.lede{margin:0;font-size:16px;max-width:30em;text-wrap:pretty}
+.startrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.field{flex:1 1 170px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;color:var(--muted)}
+.field input{background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:12px 14px;font:inherit;min-width:0}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:700;font-size:16px;line-height:1.2}
+.btn.primary{background:var(--brass);color:var(--brass-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn.ghost:hover{border-color:var(--muted)}
+#startBtn{flex:1 1 150px;padding:14px 20px;font-size:17px}
+.sect{display:flex;flex-direction:column;gap:10px}
+.sect h2{font-size:13px;font-weight:700;color:var(--muted);margin:0;letter-spacing:.08em}
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.lv{display:grid;grid-template-columns:84px minmax(0,1fr);gap:14px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px}
+.lv:hover{border-color:var(--brass)}
+.lv canvas{width:84px;height:112px;border-radius:6px;display:block;background:var(--panel-2)}
+.lv .k{font-family:var(--f-num);font-size:11px;letter-spacing:.1em;color:var(--brass)}
+.lv .n{font-family:var(--f-display);font-weight:700;font-size:21px;line-height:1.3}
+.lv .m{color:var(--muted);font-size:13px}
+.lv .best{font-family:var(--f-num);font-size:12px;margin-top:4px}
+.s{color:var(--line)} .s.on{color:var(--gold)}
+.rules{display:grid;gap:8px;margin:0;padding:0;list-style:none;font-size:14px;color:var(--muted)}
+.rules li{display:grid;grid-template-columns:5.6em 1fr;gap:10px}
+.rules b{font-family:var(--f-num);color:var(--brass);font-weight:700}
+.foot{font-size:12px;color:var(--muted);margin:0}
+.opts{display:grid;gap:8px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.opt>span{font-size:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--muted);border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px}
+.seg button[aria-checked="true"]{background:var(--brass);color:var(--brass-ink)}
+.title.en{font-size:clamp(44px,13vw,76px);line-height:1.05}
+.lv .prog{font-family:var(--f-num);font-size:12px;margin-top:4px}
+.stages li.play{cursor:pointer}
+.stages li.play:hover{background:var(--panel-2)}
+.stages li.done b{color:var(--ok)}
+.stages{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-height:46vh;overflow-y:auto}
+.stages li{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:6px 8px;border-radius:8px;font-size:14px}
+.stages li b{font-family:var(--f-num);color:var(--brass);font-weight:700}
+.stages li span{font-size:12px;color:var(--muted);text-align:right}
+.stages li.next{background:var(--panel-2);border:1px solid var(--brass)}
+.stages li .s{font-size:11px}
+#ovChapter{z-index:20}
+
+/* ---------- game ---------- */
+#game{background:var(--ink);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding-block:8px 6px;max-width:560px;width:100%;margin:0 auto;box-sizing:border-box}
+.iconbtn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;font-size:15px;padding:0}
+.iconbtn.off{color:var(--muted);text-decoration:line-through}
+.lvtag{min-width:0}
+.lvtag .k{font-family:var(--f-num);font-size:11px;color:var(--brass);letter-spacing:.08em}
+.lvtag .n{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timer{font-family:var(--f-num);font-weight:700;font-size:30px;font-variant-numeric:tabular-nums;min-width:3.4ch;text-align:right;line-height:1}
+.tbar{height:3px;background:var(--line);border-radius:2px;overflow:hidden;max-width:560px;width:100%;margin:0 auto 8px;flex:none}
+.tbar i{display:block;height:100%;background:var(--brass);transform-origin:left}
+.stage-wrap{flex:1;min-height:0;display:grid;place-items:center}
+.stage{position:relative}
+#cv{display:block;width:100%;height:100%;border-radius:8px;touch-action:none;box-shadow:0 0 0 1px var(--line),0 18px 40px rgba(0,0,0,.45)}
+.tools{max-width:560px;width:100%;margin:0 auto;padding-block:8px 12px;display:flex;flex-direction:column;gap:8px;box-sizing:border-box}
+.selrow{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);min-height:20px}
+.selrow strong{color:var(--text)}
+.btnrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.5fr);gap:6px}
+.nudge{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 0;font-family:var(--f-num);font-size:13px;touch-action:manipulation;white-space:nowrap}
+.nudge:active{background:var(--panel-2);border-color:var(--brass)}
+.done{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:15px;white-space:nowrap}
+.done.ready{background:var(--ok);color:#06210f;border-color:transparent;animation:ready 1.2s ease-in-out infinite}
+@keyframes ready{50%{box-shadow:0 0 0 6px rgba(67,208,143,.25)}}
+@media (pointer:coarse){.kbd{display:none}}
+
+/* loupe */
+.loupe{position:absolute;left:0;top:0;z-index:5;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translate(-50%,-66px) scale(.55);opacity:0;transition:opacity .12s,transform .18s cubic-bezier(.3,1.5,.5,1);--lc:var(--danger)}
+.loupe.on{opacity:1;transform:translate(-50%,-66px) scale(1)}
+.loupe canvas{width:132px;height:132px;border-radius:50%;display:block;background:#0b0d14;box-shadow:0 0 0 3px var(--lc),0 0 0 7px rgba(0,0,0,.55),0 10px 30px rgba(0,0,0,.55)}
+.lread{background:rgba(12,14,22,.94);border:1px solid var(--lc);border-radius:10px;padding:3px 10px 4px;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.lread b{font-family:var(--f-num);font-size:22px;color:var(--lc);font-variant-numeric:tabular-nums}
+.lread span{font-size:12px}
+.lread small{font-size:11px;color:var(--muted)}
+.loupe[data-s="mid"]{--lc:var(--warn)}
+.loupe[data-s="near"]{--lc:var(--near)}
+.loupe[data-s="ok"]{--lc:var(--ok)}
+.loupe[data-s="perfect"]{--lc:var(--gold)}
+.loupe[data-s="zoom"]{--lc:var(--brass)}
+.diffs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.diffs{grid-template-columns:1fr}}
+.diff{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.diff:hover{border-color:var(--muted)}
+.diff[aria-checked="true"]{border-color:var(--brass);box-shadow:inset 0 0 0 1px var(--brass)}
+.diff i{font-style:normal;font-family:var(--f-num);font-size:11px;letter-spacing:.08em;color:var(--brass)}
+.diff b{font-family:var(--f-display);font-weight:900;font-size:18px;line-height:1.3}
+.diff span{font-size:12px;color:var(--muted);line-height:1.5}
+.loupe[data-s="perfect"] canvas{box-shadow:0 0 0 3px var(--lc),0 0 26px 6px rgba(255,209,102,.55),0 10px 30px rgba(0,0,0,.55)}
+
+.toast{position:absolute;left:50%;top:10px;transform:translate(-50%,-8px);background:rgba(12,14,22,.94);border:1px solid var(--line);padding:6px 14px;border-radius:99px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;white-space:nowrap;z-index:6;max-width:92%;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* tension: last 10 seconds */
+.tension{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;z-index:3;box-shadow:inset 0 0 90px 30px rgba(255,40,60,.62)}
+#game.tense .tension{opacity:1;animation:throb 1s ease-in-out infinite}
+@keyframes throb{0%,100%{opacity:.4}50%{opacity:1}}
+.bignum{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-num);font-weight:700;font-size:min(48vw,300px);color:var(--danger);opacity:0;pointer-events:none;z-index:2}
+.bignum.hit{animation:num 1s ease-out}
+@keyframes num{0%{opacity:.3;transform:scale(1.25)}100%{opacity:0;transform:scale(.9)}}
+#game.tense .timer{color:var(--danger)}
+#game.tense .tbar i{background:var(--danger)}
+.timer.bump{animation:bump .35s ease-out}
+@keyframes bump{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+.hud.shake{animation:shake .3s}
+@keyframes shake{20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
+/* final 3 seconds */
+#game.peak .tension{animation-duration:.5s}
+#game.peak .bignum{font-size:min(70vw,420px)}
+.hud{position:relative}
+.plus{position:absolute;right:0;top:100%;font-family:var(--f-num);font-weight:700;font-size:18px;color:var(--gold);opacity:0;pointer-events:none;z-index:4}
+.plus.pop{animation:plus 1.1s ease-out}
+@keyframes plus{0%{opacity:0;transform:translateY(6px)}20%{opacity:1}100%{opacity:0;transform:translateY(-22px)}}
+.count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-num);font-weight:700;font-size:min(36vw,200px);color:var(--brass);opacity:0;pointer-events:none;z-index:4;text-shadow:0 6px 30px rgba(0,0,0,.6)}
+.count.go{font-family:var(--f-display);font-weight:900;font-size:min(22vw,120px)}
+.count.pop{animation:cnt .62s ease-out}
+@keyframes cnt{0%{transform:scale(1.5);opacity:0}25%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.85)}}
+
+/* overlays */
+.overlay{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(8,10,16,.66);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-y:auto}
+.card{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 60px rgba(0,0,0,.5);box-sizing:border-box}
+.card h2{font-family:var(--f-display);font-weight:900;font-size:34px;line-height:1.15;margin:0;text-wrap:balance}
+.card p{margin:0}
+.card .place{color:var(--muted);font-size:14px;margin-top:-6px}
+.card .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.card .row .btn{flex:1 1 110px}
+.tips{margin:0;padding-left:1.1em;color:var(--muted);font-size:14px;display:grid;gap:4px}
+.hintbox{background:var(--panel-2);border-left:3px solid var(--brass);border-radius:8px;padding:8px 12px;font-size:14px}
+.bigstars{font-size:34px;letter-spacing:.12em;line-height:1}
+.say{position:relative;background:var(--panel-2);border:1px solid var(--line);border-radius:16px;padding:12px 14px 10px;margin-top:6px;display:grid;gap:2px}
+.say::before{content:"";position:absolute;left:26px;top:-9px;width:16px;height:16px;background:var(--panel-2);border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg)}
+.say-h{font-family:var(--f-display);font-weight:900;font-size:21px;line-height:1.3;color:var(--brass)}
+.say-perfect .say-h{color:var(--gold)}
+.say-far .say-h,.say-close .say-h{color:var(--warn)}
+.say-b{font-size:15px;line-height:1.6;text-wrap:pretty}
+.say-by{font-size:12px;color:var(--muted);text-align:right}
+.errs{list-style:none;margin:0;padding:0;display:grid;font-size:14px}
+.errs li{display:grid;grid-template-columns:minmax(0,1fr) auto 4.5em;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px dashed var(--line)}
+.errs .v{font-family:var(--f-num);font-variant-numeric:tabular-nums;text-align:right}
+.tag{font-size:12px;text-align:center;border-radius:99px;border:1px solid currentColor;padding:0 6px}
+.tag.perfect{color:var(--gold)} .tag.ok{color:var(--ok)} .tag.miss{color:var(--danger)}
+.tally{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 12px;margin:0;font-size:14px}
+.tally span{color:var(--muted)}
+.tally em{font-style:normal;color:var(--muted);font-family:var(--f-num);font-size:12px;text-align:right}
+.tally b{font-family:var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:10px}
+.total b{font-family:var(--f-num);font-size:40px;color:var(--brass);font-variant-numeric:tabular-nums;line-height:1}
+.best{font-size:13px;color:var(--muted)}
+.best .new{color:var(--gold);font-weight:700}
+
+@media (prefers-reduced-motion:reduce){
+  #game.tense .tension{animation:none;opacity:.8}
+  .bignum.hit,.timer.bump,.hud.shake,.done.ready{animation:none}
+  .loupe{transition:opacity .1s}
+}
+</style>
+
+</head>
+<body>
+<div id="app">
+  <!-- HOME -->
+  <section id="home" class="screen">
+    <div class="home-in">
+      <div class="ruler" aria-hidden="true"><b>0°</b></div>
+      <div class="top">
+        <p class="eyebrow" data-i18n="eyebrow">強迫對齊・地球宇宙</p>
+        <span class="badge" data-i18n="badge">免註冊・打開就玩</span>
+      </div>
+      <h1 class="title" id="title" aria-label="差一度">差一<span id="tilt" role="img" aria-label="度（歪的，可以拖曳轉正）">度</span></h1>
+      <p class="tiltinfo" id="tiltInfo">「度」歪了 <strong id="tiltDeg">2.7°</strong>，拖曳它轉轉看</p>
+      <p class="lede" data-i18n="lede"></p>
+      <div class="startrow">
+        <div class="field">
+          <label for="nick" data-i18n="nickLabel"></label>
+          <input id="nick" maxlength="12" autocomplete="off">
+        </div>
+        <button class="btn primary" id="startBtn">開始遊戲</button>
+      </div>
+      <div class="sect">
+        <h2 data-i18n="settings"></h2>
+        <div class="opts">
+          <div class="opt"><span data-i18n="lang"></span><div class="seg" id="langSeg" role="radiogroup"><button type="button" data-v="zh">中文</button><button type="button" data-v="en">English</button></div></div>
+          <div class="opt"><span data-i18n="music"></span><div class="seg" id="musicSeg" role="radiogroup"><button type="button" data-v="1" data-i18n="on"></button><button type="button" data-v="0" data-i18n="off"></button></div></div>
+          <div class="opt"><span data-i18n="sound"></span><div class="seg" id="soundSeg" role="radiogroup"><button type="button" data-v="1" data-i18n="on"></button><button type="button" data-v="0" data-i18n="off"></button></div></div>
+        </div>
+      </div>
+      <div class="sect">
+        <h2 data-i18n="diffTitle"></h2>
+        <div class="diffs" id="diffs" role="radiogroup" aria-label="難度"></div>
+      </div>
+      <div class="sect">
+        <h2 data-i18n="worldsTitle"></h2>
+        <div class="levels" id="levels"></div>
+      </div>
+      <div class="sect">
+        <h2 data-i18n="rulesTitle"></h2>
+        <ul class="rules" id="rules"></ul>
+      </div>
+      <p class="foot" data-i18n="foot"></p>
+    </div>
+  </section>
+
+  <div class="overlay" id="ovChapter" hidden></div>
+
+  <!-- GAME -->
+  <section id="game" class="screen" hidden>
+    <header class="hud" id="hud">
+      <button class="iconbtn" id="pauseBtn" data-i18n-aria="pause">Ⅱ</button>
+      <div class="lvtag"><div class="k" id="lvK">LEVEL 1/3</div><div class="n" id="lvN">京都・黃昏</div></div>
+      <button class="iconbtn" id="musicBtn" data-i18n-aria="musicBtn">♪</button>
+      <div class="timer" id="timer" aria-live="off">30</div>
+      <div class="plus" id="plus" aria-hidden="true"></div>
+    </header>
+    <div class="tbar"><i id="tbar"></i></div>
+    <div class="stage-wrap" id="stageWrap">
+      <div class="stage" id="stage">
+        <canvas id="cv" data-i18n-aria="canvas"></canvas>
+        <div class="loupe" id="loupe" data-s="far" aria-hidden="true">
+          <canvas id="lcv"></canvas>
+          <div class="lread"><small id="lname"></small><b id="ldeg">0.0°</b><span id="ldir"></span></div>
+        </div>
+        <div class="toast" id="toast" role="status"></div>
+        <div class="count" id="count" aria-live="polite"></div>
+      </div>
+    </div>
+    <footer class="tools">
+      <div class="selrow"><span id="selName"></span><span class="kbd" data-i18n="kbd"></span></div>
+      <div class="btnrow">
+        <button class="nudge" data-d="-1" aria-label="逆時針 1 度">↺ 1°</button>
+        <button class="nudge" data-d="-0.1" aria-label="逆時針 0.1 度">↺ 0.1°</button>
+        <button class="nudge" data-d="0.1" aria-label="順時針 0.1 度">0.1° ↻</button>
+        <button class="nudge" data-d="1" aria-label="順時針 1 度">1° ↻</button>
+        <button class="done" id="doneBtn" disabled>完成 0/5</button>
+      </div>
+    </footer>
+    <div class="tension" aria-hidden="true"></div>
+    <div class="bignum" id="bignum" aria-hidden="true"></div>
+    <div class="overlay" id="ovIntro" hidden></div>
+    <div class="overlay" id="ovPause" hidden>
+      <div class="card">
+        <p class="eyebrow" data-i18n="paused"></p>
+        <h2 data-i18n="breathe"></h2>
+        <p class="place" data-i18n="pausedNote"></p>
+        <div class="opts">
+          <div class="opt"><span data-i18n="music"></span><div class="seg" id="pMusicSeg" role="radiogroup"><button type="button" data-v="1" data-i18n="on"></button><button type="button" data-v="0" data-i18n="off"></button></div></div>
+          <div class="opt"><span data-i18n="sound"></span><div class="seg" id="pSoundSeg" role="radiogroup"><button type="button" data-v="1" data-i18n="on"></button><button type="button" data-v="0" data-i18n="off"></button></div></div>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="resumeBtn" data-i18n="resume"></button>
+          <button class="btn ghost" id="restartBtn" data-i18n="restart"></button>
+          <button class="btn ghost" id="quitBtn" data-i18n="home"></button>
+        </div>
+      </div>
+    </div>
+    <div class="overlay" id="ovResult" hidden></div>
+  </section>
+</div>
+
+<script>
+(() => {
+'use strict';
+const W = 360, H = 480;
+const TOL = 0.5, PERFECT = 0.1, TENSE_AT = 8, PEAK_AT = 3;
+const PERFECT_BONUS = 2, TIME_PTS = 20, MERCY_AFTER = 2, MERCY_SECS = 5;
+// Three difficulties, named after how much a crooked thing bothers you.
+// loupe: 'guide' = degrees + which way to turn, 'degrees' = degrees only, 'zoom' = magnified view only.
+const DIFFS = [
+  { key: 'easy', level: { zh: '簡單', en: 'EASY' }, name: { zh: '看到會歪頭', en: 'Head Tilter' }, tol: 1.5, perfect: 0.3, timeMul: 1.35, mult: 0.6, loupe: 'guide',
+    note: { zh: '差 1.5° 內就算 · 時間多 35% · 放大鏡告訴你往哪轉', en: 'Within 1.5° counts · 35% more time · loupe shows which way to turn' } },
+  { key: 'normal', level: { zh: '普通', en: 'NORMAL' }, name: { zh: '忍不住伸手', en: 'Itchy Fingers' }, tol: 0.5, perfect: 0.1, timeMul: 1, mult: 1, loupe: 'degrees',
+    note: { zh: '差 0.5° 內才算 · 標準時間 · 放大鏡顯示度數', en: 'Within 0.5° counts · standard time · loupe shows degrees' } },
+  { key: 'hard', level: { zh: '困難', en: 'HARD' }, name: { zh: '不轉正睡不著', en: 'Sleepless Till Straight' }, tol: 0.2, perfect: 0.1, timeMul: 0.85, mult: 1.5, loupe: 'zoom',
+    note: { zh: '差 0.2° 內才算 · 時間少 15% · 放大鏡不給度數', en: 'Within 0.2° counts · 15% less time · loupe shows no numbers' } },
+];
+
+/* ---------- language: every player-facing string, Chinese and English ---------- */
+let LANG = 'zh';
+const tr = x => x == null ? '' : typeof x === 'string' ? x : (x[LANG] ?? x.zh);
+const T = (zh, en) => LANG === 'en' ? en : zh; // for text drawn on the canvas
+// Text that stays in its local language in both modes (a Japanese shop sign in Kyoto, say).
+const LOCAL_TEXT = new Set();
+const LOCAL = s => (LOCAL_TEXT.add(s), s);
+const UI = {
+  zh: {
+    eyebrow: '強迫對齊・地球宇宙', badge: '免註冊・打開就玩',
+    title: '差一<span id="tilt" role="img" aria-label="度（歪的，可以拖曳轉正）">度</span>', titleLabel: '差一度',
+    tiltStart: d => `「度」歪了 <strong id="tiltDeg">${d}</strong>，拖曳它轉轉看`,
+    tiltWin: d => `「度」只差 <strong id="tiltDeg">${d}</strong>。很好，你就是這個遊戲要找的人。`,
+    tiltMore: d => `「度」還差 <strong id="tiltDeg">${d}</strong>，再轉轉看`,
+    tiltAgain: d => `「度」又歪了 <strong id="tiltDeg">${d}</strong>`,
+    lede: '十個大關卡、一百個小關卡、十種畫風，從農場一路到地球軌道。動物沒轉正前會一直動，轉正了就叫給你聽。沒有自動吸附，差多少度全靠手感和放大鏡。',
+    nickLabel: '暱稱（選填，只存在這台裝置）', nickPh: '例如：Nick', start: '開始遊戲', cont: s => `繼續 ${s}`,
+    settings: '設定', lang: '語言', music: '背景音樂', sound: '音效', on: '開', off: '關',
+    diffTitle: '難度：歪掉的東西，你有多在意？', worldsTitle: '地球宇宙・十大關卡，每個大關 10 個小關',
+    rulesTitle: '規則',
+    rules: [['倒數計時', '依物品數量和難度給時間，全部轉正後按「完成」；最後 8 秒進入緊張模式。'], ['會動的', '動物和太空人沒轉正前會一直動。轉正了會發出叫聲，然後安靜下來。'], ['+2 秒', '每完美對齊一件，多給 2 秒。轉得越準，時間越多。'], ['連動', '有些物品綁在一起，轉一個會帶動另一個。'], ['放大鏡', '旋轉時旁邊會出現放大鏡，幫你看清楚還差多少。']],
+    foot: '成績只存在你這台裝置的瀏覽器，不需要帳號。建議開聲音。',
+    pause: '暫停', musicBtn: '背景音樂開關', canvas: '遊戲畫面：拖曳物品旋轉',
+    selNone: '點選物品來調整', sel: n => `已選取：<strong>${n}</strong>`, kbd: '鍵盤 ← → 微調 0.1°，按住 Shift 為 1°',
+    nudge: ['逆時針 1 度', '逆時針 0.1 度', '順時針 0.1 度', '順時針 1 度'], done: (n, m) => `完成 ${n}/${m}`,
+    paused: '已暫停', breathe: '喘口氣', pausedNote: '計時已停止。物品不會跑掉。', resume: '繼續', restart: '重新開始', home: '回首頁',
+    go: '開始', dragHint: '按住物品拖曳來旋轉', pickFirst: '先點一下要調整的物品',
+    linked: (a, b) => `連動！轉「${a}」會帶動「${b}」`, linkChip: '連動',
+    perfectToast: (n, e, b) => `完美！${n} 只差 ${e}°${b ? `　+${b} 秒` : ''}`, allSet: '全部對齊！按「完成」結算，或繼續微調拿完美加成',
+    ldPerfect: '完美', ldOk: '已對齊', ldCcw: '↺ 往逆時針', ldCw: '↻ 往順時針',
+    introEyebrow: (c, cn, s, st) => `第 ${c} 大關 ${cn} · 小關 ${s} · ${st}`, introPlace: (p, n, d) => `${p} · ${n} 件要轉正 · 難度「${d}」`,
+    tips: (tol, pf) => ['按住物品拖著轉；手指離物品中心越遠，轉得越細。', '下方按鈕可微調 0.1°，按住不放會連續轉。', `差 ${tol}° 以內才算對齊，${pf}° 以內是「完美」，每件完美多給 2 秒。`],
+    goBtn: s => `開始・${s} 秒`,
+    stPerfect: '完美', stOk: '已對齊', stMiss: '未對齊',
+    tAligned: '對齊物品', tPrec: '精準加成', tPrecNote: '完美 +50 / 件', tTime: '剩餘時間', tTimeNote: (s, p) => `${s} 秒 × ${p}`, tNoTime: '未過關不計', tTrap: '陷阱', tMult: '難度倍率',
+    trapLost: '沒有過關，陷阱不計分。', trapKept: n => `${n}。你忍住了，+200。`, trapStraight: n => `你把${n}扶正了。它本來就是斜的，−150。`, trapMoved: n => `你動了${n}，還好沒有扶正。它本來就是斜的。`,
+    win: nick => `${nick ? nick + '，' : ''}過關`, lose: '時間到', total: '總分', best: s => `最佳紀錄 ${s}`, newRec: '新紀錄！', allTotal: s => `全部 100 關總分 <strong>${s}</strong>`,
+    next: '下一關', again: '再玩一次', retry: '馬上重來', first: '從第 1 關開始',
+    resEyebrow: (s, cn, t, d) => `${s} ${cn}・${t} · 難度「${d}」`, stars: n => `${n} 顆星`,
+    worldK: (c, st) => `第 ${c} 大關 · ${st}`, worldProg: (d, n, s, m) => `已過 ${d}/${n} 關　★ ${s}/${m}`,
+    stageInfo: (n, t) => `${n} 件 · ${t} 秒`, stageBest: s => `最佳 ${s}`, play: s => `開始 ${s}`, back: '返回',
+  },
+  en: {
+    eyebrow: 'An alignment game · Earth universe', badge: 'No sign-up · just play',
+    title: 'Just One <span id="tilt" role="img" aria-label="Degree (crooked, drag to straighten)">Degree</span>', titleLabel: 'Just One Degree',
+    tiltStart: d => `“Degree” is off by <strong id="tiltDeg">${d}</strong>. Drag it straight.`,
+    tiltWin: d => `Only <strong id="tiltDeg">${d}</strong> off. You're exactly who this game is for.`,
+    tiltMore: d => `Still <strong id="tiltDeg">${d}</strong> off. Keep turning.`,
+    tiltAgain: d => `Crooked again: <strong id="tiltDeg">${d}</strong>`,
+    lede: 'Ten worlds, a hundred stages, ten art styles, from a farm all the way to Earth orbit. Animals fidget until they are straight, then call out to you. No snapping: every degree is down to your hand and the loupe.',
+    nickLabel: 'Nickname (optional, saved on this device only)', nickPh: 'e.g. Nick', start: 'Play', cont: s => `Continue ${s}`,
+    settings: 'Settings', lang: 'Language', music: 'Music', sound: 'Sound effects', on: 'On', off: 'Off',
+    diffTitle: 'Difficulty: how much do crooked things bother you?', worldsTitle: 'Earth universe · 10 worlds, 10 stages each',
+    rulesTitle: 'Rules',
+    rules: [['Countdown', 'Time depends on how many things there are and your difficulty. Straighten everything, then press Done. The last 8 seconds get tense.'], ['Alive', 'Animals and astronauts fidget until straightened. Then they call out and settle down.'], ['+2 s', 'Every perfect alignment adds 2 seconds. The more precise, the more time.'], ['Linked', 'Some things are tied together: turning one turns the other.'], ['Loupe', 'A loupe appears while you turn, so you can see exactly how far off you are.']],
+    foot: 'Scores stay in this browser on this device. No account needed. Sound on is best.',
+    pause: 'Pause', musicBtn: 'Music on/off', canvas: 'Game scene: drag objects to rotate them',
+    selNone: 'Tap an object to adjust it', sel: n => `Selected: <strong>${n}</strong>`, kbd: 'Keyboard ← → nudges 0.1°, hold Shift for 1°',
+    nudge: ['Counterclockwise 1 degree', 'Counterclockwise 0.1 degree', 'Clockwise 0.1 degree', 'Clockwise 1 degree'], done: (n, m) => `Done ${n}/${m}`,
+    paused: 'Paused', breathe: 'Take a breath', pausedNote: 'The clock is stopped. Nothing will move.', resume: 'Resume', restart: 'Restart', home: 'Home',
+    go: 'GO', dragHint: 'Press and drag an object to rotate it', pickFirst: 'Tap the object you want to adjust first',
+    linked: (a, b) => `Linked! Turning ${a} also turns ${b}`, linkChip: 'LINK',
+    perfectToast: (n, e, b) => `Perfect! ${n} is only ${e}° off${b ? `  +${b}s` : ''}`, allSet: 'All aligned! Press Done, or keep fine-tuning for perfect bonuses',
+    ldPerfect: 'Perfect', ldOk: 'Aligned', ldCcw: '↺ Turn left', ldCw: '↻ Turn right',
+    introEyebrow: (c, cn, s, st) => `World ${c} ${cn} · Stage ${s} · ${st}`, introPlace: (p, n, d) => `${p} · ${n} to straighten · ${d}`,
+    tips: (tol, pf) => ['Press and drag to turn. The farther from the center you hold, the finer it turns.', 'The buttons below nudge 0.1°. Hold one to keep turning.', `Within ${tol}° counts as aligned, within ${pf}° is perfect, and each perfect adds 2 seconds.`],
+    goBtn: s => `Start · ${s}s`,
+    stPerfect: 'Perfect', stOk: 'Aligned', stMiss: 'Off',
+    tAligned: 'Aligned', tPrec: 'Precision bonus', tPrecNote: 'Perfect +50 each', tTime: 'Time left', tTimeNote: (s, p) => `${s}s × ${p}`, tNoTime: 'Only on a clear', tTrap: 'Trap', tMult: 'Difficulty',
+    trapLost: 'Not cleared, so the trap does not count.', trapKept: n => `${n}. You held back: +200.`, trapStraight: n => `You straightened the ${n}. It is meant to lean: −150.`, trapMoved: n => `You moved the ${n}, but did not straighten it. It is meant to lean.`,
+    win: nick => `${nick ? nick + ', ' : ''}Cleared!`, lose: "Time's up", total: 'Score', best: s => `Best ${s}`, newRec: 'New record!', allTotal: s => `All 100 stages: <strong>${s}</strong>`,
+    next: 'Next stage', again: 'Play again', retry: 'Try again', first: 'Back to stage 1',
+    resEyebrow: (s, cn, t, d) => `${s} ${cn} · ${t} · ${d}`, stars: n => `${n} stars`,
+    worldK: (c, st) => `World ${c} · ${st}`, worldProg: (d, n, s, m) => `Cleared ${d}/${n}  ★ ${s}/${m}`,
+    stageInfo: (n, t) => `${n} objects · ${t}s`, stageBest: s => `Best ${s}`, play: s => `Play ${s}`, back: 'Back',
+  },
+};
+const U = (key, ...args) => { const v = UI[LANG][key] ?? UI.zh[key]; return typeof v === 'function' ? v(...args) : v; };
+const $ = s => document.querySelector(s);
+const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+const norm = a => ((a + 180) % 360 + 360) % 360 - 180;
+const rnd = (a, b) => a + S.rng() * (b - a);
+const fmt = e => { const a = Math.abs(e); return a < 1 ? a.toFixed(2) : a.toFixed(1); };
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+function mulberry(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+/* ---------- storage (per-viewer convenience only) ---------- */
+const store = {
+  data: { nick: '', best: {}, sound: true, music: true, lang: '' },
+  load() { try { const d = JSON.parse(localStorage.getItem('chayidu.v3') || 'null'); if (d) Object.assign(this.data, d); } catch (e) {} },
+  save() { try { localStorage.setItem('chayidu.v3', JSON.stringify(this.data)); } catch (e) {} }
+};
+
+/* ---------- Q sound library: every sound in the game uses this cute recipe ----------
+   A pure sine with a soft triangle overtone, gliding pitch and a little vibrato, the same
+   recipe as the chosen 「Q 版小雞」. Every function takes (ac, out, t) so it also renders in
+   an OfflineAudioContext (tests and the sound gallery). Object sounds take a pitch ratio. */
+const QS = (() => {
+  const nb = new WeakMap();
+  const noise = (ac) => {
+    if (!nb.has(ac)) { const b = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), d = b.getChannelData(0); let s = 12345; for (let i = 0; i < d.length; i++) { s = (s * 16807) % 2147483647; d[i] = s / 2147483647 * 2 - 1; } nb.set(ac, b); }
+    return nb.get(ac);
+  };
+  // One cute voice: pts = [[time, Hz], ...] relative to t.
+  function q(ac, out, t, pts, dur, o = {}) {
+    const vol = o.vol ?? 0.4, end = t + dur, a = o.attack ?? 0.01;
+    let dest = out;
+    if (o.trem) {
+      const tg = ac.createGain(), l = ac.createOscillator(), lg = ac.createGain();
+      tg.gain.value = 1 - o.trem[1]; l.frequency.value = o.trem[0]; lg.gain.value = o.trem[1];
+      l.connect(lg); lg.connect(tg.gain); tg.connect(out); l.start(t); l.stop(end); dest = tg;
+    }
+    [['sine', 1, 1], ['triangle', 2, o.over ?? 0.13]].forEach(([type, mul, g]) => {
+      const osc = ac.createOscillator(), env = ac.createGain(), v = vol * g;
+      osc.type = type;
+      osc.frequency.setValueAtTime(pts[0][1] * mul, t + pts[0][0]);
+      for (const [dt, f] of pts.slice(1)) osc.frequency.exponentialRampToValueAtTime(f * mul, t + dt);
+      if (o.vib) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = o.vib[0]; lg.gain.value = o.vib[1] * mul; l.connect(lg); lg.connect(osc.frequency); l.start(t); l.stop(end); }
+      env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(v, t + a);
+      env.gain.linearRampToValueAtTime(v * 0.8, t + Math.max(a, dur * (o.hold ?? 0.6))); env.gain.linearRampToValueAtTime(0, end);
+      osc.connect(env); env.connect(dest); osc.start(t); osc.stop(end + 0.02);
+    });
+  }
+  function puff(ac, out, t, dur, freq, vol) {
+    const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    n.buffer = noise(ac); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 2;
+    g.gain.setValueAtTime(vol, t); g.gain.linearRampToValueAtTime(0, t + dur);
+    n.connect(f); f.connect(g); g.connect(out); n.start(t); n.stop(t + dur);
+  }
+  const note = (ac, out, t, f, dur, vol = 0.32) => q(ac, out, t, [[0, f], [dur, f]], dur, { attack: 0.004, hold: 0.12, vol, over: 0.2 });
+  // Creatures: each one has its own little Q-style call.
+  const creature = {
+    chick: (ac, o, t) => { // the chosen 「Q 版小雞」: 啾、啾、啾～
+      [0, 0.17, 0.34].forEach((d, k) => q(ac, o, t + d, [[0, 2900 + k * 80], [0.04, 3500 + k * 80], [0.11, 3000]], 0.11, { vol: 0.42 }));
+      q(ac, o, t + 0.51, [[0, 3600], [0.24, 2700]], 0.24, { vib: [12, 60], vol: 0.42 });
+    },
+    moo: (ac, o, t) => q(ac, o, t, [[0, 330], [0.12, 440], [0.45, 360]], 0.5, { vib: [6, 10], attack: 0.06, vol: 0.45, over: 0.2 }),
+    oink: (ac, o, t) => [0, 0.15].forEach((d) => { q(ac, o, t + d, [[0, 620], [0.09, 430]], 0.1, { vol: 0.4, over: 0.25 }); puff(ac, o, t + d, 0.07, 1200, 0.06); }),
+    baa: (ac, o, t) => q(ac, o, t, [[0, 760], [0.06, 840], [0.4, 700]], 0.42, { trem: [16, 0.5], vol: 0.42 }),
+    bubble: (ac, o, t) => [0, 1, 2].forEach((k) => q(ac, o, t + k * 0.09, [[0, 500 + k * 150], [0.05, 1500 + k * 300]], 0.06, { attack: 0.004, hold: 0.3, vol: 0.4 })),
+    turtle: (ac, o, t) => { q(ac, o, t, [[0, 420], [0.25, 380]], 0.3, { vib: [5, 8], vol: 0.4 }); q(ac, o, t + 0.32, [[0, 600], [0.05, 1500]], 0.06, { attack: 0.004, vol: 0.3 }); },
+    whale: (ac, o, t) => q(ac, o, t, [[0, 520], [0.25, 880], [0.6, 700], [0.8, 560]], 0.8, { vib: [5, 14], attack: 0.08, vol: 0.4 }),
+    squish: (ac, o, t) => q(ac, o, t, [[0, 1100], [0.08, 600], [0.2, 1300]], 0.22, { vib: [20, 60], vol: 0.4 }),
+    clack: (ac, o, t) => [[0, 1900], [0.1, 1900], [0.2, 2300]].forEach(([d, f]) => q(ac, o, t + d, [[0, f], [0.03, f * 0.9]], 0.045, { attack: 0.002, hold: 0.1, vol: 0.42 })),
+    honk: (ac, o, t) => [0, 0.16].forEach((d) => q(ac, o, t + d, [[0, 880], [0.1, 700]], 0.12, { vol: 0.42, over: 0.3 })),
+    camel: (ac, o, t) => q(ac, o, t, [[0, 440], [0.35, 380]], 0.4, { trem: [24, 0.6], vol: 0.45 }),
+    carousel: (ac, o, t) => [1047, 1319, 1568, 2093].forEach((f, k) => note(ac, o, t + k * 0.11, f, 0.35)),
+    radio: (ac, o, t) => { note(ac, o, t, 1500, 0.07); note(ac, o, t + 0.1, 2000, 0.07); q(ac, o, t + 0.22, [[0, 1200], [0.2, 2400]], 0.22, { vib: [14, 40], vol: 0.35 }); },
+  };
+  // Things: a cute sound per material, tuned by r so a level's objects form a little tune.
+  const thing = {
+    bell: (ac, o, t, r) => { q(ac, o, t, [[0, 1568 * r], [0.4, 1568 * r]], 0.45, { attack: 0.002, hold: 0.06, vol: 0.32, over: 0.3 }); q(ac, o, t, [[0, 3760 * r], [0.2, 3760 * r]], 0.2, { attack: 0.002, hold: 0.05, vol: 0.08 }); },
+    wood: (ac, o, t, r) => q(ac, o, t, [[0, 880 * r], [0.05, 800 * r]], 0.09, { attack: 0.002, hold: 0.05, vol: 0.45, over: 0.25 }),
+    pop: (ac, o, t, r) => q(ac, o, t, [[0, 500 * r], [0.05, 1300 * r]], 0.07, { attack: 0.003, hold: 0.2, vol: 0.4 }),
+    boing: (ac, o, t, r) => q(ac, o, t, [[0, 300 * r], [0.08, 620 * r], [0.3, 520 * r]], 0.32, { vib: [18, 40 * r], vol: 0.38 }),
+    twinkle: (ac, o, t, r) => { note(ac, o, t, 1760 * r, 0.18, 0.28); note(ac, o, t + 0.08, 2349 * r, 0.22, 0.24); },
+    beep: (ac, o, t, r) => { note(ac, o, t, 1320 * r, 0.08); note(ac, o, t + 0.1, 1760 * r, 0.12); },
+    jingle: (ac, o, t, r) => [0, 0.07, 0.14].forEach((d, k) => note(ac, o, t + d, (2093 + k * 260) * r, 0.16, 0.22)),
+    shimmer: (ac, o, t, r) => { q(ac, o, t, [[0, 1200 * r], [0.4, 1800 * r]], 0.4, { vib: [10, 30], vol: 0.25 }); q(ac, o, t + 0.05, [[0, 2400 * r], [0.35, 3200 * r]], 0.35, { vib: [12, 40], vol: 0.1 }); },
+    clunk: (ac, o, t, r) => { q(ac, o, t, [[0, 360 * r], [0.06, 300 * r]], 0.1, { attack: 0.002, hold: 0.05, vol: 0.45 }); note(ac, o, t + 0.13, 1800 * r, 0.25); },
+    meow: (ac, o, t, r) => q(ac, o, t, [[0, 900 * r], [0.08, 1300 * r], [0.3, 850 * r]], 0.32, { vib: [8, 20], vol: 0.4 }),
+  };
+  // Jingles for the game itself.
+  const ui = {
+    tick: (ac, o, t, fine) => q(ac, o, t, [[0, fine ? 2600 : 1500], [0.02, fine ? 2400 : 1300]], 0.025, { attack: 0.002, hold: 0.2, vol: fine ? 0.07 : 0.1 }),
+    sec: (ac, o, t, peak) => note(ac, o, t, peak ? 2400 : 1900, 0.07, peak ? 0.2 : 0.13),
+    chime: (ac, o, t) => thing.bell(ac, o, t, 1),
+    perfect: (ac, o, t) => [2093, 2637, 3136].forEach((f, k) => note(ac, o, t + k * 0.06, f, 0.3, 0.2)),
+    allSet: (ac, o, t) => [784, 988, 1175, 1568].forEach((f, k) => note(ac, o, t + k * 0.06, f, 0.6, 0.18)),
+    win: (ac, o, t) => { [523, 659, 784, 1047].forEach((f, k) => note(ac, o, t + k * 0.1, f, 0.22, 0.3)); q(ac, o, t + 0.42, [[0, 1047], [0.5, 1047]], 0.6, { vib: [7, 12], vol: 0.25 }); },
+    fail: (ac, o, t) => { q(ac, o, t, [[0, 660], [0.25, 470]], 0.28, { vib: [7, 14], vol: 0.35 }); q(ac, o, t + 0.32, [[0, 560], [0.5, 330]], 0.55, { vib: [6, 18], vol: 0.35 }); },
+  };
+  // Pentatonic steps, so aligning a level's objects one by one sounds like a melody.
+  const SCALE = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2, 9 / 4, 5 / 2];
+  // q / note / puff are exported so a world file can define its own sounds in the same style.
+  return { creature, thing, ui, SCALE, q, note, puff };
+})();
+
+/* ---------- audio: everything synthesized, no files ---------- */
+const AU = {
+  ctx: null, master: null, music: null, sfx: null, _nb: null,
+  init() {
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      this.ctx = new AC();
+      this.master = this.ctx.createGain(); this.master.gain.value = 0.7; this.master.connect(this.ctx.destination);
+      this.music = this.ctx.createGain(); this.music.gain.value = this.musicOn ? 0.5 : 0; this.music.connect(this.master);
+      this.sfx = this.ctx.createGain(); this.sfx.gain.value = this.soundOn ? 0.9 : 0; this.sfx.connect(this.master);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  musicOn: true, soundOn: true,
+  setPrefs(music, sound) {
+    this.musicOn = music; this.soundOn = sound;
+    if (!this.ctx) return;
+    this.music.gain.setTargetAtTime(music ? 0.5 : 0, this.ctx.currentTime, 0.02);
+    this.sfx.gain.setTargetAtTime(sound ? 0.9 : 0, this.ctx.currentTime, 0.02);
+  },
+  tone(f, dur, o = {}) {
+    const c = this.ctx; if (!c || this.silent) return;
+    const t = o.at ?? c.currentTime, osc = c.createOscillator(), g = c.createGain();
+    osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(f, t);
+    if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + dur);
+    const v = o.vol ?? 0.2, a = o.attack ?? 0.004;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(o.dest || this.sfx); osc.start(t); osc.stop(t + dur + 0.03);
+  },
+  noise(dur, o = {}) {
+    const c = this.ctx; if (!c || this.silent) return;
+    const t = o.at ?? c.currentTime;
+    if (!this._nb) { const b = c.createBuffer(1, c.sampleRate * 0.5, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this._nb = b; }
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = this._nb; f.type = 'highpass'; f.frequency.value = o.freq || 2000;
+    g.gain.setValueAtTime(o.vol ?? 0.1, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(o.dest || this.sfx); s.start(t); s.stop(t + dur + 0.03);
+  },
+  midi: n => 440 * Math.pow(2, (n - 69) / 12),
+  // Every sound goes through the Q library. Calls and object sounds are logged even when muted, for tests.
+  play(fn, ...args) { const c = this.ctx; if (!c || this.silent) return; fn(c, this.sfx, c.currentTime, ...args); },
+  tick(fine) { this.play(QS.ui.tick, fine); },
+  chime() { this.play(QS.ui.chime); },
+  perfect() { this.play(QS.ui.perfect); },
+  allSet() { this.play(QS.ui.allSet); },
+  win() { this.play(QS.ui.win); },
+  fail() { this.play(QS.ui.fail); },
+  call(kind) { S.sfxLog.push(kind); if (S.sfxLog.length > 50) S.sfxLog.shift(); this.play(QS.creature[kind]); },
+  thing(kind, note) { S.sfxLog.push('sfx:' + kind); if (S.sfxLog.length > 50) S.sfxLog.shift(); this.play(QS.thing[kind], QS.SCALE[note % QS.SCALE.length] * (note >= QS.SCALE.length ? 2 : 1)); },
+  secTick(peak) { this.play(QS.ui.sec, peak); }
+};
+
+/* ---------- music: tiny step sequencer per level ---------- */
+const SONGS = {
+  farm: { bpm: 108, leadType: 'triangle', leadVol: 0.08, bassType: 'sine', bassVol: 0.13,
+    lead: [72,0,74,76, 79,0,76,0, 74,0,72,0, 74,76,0,0, 79,0,81,79, 76,0,74,0, 72,0,74,76, 72,0,0,0],
+    bass: [48,0,0,0, 55,0,0,0, 48,0,0,0, 55,0,0,0, 53,0,0,0, 55,0,0,0, 48,0,0,0, 43,0,0,0] },
+  reef: { bpm: 76, leadType: 'sine', leadVol: 0.07, bassType: 'sine', bassVol: 0.12, attack: 0.03,
+    lead: [64,67,71,76, 71,67,64,67, 62,66,69,74, 69,66,62,66, 60,64,67,72, 67,64,60,64, 62,66,69,74, 71,69,66,62],
+    bass: [52,0,0,0, 0,0,0,0, 50,0,0,0, 0,0,0,0, 48,0,0,0, 0,0,0,0, 50,0,0,0, 0,0,0,0] },
+  desk: { bpm: 84, leadType: 'triangle', leadVol: 0.07, bassType: 'sine', bassVol: 0.13,
+    lead: [69,0,72,0, 76,0,74,72, 0,0,69,0, 72,0,0,0, 67,0,71,0, 74,0,72,71, 0,0,67,0, 69,0,0,0],
+    bass: [45,0,0,45, 0,0,52,0, 45,0,0,0, 52,0,0,0, 43,0,0,43, 0,0,50,0, 43,0,0,0, 50,0,0,0] },
+  polar: { bpm: 88, leadType: 'sine', leadVol: 0.06, bassType: 'sine', bassVol: 0.11, attack: 0.02,
+    lead: [84,0,79,0, 76,0,79,0, 83,0,79,0, 74,0,0,0, 81,0,76,0, 72,0,76,0, 79,0,76,0, 71,0,0,0],
+    bass: [52,0,0,0, 0,0,0,0, 55,0,0,0, 0,0,0,0, 57,0,0,0, 0,0,0,0, 55,0,0,0, 0,0,0,0] },
+  desert: { bpm: 96, leadType: 'square', leadVol: 0.04, bassType: 'triangle', bassVol: 0.12,
+    lead: [62,63,66,67, 69,0,67,66, 63,0,62,0, 0,0,0,0, 69,70,69,67, 66,0,67,66, 63,62,63,0, 62,0,0,0],
+    bass: [50,0,0,0, 57,0,0,0, 50,0,0,0, 57,0,0,0, 50,0,0,0, 55,0,0,0, 50,0,0,0, 45,0,0,0] },
+  neon: { bpm: 118, leadType: 'square', leadVol: 0.04, bassType: 'triangle', bassVol: 0.11, snare: true,
+    lead: [76,0,79,76, 0,74,0,72, 74,0,76,0, 79,0,0,0, 81,0,79,76, 0,74,0,76, 72,0,74,0, 72,0,0,0],
+    bass: [45,0,57,0, 45,0,57,0, 41,0,53,0, 41,0,53,0, 48,0,60,0, 48,0,60,0, 43,0,55,0, 43,0,55,0] },
+  space: { bpm: 100, leadType: 'sine', leadVol: 0.07, bassType: 'sine', bassVol: 0.12, attack: 0.01,
+    lead: [69,72,76,81, 76,72,69,72, 65,69,72,77, 72,69,65,69, 67,71,74,79, 74,71,67,71, 64,67,71,76, 71,67,64,67],
+    bass: [45,0,0,0, 0,0,0,0, 41,0,0,0, 0,0,0,0, 43,0,0,0, 0,0,0,0, 40,0,0,0, 0,0,0,0] },
+  jp: { bpm: 96, leadType: 'square', leadVol: 0.045, bassType: 'triangle', bassVol: 0.12,
+    lead: [74,0,79,0, 81,0,82,81, 79,0,75,0, 74,0,0,0, 81,0,82,0, 86,0,82,81, 79,0,81,0, 79,75,74,0],
+    bass: [50,0,0,0, 0,0,50,0, 43,0,0,0, 0,0,43,0, 46,0,0,0, 0,0,46,0, 45,0,0,0, 45,0,0,0] },
+  fr: { bpm: 112, leadType: 'triangle', leadVol: 0.09, bassType: 'sine', bassVol: 0.14, snare: true,
+    lead: [72,0,76,79, 0,81,79,0, 76,0,72,74, 76,0,0,0, 77,0,81,84, 0,81,77,0, 76,0,79,76, 72,0,0,0],
+    bass: [48,0,55,0, 48,0,55,0, 41,0,48,0, 41,0,48,0, 41,0,48,0, 43,0,50,0, 48,0,55,0, 43,0,0,0] },
+  it: { bpm: 80, leadType: 'triangle', leadVol: 0.06, bassType: 'sine', bassVol: 0.13, attack: 0.02,
+    lead: [62,65,69,74, 69,65,62,65, 67,70,74,79, 74,70,67,70, 69,73,76,81, 76,73,69,73, 62,65,69,74, 77,74,69,65],
+    bass: [50,0,0,0, 0,0,0,0, 43,0,0,0, 0,0,0,0, 45,0,0,0, 0,0,0,0, 50,0,0,0, 0,0,0,0] }
+};
+const MUS = {
+  song: null, step: 0, next: 0, timer: null, tense: false, peak: false, drone: null,
+  start(id) {
+    if (!AU.ctx || AU.silent) return; this.stop();
+    this.song = SONGS[id]; this.step = 0; this.next = AU.ctx.currentTime + 0.08;
+    this.timer = setInterval(() => this.sched(), 25);
+  },
+  stop() { clearInterval(this.timer); this.timer = null; this.setTense(false); },
+  sched() {
+    const c = AU.ctx, s = this.song; if (!c || !s) return;
+    const spb = 60 / (s.bpm * (this.peak ? 1.8 : this.tense ? 1.45 : 1)) / 4;
+    while (this.next < c.currentTime + 0.12) {
+      const i = this.step % s.lead.length, n = s.lead[i], b = s.bass[i], t = this.next;
+      if (n) AU.tone(AU.midi(n), spb * 1.7, { type: s.leadType, vol: s.leadVol, attack: s.attack || 0.005, at: t, dest: AU.music });
+      if (b) AU.tone(AU.midi(b), spb * 3.6, { type: s.bassType, vol: s.bassVol, at: t, dest: AU.music });
+      if (s.snare && i % 8 === 4) AU.noise(0.08, { vol: 0.05, freq: 3000, at: t, dest: AU.music });
+      if (this.tense && i % (this.peak ? 2 : 4) === 0) { // heartbeat, doubles in the final seconds
+        AU.tone(60, 0.14, { vol: 0.5, at: t, dest: AU.music });
+        AU.tone(52, 0.18, { vol: 0.34, at: t + 0.14, dest: AU.music });
+      }
+      this.next += spb; this.step++;
+    }
+  },
+  setTense(v) {
+    this.tense = v;
+    const c = AU.ctx; if (!c) return;
+    if (v && !this.drone && !AU.silent) {
+      const o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(), t = c.currentTime;
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(70, t); o.frequency.linearRampToValueAtTime(150, t + TENSE_AT);
+      f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.linearRampToValueAtTime(1400, t + TENSE_AT);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.05, t + 1.5);
+      o.connect(f); f.connect(g); g.connect(AU.music); o.start();
+      this.drone = { o, g };
+    } else if (!v && this.drone) {
+      const { o, g } = this.drone, t = c.currentTime;
+      g.gain.cancelScheduledValues(t); g.gain.setTargetAtTime(0.0001, t, 0.08); o.stop(t + 0.5);
+      this.drone = null;
+    }
+  }
+};
+
+/* ---------- drawing helpers ---------- */
+let KPX = 1; // device px per logical unit, used for shadow blur
+function pxSprite(c, cw, ch, fn) {
+  const P = 4, ox = -cw * P / 2, oy = -ch * P / 2;
+  const p = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(ox + x * P - 0.2, oy + y * P - 0.2, w * P + 0.4, h * P + 0.4); };
+  fn(p);
+}
+function comicShape(c, path, fill, lw = 3, shadow = true) {
+  if (shadow) { c.save(); c.translate(4, 4); path(); c.fillStyle = 'rgba(17,17,17,.9)'; c.fill(); c.restore(); }
+  path(); c.fillStyle = fill; c.fill(); c.lineWidth = lw; c.strokeStyle = '#111'; c.lineJoin = 'round'; c.stroke();
+}
+function softShadow(c, on) {
+  if (on) { c.shadowColor = 'rgba(40,20,5,.45)'; c.shadowBlur = 10 * KPX; c.shadowOffsetX = 4 * KPX; c.shadowOffsetY = 5 * KPX; }
+  else { c.shadowColor = 'transparent'; c.shadowBlur = 0; c.shadowOffsetX = 0; c.shadowOffsetY = 0; }
+}
+function txt(c, s, x, y, font, color, align = 'center') { c.font = font; c.fillStyle = color; c.textAlign = align; c.textBaseline = 'middle'; c.fillText(s, x, y); }
+
+let GRAIN = null;
+function makeGrain() {
+  const g = document.createElement('canvas'); g.width = 240; g.height = 320;
+  const x = g.getContext('2d'), im = x.createImageData(240, 320);
+  for (let i = 0; i < im.data.length; i += 4) { const v = Math.random() * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; }
+  x.putImageData(im, 0, 0); GRAIN = g;
+}
+/* ---------- shared shape helpers for the newer levels ---------- */
+function ell(c, x, y, rx, ry, fill, rot = 0) { c.beginPath(); c.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); c.fillStyle = fill; c.fill(); }
+function circ(c, x, y, r, fill) { ell(c, x, y, r, r, fill); }
+function poly(c, pts, fill) { c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.closePath(); c.fillStyle = fill; c.fill(); }
+function groundShadow(c, y, rx) { ell(c, 0, y, rx, rx * 0.18, 'rgba(40,70,20,.22)'); }
+
+/* ---------- result comments: one narrator per world, five tiers, several lines each ---------- */
+// Which tier a result falls in: cleared rounds by stars, failed rounds by how close they got.
+function gradeTier(r) {
+  if (r.win) return ['pass', 'good', 'perfect'][Math.max(1, Math.min(3, r.stars)) - 1];
+  return r.count - r.aligned <= 1 || r.aligned / r.count >= 0.6 ? 'close' : 'far';
+}
+// Pick a line for this chapter and tier, never the same one twice in a row.
+function pickComment(chapterKey, tier) {
+  const c = COMMENTS[chapterKey], list = c.tiers[tier], memo = S.lastComment || (S.lastComment = {});
+  let k = Math.floor(S.rng() * list.length);
+  if (list.length > 1 && memo[chapterKey + tier] === k) k = (k + 1) % list.length;
+  memo[chapterKey + tier] = k;
+  return { tier, headline: tr(list[k])[0], line: tr(list[k])[1], by: tr(c.by) };
+}
+
+/* ---------- the Earth universe: worlds register themselves from game/chapters/*.js ---------- */
+// The build (game/build.mjs) pastes every world file at the marker below, each in its own scope.
+const REG = [];
+function defineChapter(def) { REG.push(def); }
+function defineSong(key, song) { SONGS[key] = song; }
+function defineCreatureSound(key, fn) { QS.creature[key] = fn; }
+function defineThingSound(key, fn) { QS.thing[key] = fn; }
+// Time budgets calibrated by simulation (game/times.json, written by the calibrate tool).
+const CALIBRATED_TIMES = /*@@TIMES@@*/{};
+/*@@CHAPTERS@@*/
+REG.sort((a, b) => a.order - b.order);
+const CHAPTERS = REG;
+const LEVELS = REG.flatMap((ch, ci) => ch.stages.map((st, si) => Object.assign({ song: ch.song }, st, {
+  chapter: ci, stage: si,
+  time: CALIBRATED_TIMES[st.key] ?? st.time ?? Math.round(6 + 4.5 * st.objects.filter(o => !o.trap).length),
+})));
+const COMMENTS = Object.fromEntries(REG.map(c => [c.key, { by: c.narrator, tiers: c.comments }]));
+
+/* ---------- state ---------- */
+const S = { L: null, levelIdx: 0, diff: 1, objs: [], timeLeft: 30, timeTotal: 30, fails: {}, cd: [], sfxLog: [], rng: Math.random, manualClock: false, lastResult: null, running: false, paused: false, ended: false,
+  drag: null, selected: null, loupeObj: null, dirty: false, scale: 1, cssW: 360, cssH: 480, bg: null,
+  tense: false, lastSec: null, lastTxt: '', allWas: false, session: {}, pointerX: null };
+let K = 1, DPR = 1;
+const cv = $('#cv'), ctx = cv.getContext('2d'), lcv = $('#lcv'), lctx = lcv.getContext('2d');
+const loupe = $('#loupe'), doneBtn = $('#doneBtn'), timerEl = $('#timer'), gameEl = $('#game');
+const errOf = o => norm(o.angle - o.target);
+const DF = () => DIFFS[S.diff];
+const bestKey = i => `${DF().key}:${LEVELS[i].key}`;
+const levelTime = L => Math.round(L.time * DF().timeMul);
+const chapterOf = L => CHAPTERS[L.chapter];
+const stageLabel = L => `${L.chapter + 1}-${L.stage + 1}`;
+
+function buildBg(L, k) {
+  const b = document.createElement('canvas'); b.width = Math.round(W * k); b.height = Math.round(H * k);
+  const c = b.getContext('2d');
+  if (L.lowres) { const low = document.createElement('canvas'); low.width = 90; low.height = 120; L.bg(low.getContext('2d')); c.imageSmoothingEnabled = false; c.drawImage(low, 0, 0, b.width, b.height); }
+  else { c.setTransform(k, 0, 0, k, 0, 0); L.bg(c); }
+  return b;
+}
+// t: seconds, drives habits and ambient motion. Each object's `live` (0..1)
+// fades its habit out once it is aligned or held.
+function renderScene(c, k, L, objs, bg, t = 0.6) {
+  KPX = k;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(bg, 0, 0);
+  c.setTransform(k, 0, 0, k, 0, 0);
+  for (const o of objs) {
+    const a = { t: t + (o.phase || 0), live: o.live ?? 1 };
+    const m = o.habit ? o.habit(a.t, a.live) : null;
+    o.mx = (m && m.dx) || 0; o.my = (m && m.dy) || 0;
+    c.save(); c.translate(o.x + o.mx, o.y + o.my); c.rotate(rad(o.angle)); o.draw(c, a); c.restore();
+  }
+  if (L.overlay) { c.save(); L.overlay(c); c.restore(); }
+}
+function worldOf(o, lx, ly) { const a = rad(o.angle), x = o.x + (o.mx || 0), y = o.y + (o.my || 0); return [x + lx * Math.cos(a) - ly * Math.sin(a), y + lx * Math.sin(a) + ly * Math.cos(a)]; }
+function drawUI(c) {
+  c.setTransform(K, 0, 0, K, 0, 0);
+  // Linked pairs: a dashed line between them and a small LINK chip above.
+  for (const o of S.objs) {
+    if (!o.link) continue;
+    const t = S.objs.find(x => x.id === o.link.to); if (!t) continue;
+    const y = Math.max(12, Math.min(o.y - o.h / 2, t.y - t.h / 2) - 10), mx = (o.x + t.x) / 2;
+    c.save(); c.strokeStyle = 'rgba(227,176,75,.9)'; c.lineWidth = 1.5; c.setLineDash([3, 3]);
+    c.beginPath(); c.moveTo(o.x, y); c.lineTo(t.x, y); c.stroke(); c.setLineDash([]);
+    const label = U('linkChip') + ' →', w = Math.max(40, label.length * 7 + 10);
+    rr(c, mx - w / 2, y - 8.5, w, 17, 8.5); c.fillStyle = 'rgba(16,19,28,.88)'; c.fill(); c.strokeStyle = '#e3b04b'; c.stroke();
+    txt(c, label, mx, y + 0.5, '700 9.5px "Noto Sans TC", sans-serif', '#e3b04b'); c.restore();
+  }
+  for (const o of S.objs) {
+    if (o.trap || !o.wasAligned) continue;
+    const [bx, by] = worldOf(o, o.w / 2, -o.h / 2);
+    c.beginPath(); c.arc(bx, by, 8, 0, Math.PI * 2); c.fillStyle = o.wasPerfect ? '#ffd166' : '#43d08f'; c.fill();
+    c.lineWidth = 2; c.strokeStyle = '#10131c'; c.stroke();
+    c.beginPath(); c.moveTo(bx - 3.5, by); c.lineTo(bx - 1, by + 2.8); c.lineTo(bx + 3.8, by - 2.8); c.stroke();
+  }
+  const now = performance.now();
+  for (const o of S.objs) {
+    const age = (now - (o.cheerAt || -1e9)) / 1000;
+    if (age > 1.4) continue;
+    const [nx, ny] = worldOf(o, 0, -o.h / 2);
+    c.save(); c.globalAlpha = 1 - age / 1.4;
+    txt(c, o.call ? '♪' : '✓', nx + 10 * Math.sin(age * 6), ny - 8 - age * 26, '700 20px "Noto Sans TC", sans-serif', '#ffd166');
+    c.restore();
+  }
+  const s = S.selected;
+  if (s && S.running) { c.save(); c.translate(s.x, s.y); c.rotate(rad(s.angle)); c.setLineDash([5, 4]); c.lineWidth = 1.5; c.strokeStyle = 'rgba(227,176,75,.95)'; c.strokeRect(-s.w / 2 - 6, -s.h / 2 - 6, s.w + 12, s.h + 12); c.restore(); }
+}
+function render() {
+  if (!S.L || !S.bg) return;
+  const now = performance.now() / 1000, dt = Math.min(0.1, now - (S.lastRender || now));
+  S.lastRender = now;
+  for (const o of S.objs) {
+    const want = o.call && !o.wasAligned && !(S.drag && S.drag.o === o) ? 1 : 0;
+    o.live += (want - o.live) * Math.min(1, dt * 5);
+    if (Math.abs(want - o.live) < 1e-3) o.live = want; // settle fully so a calm creature is truly still
+  }
+  renderScene(ctx, K, S.L, S.objs, S.bg, now);
+  if (S.loupeObj) renderLoupe();
+  drawUI(ctx);
+}
+
+/* ---------- loupe: zoomed view + live degree readout ---------- */
+function renderLoupe() {
+  const o = S.loupeObj, e = errOf(o), ae = Math.abs(e);
+  const [ax, ay] = worldOf(o, o.w * 0.3, -o.h / 2);
+  const r = 30, L = lcv.width, m = L / 2, d = DPR;
+  lctx.setTransform(1, 0, 0, 1, 0, 0);
+  lctx.fillStyle = '#0b0d14'; lctx.fillRect(0, 0, L, L);
+  lctx.drawImage(cv, (ax - r) * K, (ay - r) * K, 2 * r * K, 2 * r * K, 0, 0, L, L);
+  lctx.fillStyle = 'rgba(8,10,16,.25)'; lctx.fillRect(0, 0, L, L);
+  const D = DF(), mode = D.loupe;
+  const state = ae <= D.perfect ? 'perfect' : ae <= D.tol ? 'ok' : ae <= Math.max(1.5, D.tol * 2) ? 'near' : ae <= 5 ? 'mid' : 'far';
+  const col = mode === 'zoom' ? '#e3b04b' : { perfect: '#ffd166', ok: '#43d08f', near: '#ffe066', mid: '#ffb03a', far: '#ff4a5c' }[state];
+  lctx.strokeStyle = 'rgba(255,255,255,.55)'; lctx.lineWidth = 1 * d;
+  for (let t = 0; t < 360; t += 10) { const a = rad(t), long = t % 90 === 0, r1 = m - (long ? 12 : 6) * d; lctx.beginPath(); lctx.moveTo(m + Math.cos(a) * r1, m + Math.sin(a) * r1); lctx.lineTo(m + Math.cos(a) * (m - 1), m + Math.sin(a) * (m - 1)); lctx.stroke(); }
+  lctx.setLineDash([6 * d, 5 * d]); lctx.strokeStyle = 'rgba(227,176,75,.95)'; lctx.lineWidth = 2 * d;
+  lctx.beginPath(); lctx.moveTo(0, m); lctx.lineTo(L, m); lctx.stroke(); lctx.setLineDash([]);
+  lctx.save(); lctx.translate(m, m); lctx.rotate(rad(o.angle));
+  lctx.strokeStyle = col; lctx.lineWidth = 2.5 * d; lctx.beginPath(); lctx.moveTo(-L, 0); lctx.lineTo(L, 0); lctx.stroke(); lctx.restore();
+  if (ae > 0.05) { lctx.strokeStyle = col; lctx.lineWidth = 3 * d; lctx.beginPath(); lctx.arc(m, m, L * 0.34, 0, rad(e), e < 0); lctx.stroke(); }
+  lctx.fillStyle = col; lctx.beginPath(); lctx.arc(m, m, 3.5 * d, 0, Math.PI * 2); lctx.fill();
+  loupe.dataset.s = mode === 'zoom' ? 'zoom' : state;
+  $('#lname').textContent = tr(o.name);
+  $('#ldeg').hidden = mode === 'zoom';
+  $('#ldeg').textContent = mode === 'zoom' ? '' : fmt(e) + '°';
+  $('#ldir').textContent = mode === 'zoom' ? '' : state === 'perfect' ? U('ldPerfect') : state === 'ok' ? U('ldOk') : mode === 'guide' ? (e > 0 ? U('ldCcw') : U('ldCw')) : '';
+  const sx = ax * S.scale, sy = ay * S.scale;
+  const side = S.drag && S.pointerX != null ? (S.pointerX > sx ? -1 : 1) : (sx > S.cssW / 2 ? -1 : 1);
+  const half = Math.max(66, loupe.offsetWidth / 2) + 4;
+  const lx = Math.max(half, Math.min(S.cssW - half, sx + side * 105));
+  const ly = Math.max(70, Math.min(S.cssH - 52, sy - 20));
+  loupe.style.left = lx + 'px'; loupe.style.top = ly + 'px';
+}
+function showLoupe(o) { S.loupeObj = o; clearTimeout(S.lt); loupe.classList.add('on'); S.dirty = true; }
+function hideLoupeSoon(ms = 900) { clearTimeout(S.lt); S.lt = setTimeout(() => { loupe.classList.remove('on'); S.loupeObj = null; S.dirty = true; }, ms); }
+
+/* ---------- rotation + evaluation ---------- */
+function rotateObj(o, d) {
+  o.angle = norm(o.angle + d);
+  if (o.link) {
+    const t = S.objs.find(x => x.id === o.link.to); t.angle = norm(t.angle + d * o.link.k);
+    if (!S.linkToasted) { S.linkToasted = true; toast(U('linked', tr(o.name), tr(t.name))); }
+  }
+  const e = errOf(o), b = Math.abs(e) >= 1 ? Math.trunc(e) : 1000 + Math.trunc(e * 10);
+  if (b !== o.bucket) { o.bucket = b; const now = performance.now(); if (now - (S.lastTick || 0) > 28) { S.lastTick = now; AU.tick(Math.abs(e) < 1); } }
+  S.dirty = true;
+}
+function counts() { const list = S.objs.filter(o => !o.trap); return [list.filter(o => o.wasAligned).length, list.length]; }
+function evaluate(silent) {
+  for (const o of S.objs) {
+    if (o.trap) continue;
+    const e = Math.abs(errOf(o)), al = e <= DF().tol, pf = e <= DF().perfect;
+    if (!silent) {
+      if (al && !o.wasAligned) cheer(o);
+      if (pf && !o.wasPerfect) {
+        AU.perfect();
+        let bonus = 0;
+        if (!o.bonusGiven && S.running) { o.bonusGiven = true; addTime(PERFECT_BONUS); bonus = PERFECT_BONUS; }
+        toast(U('perfectToast', tr(o.name), e.toFixed(2), bonus));
+      }
+    }
+    o.wasAligned = al; o.wasPerfect = pf;
+  }
+  const [n, m] = counts(), all = n === m;
+  doneBtn.textContent = U('done', n, m); doneBtn.disabled = !all; doneBtn.classList.toggle('ready', all);
+  if (all && !S.allWas && !silent) { AU.allSet(); toast(U('allSet')); }
+  S.allWas = all; S.dirty = true;
+}
+// Aligned: a creature answers with its own call, everything else chimes.
+function cheer(o) { o.cheerAt = performance.now(); if (o.call) AU.call(o.call); else if (o.sfx) AU.thing(o.sfx, o.note); else AU.chime(); }
+function addTime(s) {
+  S.timeLeft += s;
+  const p = $('#plus'); p.textContent = `+${s}s`; p.dataset.anim = 'pop'; restart(p);
+  updateTimer();
+}
+function select(o) {
+  S.selected = o;
+  $('#selName').innerHTML = o ? U('sel', esc(tr(o.name))) : U('selNone');
+  S.dirty = true;
+}
+
+/* ---------- level flow ---------- */
+function startLevel(i, skipIntro, instant) {
+  AU.init();
+  MUS.stop(); clearCountdown();
+  const L = LEVELS[i];
+  S.L = L; S.levelIdx = i; S.ended = false; S.running = false; S.paused = false; S.drag = null; S.allWas = false; S.linkToasted = false;
+  // quiet mercy: after repeated fails on this level, the next attempt gets a few extra seconds
+  S.timeTotal = levelTime(L) + ((S.fails[i] || 0) >= MERCY_AFTER ? MERCY_SECS : 0);
+  S.timeLeft = S.timeTotal; S.lastSec = null; S.lastTxt = ''; S.lastResult = null; setTense(false);
+  S.objs = L.objects.map((d, n) => {
+    const o = Object.assign({}, d, { note: n });
+    o.target = d.target ?? 0;
+    if (d.trap) o.angle = d.keep;
+    else { const tol = DF().tol, mag = d.near ? rnd(Math.max(0.65, tol * 1.4), Math.max(1.4, tol * 2.2)) : d.mag * rnd(0.8, 1.2); o.angle = norm(o.target + (S.rng() < 0.5 ? -1 : 1) * mag); }
+    o.wasAligned = false; o.wasPerfect = false; o.bucket = null; o.live = 1; o.phase = S.rng() * 10; o.cheerAt = 0;
+    return o;
+  });
+  select(null); loupe.classList.remove('on'); S.loupeObj = null;
+  $('#home').hidden = true; $('#ovChapter').hidden = true; gameEl.hidden = false;
+  $('#ovResult').hidden = true; $('#ovPause').hidden = true;
+  $('#lvK').textContent = `${stageLabel(L)} · ${tr(DF().name)}`;
+  $('#lvN').textContent = tr(L.title);
+  timerEl.textContent = String(S.timeTotal); $('#tbar').style.transform = 'scaleX(1)'; $('#count').textContent = '';
+  layout();
+  evaluate(true);
+  if (skipIntro) begin(instant); else showIntro();
+}
+function showIntro() {
+  const L = S.L, n = L.objects.filter(o => !o.trap).length, D = DF();
+  const ov = $('#ovIntro');
+  ov.innerHTML = `<div class="card">
+    <p class="eyebrow">${U('introEyebrow', L.chapter + 1, tr(chapterOf(L).name), stageLabel(L), tr(chapterOf(L).style))}</p>
+    <h2>${tr(L.title)}</h2>
+    <p class="place">${U('introPlace', tr(L.place), n, tr(D.name))}</p>
+    <p class="hintbox">${tr(L.intro)}</p>
+    <ul class="tips">${U('tips', D.tol, D.perfect).map(x => `<li>${x}</li>`).join('')}</ul>
+    <div class="row"><button class="btn primary" id="goBtn">${U('goBtn', S.timeTotal)}</button><button class="btn ghost" id="introHome">${U('home')}</button></div>
+  </div>`;
+  ov.hidden = false;
+  $('#goBtn').onclick = () => begin();
+  $('#introHome').onclick = goHome;
+  $('#goBtn').focus();
+}
+function clearCountdown() { S.cd.forEach(clearTimeout); S.cd = []; }
+function startRound() {
+  S.running = true; S.paused = false; S.lastT = null;
+  MUS.start(S.L.song);
+  if (S.levelIdx === 0) toast(U('dragHint'));
+}
+function begin(instant) {
+  AU.init();
+  $('#ovIntro').hidden = true;
+  clearCountdown();
+  if (instant) { startRound(); return; }
+  const el = $('#count');
+  ['3', '2', '1', U('go')].forEach((t, k) => S.cd.push(setTimeout(() => {
+    const go = k === 3;
+    el.textContent = t; el.classList.toggle('go', go); el.dataset.anim = 'pop'; restart(el);
+    AU.secTick(go);
+    if (go) startRound();
+  }, k * 600)));
+}
+function setTense(v) {
+  S.tense = v; gameEl.classList.toggle('tense', v);
+  if (!v) { gameEl.classList.remove('peak'); MUS.peak = false; }
+  MUS.setTense(v && S.running);
+}
+function restart(el) { if (S.noFx) return; el.classList.remove(el.dataset.anim); void el.offsetWidth; el.classList.add(el.dataset.anim); }
+function updateTimer() {
+  const tl = S.timeLeft, sec = Math.ceil(tl);
+  const t = tl <= TENSE_AT ? tl.toFixed(1) : String(sec);
+  if (t !== S.lastTxt) { timerEl.textContent = t; S.lastTxt = t; }
+  $('#tbar').style.transform = `scaleX(${Math.min(1, tl / S.timeTotal)})`;
+  if (S.tense && tl > TENSE_AT) setTense(false); // a time bonus can lift the player out of the red zone
+  if (sec !== S.lastSec) {
+    S.lastSec = sec;
+    if (tl <= TENSE_AT && tl > 0) {
+      if (!S.tense) setTense(true);
+      const peak = tl <= PEAK_AT;
+      gameEl.classList.toggle('peak', peak); MUS.peak = peak;
+      AU.secTick(peak);
+      const bn = $('#bignum'); bn.textContent = sec; bn.dataset.anim = 'hit'; restart(bn);
+      timerEl.dataset.anim = 'bump'; restart(timerEl);
+      const hud = $('#hud'); hud.dataset.anim = 'shake'; restart(hud);
+    }
+  }
+}
+// Pure scoring: depends only on its inputs, so tests and the balance simulation call it directly.
+function computeScore(objs, timeLeft, win, diff = DF()) {
+  const TOL = diff.tol, PERFECT = diff.perfect;
+  const list = objs.filter(o => !o.trap);
+  let aligned = 0, prec = 0, perfectAll = true, sumErr = 0;
+  const rows = list.map(o => {
+    const e = Math.abs(errOf(o)); sumErr += e;
+    let st = 'miss';
+    if (e <= TOL) {
+      aligned++;
+      if (e <= PERFECT) { prec += 50; st = 'perfect'; }
+      else { prec += Math.round(40 * (1 - (e - PERFECT) / (TOL - PERFECT))); st = 'ok'; perfectAll = false; }
+    } else perfectAll = false;
+    return { name: tr(o.name), e, st };
+  });
+  const secsLeft = Math.max(0, Math.floor(timeLeft));
+  const timeBonus = win ? secsLeft * TIME_PTS : 0;
+  let trapPts = 0, trapMsg = null;
+  const t = objs.find(o => o.trap);
+  if (t && !win) trapMsg = U('trapLost');
+  else if (t) {
+    const moved = Math.abs(norm(t.angle - t.keep)), straight = Math.abs(norm(t.angle)) <= Math.max(1, TOL);
+    if (moved <= TOL) { trapPts = 200; trapMsg = U('trapKept', tr(t.trapNote) || tr(t.name)); }
+    else if (straight) { trapPts = -150; trapMsg = U('trapStraight', tr(t.name)); }
+    else trapMsg = U('trapMoved', tr(t.name));
+  }
+  const raw = Math.max(0, aligned * 100 + prec + timeBonus + trapPts);
+  const total = Math.round(raw * diff.mult);
+  let stars = 0;
+  if (win) { stars = 1; if (sumErr / list.length <= 0.25) stars = 2; if (perfectAll && (!t || trapPts > 0)) stars = 3; }
+  return { win, rows, aligned, count: list.length, prec, timeBonus, secsLeft, trapPts, trapMsg, raw, mult: diff.mult, diff: diff.key, total, stars };
+}
+function finish(win) {
+  if (S.ended) return;
+  S.ended = true; S.running = false; S.drag = null;
+  MUS.stop(); setTense(false);
+  loupe.classList.remove('on'); S.loupeObj = null;
+  evaluate(true);
+  const r = computeScore(S.objs, S.timeLeft, win);
+  S.fails[S.levelIdx] = win ? 0 : (S.fails[S.levelIdx] || 0) + 1;
+  const key = bestKey(S.levelIdx), best = store.data.best[key] || { score: 0, stars: 0 };
+  r.isNew = r.total > best.score;
+  store.data.best[key] = { score: Math.max(best.score, r.total), stars: Math.max(best.stars, r.stars) };
+  store.save();
+  r.best = store.data.best[key].score;
+  S.session[S.levelIdx] = r.total;
+  r.comment = pickComment(chapterOf(S.L).key, gradeTier(r));
+  S.lastResult = r;
+  if (win) AU.win(); else AU.fail();
+  showResult(r);
+  S.dirty = true;
+}
+function showResult(r) {
+  const L = S.L, i = S.levelIdx, last = i === LEVELS.length - 1;
+  const label = { perfect: U('stPerfect'), ok: U('stOk'), miss: U('stMiss') };
+  const rows = r.rows.map(x => `<li><span>${x.name}</span><span class="v">${fmt(x.e)}°</span><span class="tag ${x.st}">${label[x.st]}</span></li>`).join('');
+  const tally = [
+    [U('tAligned'), `${r.aligned}/${r.count} × 100`, r.aligned * 100],
+    [U('tPrec'), U('tPrecNote'), r.prec],
+    [U('tTime'), r.win ? U('tTimeNote', r.secsLeft, TIME_PTS) : U('tNoTime'), r.timeBonus]
+  ];
+  if (r.trapMsg) tally.push([U('tTrap'), '', r.trapPts]);
+  tally.push([U('tMult'), tr(DF().name), `× ${r.mult}`]);
+  const tallyHtml = tally.map(([a, b, v]) => `<span>${a}</span><em>${b}</em><b>${typeof v === 'string' ? v : (v >= 0 ? '+' : '−') + Math.abs(v)}</b>`).join('');
+  const stars = [0, 1, 2].map(j => `<span class="s ${j < r.stars ? 'on' : ''}">★</span>`).join('');
+  const played = Object.keys(S.session).length, sessionTotal = Object.values(S.session).reduce((a, b) => a + b, 0);
+  const totalLine = last && played === LEVELS.length ? `<p class="hintbox">${U('allTotal', sessionTotal)}</p>` : '';
+  let btns;
+  if (r.win && !last) btns = `<button class="btn primary" id="rNext">${U('next')}</button><button class="btn ghost" id="rRetry">${U('again')}</button><button class="btn ghost" id="rHome">${U('home')}</button>`;
+  else if (r.win) btns = `<button class="btn primary" id="rHome">${U('home')}</button><button class="btn ghost" id="rRetry">${U('again')}</button><button class="btn ghost" id="rFirst">${U('first')}</button>`;
+  else btns = `<button class="btn primary" id="rRetry">${U('retry')}</button><button class="btn ghost" id="rHome">${U('home')}</button>`;
+  const ov = $('#ovResult');
+  ov.innerHTML = `<div class="card">
+    <p class="eyebrow">${U('resEyebrow', stageLabel(L), tr(chapterOf(L).name), tr(L.title), tr(DF().name))}</p>
+    <h2>${r.win ? U('win', store.data.nick ? esc(store.data.nick) : '') : U('lose')}</h2>
+    <div class="bigstars" aria-label="${U('stars', r.stars)}">${stars}</div>
+    <div class="say say-${r.comment.tier}"><p class="say-h">${r.comment.headline}</p><p class="say-b">${r.comment.line}</p><p class="say-by">— ${r.comment.by}</p></div>
+    ${r.trapMsg ? `<p class="hintbox">${r.trapMsg}</p>` : ''}
+    <ul class="errs">${rows}</ul>
+    <div class="tally">${tallyHtml}</div>
+    <div class="total"><span>${U('total')}</span><b id="rTotal">0</b></div>
+    <p class="best">${U('best', r.best)}${r.isNew && r.total > 0 ? `　<span class="new">${U('newRec')}</span>` : ''}</p>
+    ${totalLine}
+    <div class="row">${btns}</div>
+  </div>`;
+  ov.hidden = false;
+  const on = (id, fn) => { const b = $(id); if (b) b.onclick = fn; };
+  on('#rNext', () => startLevel(i + 1));
+  on('#rRetry', () => startLevel(i, true));
+  on('#rHome', goHome);
+  on('#rFirst', () => startLevel(0));
+  const el = $('#rTotal'), t0 = performance.now(), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) el.textContent = r.total;
+  else (function step(t) { const k = Math.min(1, (t - t0) / 800); el.textContent = Math.round(r.total * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); })(t0);
+  (ov.querySelector('.btn.primary') || {}).focus?.();
+}
+function pause() {
+  if (!S.running || S.paused) return;
+  S.paused = true; S.drag = null;
+  if (AU.ctx) AU.ctx.suspend();
+  $('#ovPause').hidden = false;
+}
+function resume() {
+  $('#ovPause').hidden = true; S.paused = false; S.lastT = null;
+  if (AU.ctx) AU.ctx.resume();
+}
+function goHome() {
+  S.running = false; S.ended = true; MUS.stop(); clearCountdown(); setTense(false);
+  if (AU.ctx && AU.ctx.state === 'suspended') AU.ctx.resume();
+  gameEl.hidden = true; $('#ovIntro').hidden = true; $('#ovPause').hidden = true; $('#ovResult').hidden = true;
+  $('#home').hidden = false;
+  buildCards();
+}
+
+/* ---------- layout ---------- */
+function layout() {
+  if (gameEl.hidden) return;
+  const wrap = $('#stageWrap').getBoundingClientRect();
+  const w = Math.max(200, Math.floor(Math.min(wrap.width, wrap.height * 0.75))), h = Math.floor(w / 0.75);
+  const stage = $('#stage'); stage.style.width = w + 'px'; stage.style.height = h + 'px';
+  DPR = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+  S.scale = w / W; K = S.scale * DPR; S.cssW = w; S.cssH = h;
+  lcv.width = lcv.height = Math.round(132 * DPR);
+  if (S.L) S.bg = buildBg(S.L, K);
+  S.dirty = true;
+}
+
+/* ---------- input ---------- */
+function toLocal(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / S.scale, y: (e.clientY - r.top) / S.scale }; }
+function hit(p) {
+  for (let i = S.objs.length - 1; i >= 0; i--) {
+    const o = S.objs[i], a = -rad(o.angle), dx = p.x - o.x - (o.mx || 0), dy = p.y - o.y - (o.my || 0);
+    const lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a), pad = o.pad || 8;
+    if (Math.abs(lx) <= o.w / 2 + pad && Math.abs(ly) <= o.h / 2 + pad) return o;
+  }
+  return null;
+}
+function dragMove(p) {
+  const o = S.drag.o, dx = p.x - o.x, dy = p.y - o.y;
+  if (Math.hypot(dx, dy) < 14) { S.drag.last = null; return; }
+  const a = deg(Math.atan2(dy, dx));
+  if (S.drag.last != null) rotateObj(o, norm(a - S.drag.last));
+  S.drag.last = a;
+}
+cv.addEventListener('pointerdown', e => {
+  if (!S.running || S.paused || S.drag) return;
+  const p = toLocal(e), o = hit(p); if (!o) return;
+  e.preventDefault(); cv.setPointerCapture(e.pointerId);
+  select(o); S.drag = { o, id: e.pointerId, last: null }; S.pointerX = p.x * S.scale;
+  dragMove(p); showLoupe(o);
+});
+cv.addEventListener('pointermove', e => {
+  if (!S.drag || e.pointerId !== S.drag.id) return;
+  const p = toLocal(e); S.pointerX = p.x * S.scale; dragMove(p);
+});
+const endDrag = e => { if (!S.drag || e.pointerId !== S.drag.id) return; S.drag = null; evaluate(); hideLoupeSoon(); };
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+
+function nudge(d) {
+  if (!S.running || S.paused) return false;
+  if (!S.selected) { toast(U('pickFirst')); return false; }
+  rotateObj(S.selected, d); showLoupe(S.selected); return true;
+}
+document.querySelectorAll('.nudge').forEach(b => {
+  let t1, t2;
+  const d = parseFloat(b.dataset.d);
+  const stop = () => { if (t1 == null && t2 == null) return; clearTimeout(t1); clearInterval(t2); t1 = t2 = null; if (S.running) { evaluate(); hideLoupeSoon(1200); } };
+  b.addEventListener('pointerdown', e => { e.preventDefault(); if (!nudge(d)) return; t1 = setTimeout(() => { t2 = setInterval(() => nudge(d), 70); }, 350); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, stop));
+  b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (nudge(d)) { evaluate(); hideLoupeSoon(1200); } } });
+});
+doneBtn.addEventListener('click', () => { if (S.running && !S.paused) { evaluate(true); if (S.allWas) finish(true); } });
+window.addEventListener('keydown', e => {
+  if (gameEl.hidden || !S.running || S.paused) return;
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    const d = (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 1 : 0.1);
+    if (nudge(d)) { clearTimeout(S.kt); S.kt = setTimeout(() => { evaluate(); hideLoupeSoon(1200); }, 250); }
+  } else if (e.key === 'Escape') pause();
+});
+$('#pauseBtn').onclick = pause;
+$('#resumeBtn').onclick = resume;
+$('#restartBtn').onclick = () => { $('#ovPause').hidden = true; if (AU.ctx) AU.ctx.resume(); startLevel(S.levelIdx, true); };
+$('#quitBtn').onclick = goHome;
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+/* ---------- settings: language, music, sound effects ---------- */
+function syncSound() {
+  const music = store.data.music !== false, sound = store.data.sound !== false;
+  AU.setPrefs(music, sound);
+  for (const [id, v] of [['musicSeg', music], ['pMusicSeg', music], ['soundSeg', sound], ['pSoundSeg', sound]]) markSeg($('#' + id), v ? '1' : '0');
+  $('#musicBtn').classList.toggle('off', !music); $('#musicBtn').setAttribute('aria-pressed', String(music));
+}
+function markSeg(seg, v) { seg.querySelectorAll('button').forEach(b => { b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(b.dataset.v === v)); }); }
+function setMusic(on) { AU.init(); store.data.music = on; store.save(); syncSound(); if (on && S.running && !S.paused) MUS.start(S.L.song); }
+function setSound(on) { AU.init(); store.data.sound = on; store.save(); syncSound(); }
+$('#musicBtn').onclick = () => setMusic(store.data.music === false);
+for (const id of ['musicSeg', 'pMusicSeg']) $('#' + id).onclick = e => { const b = e.target.closest('button'); if (b) setMusic(b.dataset.v === '1'); };
+for (const id of ['soundSeg', 'pSoundSeg']) $('#' + id).onclick = e => { const b = e.target.closest('button'); if (b) setSound(b.dataset.v === '1'); };
+$('#langSeg').onclick = e => { const b = e.target.closest('button'); if (b) setLang(b.dataset.v); };
+// Fill every static label for the current language.
+function applyLang() {
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-Hant';
+  document.title = U('titleLabel');
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = U(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', U(el.dataset.i18nAria)));
+  document.querySelectorAll('.nudge').forEach((b, k) => b.setAttribute('aria-label', U('nudge')[k]));
+  $('#nick').placeholder = U('nickPh');
+  $('#rules').innerHTML = U('rules').map(([b, t]) => `<li><b>${b}</b><span>${t}</span></li>`).join('');
+  const title = $('#title'); title.innerHTML = U('title'); title.setAttribute('aria-label', U('titleLabel')); title.classList.toggle('en', LANG === 'en');
+  markSeg($('#langSeg'), LANG);
+  select(S.selected);
+  if (window.__tiltReset) window.__tiltReset();
+}
+function setLang(l) {
+  LANG = l === 'en' ? 'en' : 'zh'; store.data.lang = LANG; store.save();
+  applyLang(); buildDiffs(); buildCards();
+}
+
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2000); }
+
+/* ---------- home ---------- */
+const starsOf = i => (store.data.best[bestKey(i)] || {}).stars || 0;
+const clearedOf = i => !!store.data.best[bestKey(i)] && starsOf(i) > 0;
+// First stage not yet cleared on this difficulty (in order), else the very first.
+function nextIndex(from = 0, to = LEVELS.length) { for (let i = from; i < to; i++) if (!clearedOf(i)) return i; return from; }
+function buildCards() {
+  const box = $('#levels'); box.innerHTML = '';
+  CHAPTERS.forEach((ch, c) => {
+    const idx = LEVELS.map((L, i) => i).filter(i => LEVELS[i].chapter === c), first = LEVELS[idx[0]];
+    const done = idx.filter(clearedOf).length, stars = idx.reduce((a, i) => a + starsOf(i), 0);
+    const btn = document.createElement('button'); btn.className = 'lv'; btn.type = 'button';
+    btn.innerHTML = `<canvas width="84" height="112" aria-hidden="true"></canvas><div>
+      <div class="k">${U('worldK', c + 1, tr(ch.style))}</div>
+      <div class="n">${tr(ch.name)}</div>
+      <div class="m">${tr(ch.blurb)}</div>
+      <div class="prog">${U('worldProg', done, idx.length, stars, idx.length * 3)}</div></div>`;
+    btn.onclick = () => { saveNick(); openChapter(c); };
+    box.appendChild(btn);
+  });
+  const n = nextIndex();
+  $('#startBtn').textContent = clearedOf(0) ? U('cont', stageLabel(LEVELS[n])) : U('start');
+  drawThumbs();
+}
+function buildDiffs() {
+  const box = $('#diffs'); box.innerHTML = '';
+  DIFFS.forEach((d, k) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'diff'; b.id = `diff-${d.key}`;
+    b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === S.diff));
+    b.innerHTML = `<i>${tr(d.level)}</i><b>${tr(d.name)}</b><span>${tr(d.note)}</span>`;
+    b.onclick = () => setDiff(k);
+    box.appendChild(b);
+  });
+}
+function setDiff(k) {
+  S.diff = k; store.data.diff = DIFFS[k].key; store.save();
+  buildDiffs(); buildCards();
+}
+function openChapter(c) {
+  const ch = CHAPTERS[c], idx = LEVELS.map((L, i) => i).filter(i => LEVELS[i].chapter === c);
+  const nx = nextIndex(idx[0], idx[idx.length - 1] + 1), ov = $('#ovChapter');
+  const rows = idx.map(i => {
+    const L = LEVELS[i], b = store.data.best[bestKey(i)], n = L.objects.filter(o => !o.trap).length;
+    const st = [0, 1, 2].map(j => `<span class="s ${j < starsOf(i) ? 'on' : ''}">★</span>`).join('');
+    return `<li class="play${i === nx ? ' next' : ''}${clearedOf(i) ? ' done' : ''}" data-i="${i}" tabindex="0" role="button"><b>${stageLabel(L)}</b><strong>${tr(L.title)}</strong><span>${U('stageInfo', n, levelTime(L))}${b ? ' · ' + U('stageBest', b.score) : ''} ${st}</span></li>`;
+  }).join('');
+  ov.innerHTML = `<div class="card">
+    <p class="eyebrow">${U('worldK', c + 1, tr(ch.style))}</p>
+    <h2>${tr(ch.name)}</h2>
+    <p class="place">${tr(ch.blurb)}</p>
+    <ol class="stages">${rows}</ol>
+    <div class="row"><button class="btn primary" id="sheetPlay">${U('play', stageLabel(LEVELS[nx]))}</button><button class="btn ghost" id="sheetClose">${U('back')}</button></div>
+  </div>`;
+  ov.hidden = false;
+  const go = i => { ov.hidden = true; startLevel(i); };
+  ov.querySelectorAll('.stages li').forEach(li => {
+    li.onclick = () => go(+li.dataset.i);
+    li.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(+li.dataset.i); } };
+  });
+  $('#sheetPlay').onclick = () => go(nx);
+  $('#sheetClose').onclick = () => { ov.hidden = true; };
+  $('#sheetPlay').focus();
+}
+function drawThumbs() {
+  document.querySelectorAll('.lv canvas').forEach((c2, c) => {
+    const L = LEVELS.find(x => x.chapter === c), dpr = Math.min(window.devicePixelRatio || 1, 2), cw = 84;
+    c2.width = Math.round(cw * dpr); c2.height = Math.round(cw / 0.75 * dpr);
+    const k = cw / W * dpr;
+    const objs = L.objects.map((d, j) => Object.assign({}, d, { angle: d.trap ? d.keep : (d.target || 0) + (d.near ? 1.5 : (j % 2 ? -1 : 1) * d.mag), live: 1, phase: j }));
+    renderScene(c2.getContext('2d'), k, L, objs, buildBg(L, k));
+  });
+}
+function saveNick() { store.data.nick = $('#nick').value.trim().slice(0, 12); store.save(); }
+$('#startBtn').onclick = () => { saveNick(); startLevel(nextIndex()); };
+
+// the tilted 度 in the title: the first thing the player straightens
+(() => {
+  let el, a = 2.7, drag = null, done = false;
+  const set = () => {
+    el.style.transform = `rotate(${a}deg)`;
+    const ok = Math.abs(a) <= TOL; el.classList.toggle('ok', ok);
+    $('#tiltDeg').textContent = fmt(a) + '°';
+  };
+  const ang = e => deg(Math.atan2(e.clientY - drag.cy, e.clientX - drag.cx));
+  const down = e => { AU.init(); el.setPointerCapture(e.pointerId); const r = el.getBoundingClientRect(); drag = { cx: r.left + r.width / 2, cy: r.top + r.height * 0.55 }; drag.last = ang(e); };
+  const move = e => {
+    if (!drag) return; const n = ang(e), d = norm(n - drag.last); drag.last = n; a = norm(a + d); set();
+    const b = Math.abs(a) >= 1 ? Math.trunc(a) : 1000 + Math.trunc(a * 10);
+    if (b !== drag.b) { drag.b = b; AU.tick(Math.abs(a) < 1); }
+  };
+  const end = () => {
+    if (!drag) return; drag = null;
+    const info = $('#tiltInfo');
+    if (Math.abs(a) <= TOL) { AU.chime(); info.innerHTML = U('tiltWin', fmt(a) + '°'); done = true; }
+    else if (!done) info.innerHTML = U('tiltMore', fmt(a) + '°');
+    else info.innerHTML = U('tiltAgain', fmt(a) + '°');
+  };
+  // The title is rebuilt when the language changes: hook the new span up again.
+  window.__tiltReset = () => {
+    el = $('#tilt');
+    el.addEventListener('pointerdown', down); el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+    $('#tiltInfo').innerHTML = U(Math.abs(a) <= TOL ? 'tiltWin' : done ? 'tiltAgain' : 'tiltStart', fmt(a) + '°');
+    set();
+  };
+})();
+
+/* ---------- boot ---------- */
+store.load();
+LANG = store.data.lang === 'en' ? 'en' : 'zh';
+$('#nick').value = store.data.nick || '';
+syncSound();
+makeGrain();
+S.diff = Math.max(0, DIFFS.findIndex(d => d.key === (store.data.diff || 'normal')));
+applyLang();
+buildDiffs();
+buildCards();
+new ResizeObserver(() => layout()).observe($('#stageWrap'));
+window.addEventListener('resize', () => { if (!gameEl.hidden) layout(); });
+const fontList = ['20px "DotGothic16"', '20px Bangers', '700 20px "Playfair Display"', 'italic 700 20px "Playfair Display"', '600 20px Caveat', '700 14px "Noto Sans TC"'];
+Promise.race([Promise.all(fontList.map(f => document.fonts.load(f, f.includes('DotGothic') ? 'ラーメン祭' : f.includes('Noto') ? '與此同時在巴黎' : 'Ab'))), new Promise(r => setTimeout(r, 3000))])
+  .catch(() => {})
+  .then(() => { drawThumbs(); if (S.L && !gameEl.hidden) { S.bg = buildBg(S.L, K); S.dirty = true; } });
+
+function tickTime(dt) {
+  S.timeLeft = Math.max(0, S.timeLeft - dt);
+  updateTimer();
+  if (S.timeLeft <= 0) { evaluate(true); finish(S.allWas); }
+}
+
+/* ---------- test hook: driven by tests/game (automated tests + balance simulation) ---------- */
+window.__chayidu = {
+  api: 1,
+  consts: { TOL, PERFECT, TENSE_AT, PEAK_AT, PERFECT_BONUS, TIME_PTS, MERCY_AFTER, MERCY_SECS, W, H, DIFFS: JSON.parse(JSON.stringify(DIFFS)) },
+  // calibration only: adjust a difficulty's parameters
+  tuneDifficulty(key, patch) { Object.assign(DIFFS.find(d => d.key === key), patch); },
+  setDifficulty(key) { const k = DIFFS.findIndex(d => d.key === key); if (k < 0) throw new Error('unknown difficulty ' + key); S.diff = k; },
+  setLang(l) { setLang(l); },
+  levels: () => LEVELS.map(L => ({ key: L.key, chapter: L.chapter, stage: L.stage, chapterName: tr(chapterOf(L).name), title: tr(L.title), titles: L.title,
+    place: L.place, intro: L.intro, time: L.time, animated: !!L.animated,
+    objects: L.objects.map(o => ({ id: o.id, name: tr(o.name), names: { zh: o.name.zh, en: o.name.en }, trap: !!o.trap, keep: o.keep ?? null, near: !!o.near, mag: o.mag ?? null, target: o.target ?? 0,
+      call: o.call || null, sfx: o.sfx || null, habit: !!o.habit, link: o.link ? Object.assign({}, o.link) : null, x: o.x, y: o.y, w: o.w, h: o.h })) })),
+  chapters: () => CHAPTERS.map(c => ({ key: c.key, name: tr(c.name), names: c.name, blurb: c.blurb, style: c.style, narrator: c.narrator, stages: c.stages.map(st => tr(st.title)) })),
+  comments: () => JSON.parse(JSON.stringify(COMMENTS)),
+  soundKinds: () => ({ creature: Object.keys(QS.creature), thing: Object.keys(QS.thing), ui: Object.keys(QS.ui) }),
+  // Render one sound offline and report how loud and how long it is.
+  async renderSound(group, kind, arg = 1) {
+    const ac = new OfflineAudioContext(1, 44100 * 1.6, 44100);
+    QS[group][kind](ac, ac.destination, 0.02, arg);
+    const d = (await ac.startRendering()).getChannelData(0);
+    let peak = 0, last = 0, bad = false;
+    for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); if (!Number.isFinite(v)) bad = true; if (v > peak) peak = v; if (v > 0.01) last = i; }
+    return { peak, seconds: last / 44100, bad };
+  },
+  // Picture of one level as a PNG data URL: scrambled (as a round starts) or aligned.
+  scene(i, opts = {}) {
+    const L = LEVELS[i], k = opts.scale || 1, b = document.createElement('canvas');
+    b.width = Math.round(W * k); b.height = Math.round(H * k);
+    const objs = L.objects.map((d, j) => Object.assign({}, d, { live: opts.aligned ? 0 : 1, phase: j,
+      angle: d.trap ? d.keep : (d.target || 0) + (opts.aligned ? 0 : d.near ? 1.5 : (j % 2 ? -1 : 1) * d.mag) }));
+    renderScene(b.getContext('2d'), k, L, objs, buildBg(L, k), opts.t ?? 0.6);
+    if (opts.boxes) {
+      const c = b.getContext('2d'); c.setTransform(k, 0, 0, k, 0, 0); c.lineWidth = 1;
+      for (const o of objs) { c.strokeStyle = o.trap ? '#f0f' : '#0ff'; c.strokeRect(o.x - o.w / 2, o.y - o.h / 2, o.w, o.h); txt(c, o.id, o.x, o.y - o.h / 2 + 6, '700 9px sans-serif', o.trap ? '#f0f' : '#0ff'); }
+    }
+    return b.toDataURL('image/png');
+  },
+  localText: () => [...LOCAL_TEXT],
+  // Milliseconds per frame to redraw level i (background cached), averaged over n frames.
+  benchScene(i, n = 60) {
+    const L = LEVELS[i], k = 2, b = document.createElement('canvas'); b.width = W * k; b.height = H * k;
+    const bg = buildBg(L, k), c = b.getContext('2d');
+    const objs = L.objects.map((d, j) => Object.assign({}, d, { live: 1, phase: j, angle: d.trap ? d.keep : (d.mag || 1.5) }));
+    const t0 = performance.now(); for (let f = 0; f < n; f++) renderScene(c, k, L, objs, bg, f / 60);
+    c.getImageData(0, 0, 1, 1);
+    return (performance.now() - t0) / n;
+  },
+  gradeTier: (r) => gradeTier(r),
+  // calibration only: try a different time budget for a level
+  setLevelTime(i, sec) { LEVELS[i].time = sec; },
+  sfxLog: () => S.sfxLog.slice(),
+  seed(n) { S.rng = n == null ? Math.random : mulberry(n); },
+  // quiet: no sound and no effect animations, for fast headless simulation
+  quiet(on) { AU.silent = !!on; S.noFx = !!on; if (on) MUS.stop(); },
+  manualClock(on) { S.manualClock = !!on; S.lastT = null; },
+  start(i, opts = {}) { startLevel(i, true, opts.instant !== false); return this.state(); },
+  advance(sec) { let left = sec; while (left > 1e-9 && S.running && !S.paused) { const dt = Math.min(0.05, left); tickTime(dt); left -= dt; } return S.timeLeft; },
+  rotate(id, d) { const o = S.objs.find(x => x.id === id); if (!o || !S.running || S.paused) return false; rotateObj(o, d); return true; },
+  setAngle(id, a) { const o = S.objs.find(x => x.id === id); return o ? this.rotate(id, norm(a - o.angle)) : false; },
+  release() { if (S.running) evaluate(); },
+  select(id) { select(S.objs.find(x => x.id === id) || null); },
+  nudge: d => nudge(d),
+  done() { doneBtn.click(); },
+  pause: () => pause(),
+  resume: () => resume(),
+  home: () => goHome(),
+  resetProgress() { store.data.best = {}; store.save(); S.session = {}; S.fails = {}; },
+  computeScore: (objs, timeLeft, win, diffKey) => computeScore(objs.map(o => Object.assign({ target: 0 }, o)), timeLeft, win, diffKey ? DIFFS.find(d => d.key === diffKey) : DF()),
+  state() {
+    const [n, m] = counts();
+    return { screen: gameEl.hidden ? 'home' : 'game', level: S.levelIdx, key: S.L && S.L.key, diff: DF().key, tol: DF().tol,
+      running: S.running, paused: S.paused, ended: S.ended, timeLeft: S.timeLeft, timeTotal: S.timeTotal,
+      tense: S.tense, peak: gameEl.classList.contains('peak'), aligned: n, required: m,
+      doneEnabled: !doneBtn.disabled, timerText: timerEl.textContent,
+      objs: S.objs.map(o => ({ id: o.id, angle: o.angle, target: o.target, err: errOf(o), keep: o.keep ?? null, trap: !!o.trap, call: o.call || null, live: o.live,
+        aligned: !!o.wasAligned, perfect: !!o.wasPerfect, bonusGiven: !!o.bonusGiven })),
+      fails: Object.assign({}, S.fails), session: Object.assign({}, S.session), lastResult: S.lastResult,
+      lang: LANG, overlays: { intro: !$('#ovIntro').hidden, pause: !$('#ovPause').hidden, result: !$('#ovResult').hidden, chapter: !$('#ovChapter').hidden } };
+  }
+};
+
+function loop(t) {
+  const dt = S.lastT == null ? 0 : Math.min(0.1, (t - S.lastT) / 1000); S.lastT = t;
+  if (S.running && !S.paused && !S.manualClock) tickTime(dt);
+  if (S.L && S.L.animated && !gameEl.hidden && !document.hidden) S.dirty = true;
+  if (S.dirty) { S.dirty = false; render(); }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
